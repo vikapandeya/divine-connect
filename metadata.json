@@ -1,0 +1,7 @@
+{
+  "name": "DivineConnect",
+  "description": "A comprehensive platform for temple services booking and spiritual e-commerce marketplace.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
