@@ -5,8 +5,14 @@ import { defineConfig, loadEnv } from 'vite';
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, '.', '');
+  const isPagesBuild = mode === 'pages';
+
   return {
-    base: '/divine-connect/',
+    base: isPagesBuild ? '/divine-connect/docs/' : '/divine-connect/',
+    build: {
+      outDir: isPagesBuild ? 'docs' : 'dist',
+      emptyOutDir: true,
+    },
     plugins: [react(), tailwindcss()],
     define: {
       'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
