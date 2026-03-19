@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { auth } from '../firebase';
 import { UserProfile, Booking, Order } from '../types';
-import { motion } from 'framer-motion';
-import { User, Package, Calendar, Settings, LogOut, MapPin, Phone, Mail } from 'lucide-react';
+import { User, Package, Calendar, Settings, Phone, Mail } from 'lucide-react';
 
 export default function Profile() {
+  const currentUser = auth?.currentUser;
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
@@ -13,12 +13,12 @@ export default function Profile() {
   const [isResetting, setIsResetting] = useState(false);
 
   useEffect(() => {
-    if (!auth.currentUser) return;
+    if (!currentUser) return;
 
     // Fetch Profile
     const fetchProfile = async () => {
       try {
-        const response = await fetch(`/api/users/${auth.currentUser!.uid}`);
+        const response = await fetch(`/api/users/${currentUser.uid}`);
         if (response.ok) {
           const data = await response.json();
           setProfile(data);
@@ -32,7 +32,7 @@ export default function Profile() {
     // Fetch Bookings
     const fetchBookings = async () => {
       try {
-        const response = await fetch(`/api/bookings/${auth.currentUser!.uid}`);
+        const response = await fetch(`/api/bookings/${currentUser.uid}`);
         if (response.ok) {
           const data = await response.json();
           setBookings(data);
@@ -46,7 +46,7 @@ export default function Profile() {
     // Fetch Orders
     const fetchOrders = async () => {
       try {
-        const response = await fetch(`/api/orders/${auth.currentUser!.uid}`);
+        const response = await fetch(`/api/orders/${currentUser.uid}`);
         if (response.ok) {
           const data = await response.json();
           setOrders(data);
@@ -56,7 +56,7 @@ export default function Profile() {
       }
     };
     fetchOrders();
-  }, []);
+  }, [currentUser]);
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,7 +66,7 @@ export default function Profile() {
       const response = await fetch('/api/auth/reset-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ uid: auth.currentUser?.uid, newPassword })
+        body: JSON.stringify({ uid: currentUser?.uid, newPassword })
       });
       if (response.ok) {
         alert('Password reset successfully!');
@@ -79,7 +79,7 @@ export default function Profile() {
     }
   };
 
-  if (!auth.currentUser) {
+  if (!currentUser) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
         <p className="text-stone-500">Please sign in to view your profile.</p>
@@ -94,17 +94,17 @@ export default function Profile() {
         <div className="lg:col-span-1 space-y-6">
           <div className="bg-white p-8 rounded-[2rem] border border-stone-200 text-center">
             <img 
-              src={auth.currentUser.photoURL || ''} 
+              src={currentUser.photoURL || ''} 
               alt="" 
               className="w-24 h-24 rounded-full mx-auto mb-4 border-4 border-orange-100"
             />
-            <h2 className="text-xl font-bold text-stone-900">{auth.currentUser.displayName}</h2>
+            <h2 className="text-xl font-bold text-stone-900">{currentUser.displayName}</h2>
             <p className="text-stone-500 text-sm mb-6 capitalize">{profile?.role || 'Devotee'}</p>
             
             <div className="space-y-3 text-left">
               <div className="flex items-center text-sm text-stone-600">
                 <Mail className="w-4 h-4 mr-2 text-stone-400" />
-                <span className="truncate">{auth.currentUser.email}</span>
+                <span className="truncate">{currentUser.email}</span>
               </div>
               {profile?.phoneNumber && (
                 <div className="flex items-center text-sm text-stone-600">
@@ -177,13 +177,13 @@ export default function Profile() {
                     <div className="space-y-2">
                       <label className="text-xs font-bold text-stone-400 uppercase tracking-wider">Full Name</label>
                       <div className="p-4 bg-stone-50 rounded-2xl border border-stone-100 font-bold text-stone-900">
-                        {auth.currentUser.displayName}
+                        {currentUser.displayName}
                       </div>
                     </div>
                     <div className="space-y-2">
                       <label className="text-xs font-bold text-stone-400 uppercase tracking-wider">Email Address</label>
                       <div className="p-4 bg-stone-50 rounded-2xl border border-stone-100 font-bold text-stone-900">
-                        {auth.currentUser.email}
+                        {currentUser.email}
                       </div>
                     </div>
                   </div>

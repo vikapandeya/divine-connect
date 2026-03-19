@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { auth, signInWithGoogle, logout } from '../firebase';
+import { auth, firebaseInitError, logout } from '../firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '../firebase';
 import { UserProfile } from '../types';
-import { Search, ShoppingCart, User as UserIcon, Menu, X, Flame, Hand, Utensils, BookOpen } from 'lucide-react';
+import { Search, ShoppingCart, Menu, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import AuthModal from './AuthModal';
 
@@ -17,6 +15,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
 
   useEffect(() => {
+    if (!auth) {
+      setUser(null);
+      setProfile(null);
+      return;
+    }
+
     const unsubscribe = onAuthStateChanged(auth, async (u) => {
       setUser(u);
       if (u) {
@@ -66,6 +70,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
             {/* Actions */}
             <div className="flex items-center space-x-4">
+              {firebaseInitError && (
+                <div className="hidden lg:block max-w-xs rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-800">
+                  Auth is temporarily unavailable.
+                </div>
+              )}
+
               <div className="hidden sm:flex items-center bg-stone-100 rounded-full px-3 py-1.5">
                 <Search className="w-4 h-4 text-stone-400" />
                 <input 

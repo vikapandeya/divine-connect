@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { Clock, IndianRupee, CheckCircle2, Calendar, User, ShieldCheck, ArrowLeft } from 'lucide-react';
 
 export default function PujaDetail() {
+  const currentUser = auth?.currentUser;
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [puja, setPuja] = useState<Puja | null>(null);
@@ -43,7 +44,7 @@ export default function PujaDetail() {
   }, [id]);
 
   const handleBooking = async () => {
-    if (!auth.currentUser) {
+    if (!currentUser) {
       alert('Please sign in to book a puja.');
       return;
     }
@@ -58,7 +59,7 @@ export default function PujaDetail() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: auth.currentUser.uid,
+          userId: currentUser.uid,
           serviceId: id,
           vendorId: puja?.vendorId || 'system',
           type: 'puja',

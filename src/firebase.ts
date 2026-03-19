@@ -1,16 +1,61 @@
-import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from 'firebase/auth';
-import { getFirestore, doc, getDoc, setDoc, collection, query, where, onSnapshot, addDoc, updateDoc, deleteDoc, getDocFromServer } from 'firebase/firestore';
+import { initializeApp, type FirebaseApp } from 'firebase/app';
+import {
+  getAuth,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signOut,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  updateProfile,
+  type Auth,
+} from 'firebase/auth';
+import { getFirestore, doc, getDocFromServer, type Firestore } from 'firebase/firestore';
 import firebaseConfig from '../firebase-applet-config.json';
 
-const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
-export const auth = getAuth(app);
-export const googleProvider = new GoogleAuthProvider();
+let firebaseInitError: Error | null = null;
+let app: FirebaseApp | null = null;
+let db: Firestore | null = null;
+let auth: Auth | null = null;
+let googleProvider: GoogleAuthProvider | null = null;
+
+try {
+  app = initializeApp(firebaseConfig);
+  db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+  auth = getAuth(app);
+  googleProvider = new GoogleAuthProvider();
+} catch (error) {
+  firebaseInitError = error instanceof Error ? error : new Error(String(error));
+  console.error('Firebase initialization failed:', firebaseInitError);
+}
+
+export { app, db, auth, googleProvider, firebaseInitError };
+
+function requireAuth(): Auth {
+  if (!auth) {
+    throw new Error(
+      firebaseInitError?.message || 'Firebase authentication is unavailable. Please verify your Firebase config.',
+    );
+  }
+  return auth;
+}
+
+function requireDb(): Firestore {
+  if (!db) {
+    throw new Error(
+      firebaseInitError?.message || 'Firestore is unavailable. Please verify your Firebase config.',
+    );
+  }
+  return db;
+}
 
 export const signInWithGoogle = async (role: string = 'devotee') => {
   try {
-    const result = await signInWithPopup(auth, googleProvider);
+    const authInstance = requireAuth();
+    if (!googleProvider) {
+      throw new Error('Google sign-in is unavailable. Firebase failed to initialize.');
+    }
+
+    const result = await signInWithPopup(authInstance, googleProvider);
     const user = result.user;
     
     // Sync user with MySQL backend
@@ -34,7 +79,8 @@ export const signInWithGoogle = async (role: string = 'devotee') => {
 };
 
 export const registerWithEmail = async (email: string, pass: string, name: string, role: string = 'devotee') => {
-  const result = await createUserWithEmailAndPassword(auth, email, pass);
+  const authInstance = requireAuth();
+  const result = await createUserWithEmailAndPassword(authInstance, email, pass);
   await updateProfile(result.user, { displayName: name });
   
   // Sync with MySQL
@@ -54,16 +100,19 @@ export const registerWithEmail = async (email: string, pass: string, name: strin
 };
 
 export const loginWithEmail = async (email: string, pass: string) => {
-  const result = await signInWithEmailAndPassword(auth, email, pass);
+  const authInstance = requireAuth();
+  const result = await signInWithEmailAndPassword(authInstance, email, pass);
   return result.user;
 };
 
-export const logout = () => signOut(auth);
+export const logout = () => signOut(requireAuth());
 
 // Connection test as required by guidelines
 async function testConnection() {
+  if (!db) return;
+
   try {
-    await getDocFromServer(doc(db, 'test', 'connection'));
+    await getDocFromServer(doc(requireDb(), 'test', 'connection'));
   } catch (error) {
     if (error instanceof Error && error.message.includes('the client is offline')) {
       console.error("Please check your Firebase configuration.");
@@ -85,12 +134,12 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
   const errInfo = {
     error: error instanceof Error ? error.message : String(error),
     authInfo: {
-      userId: auth.currentUser?.uid,
-      email: auth.currentUser?.email,
-      emailVerified: auth.currentUser?.emailVerified,
-      isAnonymous: auth.currentUser?.isAnonymous,
-      tenantId: auth.currentUser?.tenantId,
-      providerInfo: auth.currentUser?.providerData.map(provider => ({
+      userId: auth?.currentUser?.uid,
+      email: auth?.currentUser?.email,
+      emailVerified: auth?.currentUser?.emailVerified,
+      isAnonymous: auth?.currentUser?.isAnonymous,
+      tenantId: auth?.currentUser?.tenantId,
+      providerInfo: auth?.currentUser?.providerData.map(provider => ({
         providerId: provider.providerId,
         displayName: provider.displayName,
         email: provider.email,

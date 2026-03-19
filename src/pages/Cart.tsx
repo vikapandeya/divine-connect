@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { ShoppingBag, Trash2, IndianRupee, ArrowRight, MapPin } from 'lucide-react';
 
 export default function Cart() {
+  const currentUser = auth?.currentUser;
   const navigate = useNavigate();
   const [address, setAddress] = useState('');
   const [isCheckingOut, setIsCheckingOut] = useState(false);
@@ -18,7 +19,7 @@ export default function Cart() {
   const total = items.reduce((acc, item) => acc + item.price * item.quantity, 0);
 
   const handleCheckout = async () => {
-    if (!auth.currentUser) {
+    if (!currentUser) {
       alert('Please sign in to checkout.');
       return;
     }
@@ -33,7 +34,7 @@ export default function Cart() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: auth.currentUser.uid,
+          userId: currentUser.uid,
           items: items.map(i => ({ productId: i.id, quantity: i.quantity, price: i.price })),
           totalAmount: total,
           status: 'processing',
