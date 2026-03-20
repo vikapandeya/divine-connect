@@ -3,8 +3,6 @@ import { GoogleGenAI } from "@google/genai";
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Calendar, Clock, MapPin, Send, Star, Moon, Sun, Info } from 'lucide-react';
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-
 export default function Astrology() {
   const [formData, setFormData] = useState({
     name: '',
@@ -24,6 +22,12 @@ export default function Astrology() {
     setReading(null);
 
     try {
+      const apiKey = process.env.GEMINI_API_KEY;
+      if (!apiKey) {
+        throw new Error('AI astrology is not configured yet. Add GEMINI_API_KEY before using this feature.');
+      }
+
+      const ai = new GoogleGenAI({ apiKey });
       const prompt = `
         You are an expert Vedic Astrologer. Provide a detailed, spiritual, and insightful reading based on the following birth details:
         Name: ${formData.name}
@@ -53,7 +57,7 @@ export default function Astrology() {
       setReading(response.text);
     } catch (err) {
       console.error('Astrology error:', err);
-      setError('The stars are currently obscured. Please try again later.');
+      setError(err instanceof Error ? err.message : 'The stars are currently obscured. Please try again later.');
     } finally {
       setLoading(false);
     }
@@ -185,6 +189,14 @@ export default function Astrology() {
                     </>
                   )}
                 </button>
+                {!process.env.GEMINI_API_KEY && (
+                  <div className="flex items-start space-x-3 rounded-2xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-left">
+                    <Info className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
+                    <p className="text-sm text-amber-200">
+                      AI astrology is disabled on this deployment until a `GEMINI_API_KEY` is configured.
+                    </p>
+                  </div>
+                )}
               </form>
             </div>
           </motion.div>
