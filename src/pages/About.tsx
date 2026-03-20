@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Github, Linkedin, Mail, Heart, Shield, Globe, Star } from 'lucide-react';
+import { Github, Heart, Shield, Globe, Star, ArrowRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export default function About() {
   return (
@@ -79,34 +80,34 @@ export default function About() {
           <div className="relative z-10 flex flex-col md:flex-row items-center gap-12">
             <div className="w-48 h-48 rounded-[2rem] overflow-hidden border-4 border-white/10 shrink-0">
               <img 
-                src="https://github.com/GautamPince.png" 
-                alt="Gautam Pince" 
+                src="https://github.com/vikapandeya.png" 
+                alt="Vikash Pandey" 
                 className="w-full h-full object-cover"
               />
             </div>
             <div className="flex-grow text-center md:text-left">
               <h2 className="text-3xl font-serif font-bold mb-4">Meet the Developer</h2>
               <p className="text-stone-400 text-lg mb-8 leading-relaxed">
-                Hi, I'm <span className="text-white font-bold">Gautam Pince</span>. I built DivineConnect to explore how modern full-stack technologies can enhance our spiritual experiences. 
-                I'm passionate about building products that solve real-world problems with elegant design and robust engineering.
+                Hi, I&apos;m <span className="text-white font-bold">Vikash Pandey</span>. I&apos;m building DivineConnect to make spiritual services feel trustworthy, accessible, and beautifully connected online.
+                My focus is on blending thoughtful product design with practical full-stack engineering so devotees get a smooth and meaningful experience.
               </p>
               <div className="flex flex-wrap justify-center md:justify-start gap-4">
                 <a 
-                  href="https://github.com/GautamPince" 
+                  href="https://github.com/vikapandeya" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="flex items-center space-x-2 bg-white/10 hover:bg-white/20 px-6 py-3 rounded-2xl transition-all font-bold"
                 >
                   <Github className="w-5 h-5" />
-                  <span>GitHub</span>
+                  <span>GitHub Profile</span>
                 </a>
-                <a 
-                  href="mailto:pg2331427@gmail.com" 
+                <Link 
+                  to="/contact" 
                   className="flex items-center space-x-2 bg-orange-500 hover:bg-orange-600 px-6 py-3 rounded-2xl transition-all font-bold"
                 >
-                  <Mail className="w-5 h-5" />
-                  <span>Contact Me</span>
-                </a>
+                  <ArrowRight className="w-5 h-5" />
+                  <span>Contact Us</span>
+                </Link>
               </div>
             </div>
           </div>

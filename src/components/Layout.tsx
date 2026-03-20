@@ -226,7 +226,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <div>
               <h4 className="text-white font-medium mb-4">Connect</h4>
               <ul className="space-y-2 text-sm">
-                <li><a href="https://github.com/GautamPince" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors">Developer GitHub</a></li>
+                <li><Link to="/contact" className="hover:text-orange-500 transition-colors">Contact Us</Link></li>
                 <li>support@divineconnect.com</li>
                 <li>+91 1800-DIVINE-00</li>
                 <li>Varanasi, Uttar Pradesh, India</li>
