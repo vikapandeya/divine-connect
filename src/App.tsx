@@ -12,6 +12,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import VendorDashboard from './pages/VendorDashboard';
 import Astrology from './pages/Astrology';
 import About from './pages/About';
+import Contact from './pages/Contact';
 
 // Placeholder components for other pages
 const Placeholder = ({ title }: { title: string }) => (
@@ -37,7 +38,7 @@ export default function App() {
             <Route path="/services/prasad" element={<Placeholder title="Order Prasad" />} />
             <Route path="/shop" element={<Shop />} />
             <Route path="/about" element={<About />} />
-            <Route path="/contact" element={<Placeholder title="Contact Us" />} />
+            <Route path="/contact" element={<Contact />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/vendor" element={<VendorDashboard />} />

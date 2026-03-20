@@ -6,13 +6,24 @@ import { UserProfile } from '../types';
 import { Search, ShoppingCart, Menu, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import AuthModal from './AuthModal';
+import { getCartCount, subscribeToCart } from '../lib/cart';
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [cartCount, setCartCount] = useState(0);
+  const [searchTerm, setSearchTerm] = useState('');
   const navigate = useNavigate();
+
+  const navLinks = [
+    { to: '/services', label: 'Services' },
+    { to: '/shop', label: 'Shop' },
+    { to: '/astrology', label: 'AI Astrology' },
+    { to: '/about', label: 'About' },
+    { to: '/contact', label: 'Contact' },
+  ];
 
   useEffect(() => {
     if (!auth) {
@@ -40,8 +51,25 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     return unsubscribe;
   }, []);
 
+  useEffect(() => {
+    const syncCartCount = () => {
+      setCartCount(getCartCount());
+    };
+
+    syncCartCount();
+    return subscribeToCart(syncCartCount);
+  }, []);
+
   const handleLogin = () => {
     setIsAuthModalOpen(true);
+  };
+
+  const handleSearch = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const query = searchTerm.trim();
+    navigate(query ? `/shop?q=${encodeURIComponent(query)}` : '/shop');
+    setIsMenuOpen(false);
   };
 
   return (
@@ -61,11 +89,15 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
             {/* Desktop Nav */}
             <nav className="hidden md:flex items-center space-x-8">
-              <Link to="/services" className="text-sm font-medium text-stone-600 hover:text-orange-500 transition-colors">Services</Link>
-              <Link to="/shop" className="text-sm font-medium text-stone-600 hover:text-orange-500 transition-colors">Shop</Link>
-              <Link to="/astrology" className="text-sm font-medium text-stone-600 hover:text-orange-500 transition-colors">AI Astrology</Link>
-              <Link to="/about" className="text-sm font-medium text-stone-600 hover:text-orange-500 transition-colors">About</Link>
-              <Link to="/contact" className="text-sm font-medium text-stone-600 hover:text-orange-500 transition-colors">Contact</Link>
+              {navLinks.map((link) => (
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  className="text-sm font-medium text-stone-600 hover:text-orange-500 transition-colors"
+                >
+                  {link.label}
+                </Link>
+              ))}
             </nav>
 
             {/* Actions */}
@@ -76,18 +108,24 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 </div>
               )}
 
-              <div className="hidden sm:flex items-center bg-stone-100 rounded-full px-3 py-1.5">
+              <form onSubmit={handleSearch} className="hidden sm:flex items-center bg-stone-100 rounded-full px-3 py-1.5">
                 <Search className="w-4 h-4 text-stone-400" />
                 <input 
                   type="text" 
                   placeholder="Search..." 
+                  value={searchTerm}
+                  onChange={(event) => setSearchTerm(event.target.value)}
                   className="bg-transparent border-none focus:ring-0 text-sm w-32 lg:w-48 ml-2"
                 />
-              </div>
+              </form>
               
               <Link to="/cart" className="relative p-2 text-stone-600 hover:text-orange-500 transition-colors">
                 <ShoppingCart className="w-6 h-6" />
-                <span className="absolute top-0 right-0 bg-orange-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">0</span>
+                {cartCount > 0 && (
+                  <span className="absolute top-0 right-0 bg-orange-500 text-white text-[10px] font-bold rounded-full min-w-4 h-4 px-1 flex items-center justify-center">
+                    {cartCount}
+                  </span>
+                )}
               </Link>
 
               {user ? (
@@ -128,10 +166,28 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               className="md:hidden bg-white border-t border-stone-100 overflow-hidden"
             >
               <div className="px-4 pt-2 pb-6 space-y-1">
-                <Link to="/services" className="block px-3 py-2 text-base font-medium text-stone-600 hover:text-orange-500">Services</Link>
-                <Link to="/shop" className="block px-3 py-2 text-base font-medium text-stone-600 hover:text-orange-500">Shop</Link>
-                <Link to="/about" className="block px-3 py-2 text-base font-medium text-stone-600 hover:text-orange-500">About</Link>
-                <Link to="/contact" className="block px-3 py-2 text-base font-medium text-stone-600 hover:text-orange-500">Contact</Link>
+                <form onSubmit={handleSearch} className="px-3 py-2">
+                  <div className="flex items-center bg-stone-100 rounded-full px-3 py-2">
+                    <Search className="w-4 h-4 text-stone-400" />
+                    <input
+                      type="text"
+                      placeholder="Search..."
+                      value={searchTerm}
+                      onChange={(event) => setSearchTerm(event.target.value)}
+                      className="w-full bg-transparent border-none focus:ring-0 text-sm ml-2"
+                    />
+                  </div>
+                </form>
+                {navLinks.map((link) => (
+                  <Link
+                    key={link.to}
+                    to={link.to}
+                    onClick={() => setIsMenuOpen(false)}
+                    className="block px-3 py-2 text-base font-medium text-stone-600 hover:text-orange-500"
+                  >
+                    {link.label}
+                  </Link>
+                ))}
               </div>
             </motion.div>
           )}
