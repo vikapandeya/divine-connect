@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { GoogleGenAI } from "@google/genai";
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, MapPin, Send, Star, Moon, Sun, Info, Lock, ArrowRight } from 'lucide-react';
 import { auth } from '../firebase';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import AuthModal from '../components/AuthModal';
 import { Link } from 'react-router-dom';
+import { apiUrl, getApiConnectionHelp } from '../lib/api';
 
 export default function Astrology() {
   const [currentUser, setCurrentUser] = useState<FirebaseUser | null>(auth?.currentUser ?? null);
@@ -36,6 +36,12 @@ export default function Astrology() {
     return unsubscribe;
   }, []);
 
+  useEffect(() => {
+    if (currentUser?.displayName && !formData.name) {
+      setFormData((current) => ({ ...current, name: currentUser.displayName || '' }));
+    }
+  }, [currentUser, formData.name]);
+
   const generateReading = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -49,42 +55,29 @@ export default function Astrology() {
     setReading(null);
 
     try {
-      const apiKey = process.env.GEMINI_API_KEY;
-      if (!apiKey) {
-        throw new Error('AI astrology is not configured yet. Add GEMINI_API_KEY before using this feature.');
-      }
-
-      const ai = new GoogleGenAI({ apiKey });
-      const prompt = `
-        You are an expert Vedic Astrologer. Provide a detailed, spiritual, and insightful reading based on the following birth details:
-        Name: ${formData.name}
-        Date of Birth: ${formData.dob}
-        Time of Birth: ${formData.tob}
-        Place of Birth: ${formData.pob}
-        User's Query: ${formData.query || 'General life reading and spiritual guidance'}
-
-        Please include:
-        1. A brief analysis of their planetary positions.
-        2. Insights into their personality and spiritual path.
-        3. Guidance for the current period (Dasha/Transit).
-        4. A specific remedy (Mantra or Puja) related to their query.
-
-        Format the response in clear, beautiful Markdown. Keep the tone compassionate and divine.
-      `;
-
-      const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: prompt,
-        config: {
-          systemInstruction: "You are a divine Vedic Astrologer named 'Jyotish AI'. You provide accurate and spiritual guidance based on birth details.",
-          temperature: 0.7,
-        },
+      const response = await fetch(apiUrl('/api/astrology/reading'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: currentUser.uid,
+          ...formData,
+        }),
       });
 
-      setReading(response.text);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to generate astrology reading.');
+      }
+
+      setReading(data.reading);
     } catch (err) {
       console.error('Astrology error:', err);
-      setError(err instanceof Error ? err.message : 'The stars are currently obscured. Please try again later.');
+      if (err instanceof Error && /failed to fetch|networkerror/i.test(err.message)) {
+        setError(getApiConnectionHelp('astrology'));
+      } else {
+        setError(err instanceof Error ? err.message : getApiConnectionHelp('astrology'));
+      }
     } finally {
       setLoading(false);
     }
@@ -252,14 +245,12 @@ export default function Astrology() {
                     </>
                   )}
                 </button>
-                {!process.env.GEMINI_API_KEY && (
-                  <div className="flex items-start space-x-3 rounded-2xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-left">
-                    <Info className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
-                    <p className="text-sm text-amber-200">
-                      AI astrology is disabled on this deployment until a `GEMINI_API_KEY` is configured.
-                    </p>
-                  </div>
-                )}
+                <div className="flex items-start space-x-3 rounded-2xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-left">
+                  <Info className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
+                  <p className="text-sm text-amber-200">
+                    Your astrology reading is generated securely through the DivineConnect backend and saved for support quality and future improvements.
+                  </p>
+                </div>
               </form>
             </div>
           </motion.div>

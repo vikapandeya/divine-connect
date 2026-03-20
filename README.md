@@ -1,54 +1,68 @@
 # DivineConnect
 
-DivineConnect is a comprehensive full-stack platform designed to bridge the gap between spiritual traditions and modern technology. It provides a sacred digital space for devotees to access temple services, spiritual products, and divine guidance.
+DivineConnect is a full-stack spiritual services platform for puja booking, darshan access, sacred products, AI-powered astrology, and guided customer support.
 
-## 🌟 Features
+## Features
 
-- **Temple Services**: Book Pujas, Darshan slots, and order Prasad from verified temples.
-- **Spiritual Marketplace**: A dedicated shop for spiritual essentials, idols, and sacred items.
-- **AI Astrology (Jyotish AI)**: Personalized Vedic astrology readings powered by Gemini 3 Flash.
-- **Secure Authentication**: Devotee and Vendor specific login flows with OTP-based password recovery.
-- **Vendor Dashboard**: Specialized interface for temple administrators and spiritual product vendors.
-- **Admin Panel**: Comprehensive management of services, orders, and users.
+- Book pujas and spiritual services
+- Browse and buy sacred products
+- Get AI-powered Vedic astrology readings
+- Use AI support chat for bookings, orders, and onboarding help
+- Manage devotee, vendor, and admin flows
 
-## 🛠️ Tech Stack
+## Stack
 
-- **Frontend**: React, TypeScript, Tailwind CSS, Framer Motion, Lucide Icons.
-- **Backend**: Node.js, Express, MySQL (via `mysql2`).
-- **Database**: Firestore (for real-time updates) and MySQL (for structured data).
-- **AI**: Google Gemini API (`@google/genai`).
-- **Auth**: Firebase Authentication.
+- Frontend: React, TypeScript, Tailwind CSS, Framer Motion
+- Backend: Node.js, Express
+- Database: MySQL
+- Auth: Firebase Authentication
+- AI: Google Gemini via `@google/genai`
 
-## 🚀 Getting Started
+## Local Development
 
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/vikapandeya/divine-connect.git
-   ```
+1. Install dependencies:
 
-2. **Install dependencies**:
-   ```bash
-   npm install
-   ```
+```bash
+npm install
+```
 
-3. **Set up environment variables**:
-   Create a `.env` file based on `.env.example` and add your keys:
-   - `GEMINI_API_KEY`
-   - `GOOGLE_MAPS_PLATFORM_KEY`
-   - Firebase configuration details.
+2. Create `.env` from `.env.example` and fill in:
 
-4. **Run the development server**:
-   ```bash
-   npm run dev
-   ```
+- `GEMINI_API_KEY`
+- `MYSQL_HOST`
+- `MYSQL_USER`
+- `MYSQL_PASSWORD`
+- `MYSQL_DATABASE`
+- `MYSQL_PORT`
+- `FRONTEND_ORIGIN`
+- `VITE_API_BASE_URL` when frontend and backend are on different origins
 
-## 📜 License
+3. Run the frontend:
 
-This project is licensed under the MIT License.
+```bash
+npm run dev
+```
 
----
-Built with ❤️ by [Gautam Pince] 🧑‍💻 [Vikash Pandey] (https://github.com/GautamPince) (https://github.com/vikapandeya)
+4. Run the backend:
 
+```bash
+npm run dev:server
+```
 
-Check live here :-
-👉https://vikapandeya.github.io/divine-connect/docs/
+## Production
+
+- `npm run build` builds the production frontend
+- `npm start` runs the production backend and serves `dist/`
+- `npm run build:pages` builds the GitHub Pages version under `docs/`
+
+## Live Deployment
+
+- GitHub Pages frontend deployment is handled by `.github/workflows/deploy.yml`
+- The workflow reads `VITE_API_BASE_URL` from GitHub repository secrets
+- The backend can be deployed with the included `render.yaml`
+
+See `DEPLOYMENT.md` for the full live deployment steps.
+
+## Live URL
+
+`https://vikapandeya.github.io/divine-connect/docs/`

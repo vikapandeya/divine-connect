@@ -5,6 +5,7 @@ import { ShoppingCart, Star, Search, IndianRupee, X } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import { addToCart } from '../lib/cart';
 import { formatIndianRupees } from '../lib/utils';
+import { apiUrl } from '../lib/api';
 
 const categories = [
   'all',
@@ -97,8 +98,8 @@ export default function Shop() {
       try {
         const url =
           selectedCategory === 'all'
-            ? '/api/products'
-            : `/api/products?category=${encodeURIComponent(selectedCategory)}`;
+            ? apiUrl('/api/products')
+            : apiUrl(`/api/products?category=${encodeURIComponent(selectedCategory)}`);
         const response = await fetch(url);
         if (response.ok) {
           const data = await response.json();

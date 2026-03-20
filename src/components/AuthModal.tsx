@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Mail, Lock, User, ShieldCheck, ArrowRight, Chrome } from 'lucide-react';
 import { signInWithGoogle, registerWithEmail, loginWithEmail } from '../firebase';
+import { apiUrl } from '../lib/api';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -30,7 +31,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
     try {
       if (isForgotPassword) {
         if (!otpSent) {
-          const res = await fetch('/api/auth/forgot-password', {
+          const res = await fetch(apiUrl('/api/auth/forgot-password'), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email }),
@@ -40,7 +41,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
           setOtpSent(true);
           setSuccess('OTP sent to your email. Please check your inbox.');
         } else {
-          const res = await fetch('/api/auth/verify-otp', {
+          const res = await fetch(apiUrl('/api/auth/verify-otp'), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, otp, newPassword: password }),

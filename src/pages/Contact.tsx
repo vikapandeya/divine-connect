@@ -9,6 +9,8 @@ import {
   Sparkles,
   Send,
 } from 'lucide-react';
+import { auth } from '../firebase';
+import { apiUrl, getApiConnectionHelp } from '../lib/api';
 
 const contactCards = [
   {
@@ -70,10 +72,11 @@ export default function Contact() {
     setChatError('');
 
     try {
-      const response = await fetch('/api/support/chat', {
+      const response = await fetch(apiUrl('/api/support/chat'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          userId: auth?.currentUser?.uid ?? null,
           messages: nextMessages,
         }),
       });
@@ -92,11 +95,15 @@ export default function Contact() {
         },
       ]);
     } catch (error) {
-      setChatError(
-        error instanceof Error
-          ? error.message
-          : 'AI support is unavailable right now.',
-      );
+      if (error instanceof Error && /failed to fetch|networkerror/i.test(error.message)) {
+        setChatError(getApiConnectionHelp('support'));
+      } else {
+        setChatError(
+          error instanceof Error
+            ? error.message
+            : getApiConnectionHelp('support'),
+        );
+      }
     } finally {
       setIsSending(false);
     }

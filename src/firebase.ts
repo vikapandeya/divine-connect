@@ -11,6 +11,7 @@ import {
 } from 'firebase/auth';
 import { getFirestore, doc, getDocFromServer, type Firestore } from 'firebase/firestore';
 import firebaseConfig from '../firebase-applet-config.json';
+import { apiUrl } from './lib/api';
 
 let firebaseInitError: Error | null = null;
 let app: FirebaseApp | null = null;
@@ -59,7 +60,7 @@ export const signInWithGoogle = async (role: string = 'devotee') => {
     const user = result.user;
     
     // Sync user with MySQL backend
-    await fetch('/api/users', {
+    await fetch(apiUrl('/api/users'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -84,7 +85,7 @@ export const registerWithEmail = async (email: string, pass: string, name: strin
   await updateProfile(result.user, { displayName: name });
   
   // Sync with MySQL
-  await fetch('/api/users', {
+  await fetch(apiUrl('/api/users'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({

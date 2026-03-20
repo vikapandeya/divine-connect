@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { auth } from '../firebase';
 import { UserProfile, Booking, Order } from '../types';
 import { User, Package, Calendar, Settings, Phone, Mail } from 'lucide-react';
+import { apiUrl } from '../lib/api';
 
 export default function Profile() {
   const currentUser = auth?.currentUser;
@@ -18,7 +19,7 @@ export default function Profile() {
     // Fetch Profile
     const fetchProfile = async () => {
       try {
-        const response = await fetch(`/api/users/${currentUser.uid}`);
+        const response = await fetch(apiUrl(`/api/users/${currentUser.uid}`));
         if (response.ok) {
           const data = await response.json();
           setProfile(data);
@@ -32,7 +33,7 @@ export default function Profile() {
     // Fetch Bookings
     const fetchBookings = async () => {
       try {
-        const response = await fetch(`/api/bookings/${currentUser.uid}`);
+        const response = await fetch(apiUrl(`/api/bookings/${currentUser.uid}`));
         if (response.ok) {
           const data = await response.json();
           setBookings(data);
@@ -46,7 +47,7 @@ export default function Profile() {
     // Fetch Orders
     const fetchOrders = async () => {
       try {
-        const response = await fetch(`/api/orders/${currentUser.uid}`);
+        const response = await fetch(apiUrl(`/api/orders/${currentUser.uid}`));
         if (response.ok) {
           const data = await response.json();
           setOrders(data);
@@ -63,7 +64,7 @@ export default function Profile() {
     if (!newPassword) return;
     setIsResetting(true);
     try {
-      const response = await fetch('/api/auth/reset-password', {
+      const response = await fetch(apiUrl('/api/auth/reset-password'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ uid: currentUser?.uid, newPassword })

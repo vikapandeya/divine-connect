@@ -3,6 +3,7 @@ import { auth } from '../firebase';
 import { Product, Puja, Booking } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Edit2, Trash2, X, Save, Package, IndianRupee, Star, Calendar, Clock, User, CheckCircle, XCircle } from 'lucide-react';
+import { apiUrl } from '../lib/api';
 
 export default function VendorDashboard() {
   const currentUser = auth?.currentUser;
@@ -38,9 +39,9 @@ export default function VendorDashboard() {
       const vendorId = currentUser.uid;
       
       const [prodRes, pujaRes, bookRes] = await Promise.all([
-        fetch(`/api/products?vendorId=${vendorId}`),
-        fetch(`/api/pujas?vendorId=${vendorId}`),
-        fetch(`/api/vendor/bookings/${vendorId}`)
+        fetch(apiUrl(`/api/products?vendorId=${vendorId}`)),
+        fetch(apiUrl(`/api/pujas?vendorId=${vendorId}`)),
+        fetch(apiUrl(`/api/vendor/bookings/${vendorId}`))
       ]);
 
       if (prodRes.ok) setProducts(await prodRes.json());
@@ -100,7 +101,7 @@ export default function VendorDashboard() {
 
   const handleProductSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const url = editingItem ? `/api/products/${editingItem.id}` : '/api/products';
+    const url = editingItem ? apiUrl(`/api/products/${editingItem.id}`) : apiUrl('/api/products');
     const method = editingItem ? 'PUT' : 'POST';
     try {
       const response = await fetch(url, {
@@ -125,7 +126,7 @@ export default function VendorDashboard() {
 
   const handlePujaSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const url = editingItem ? `/api/pujas/${editingItem.id}` : '/api/pujas';
+    const url = editingItem ? apiUrl(`/api/pujas/${editingItem.id}`) : apiUrl('/api/pujas');
     const method = editingItem ? 'PUT' : 'POST';
     try {
       const response = await fetch(url, {
@@ -148,7 +149,7 @@ export default function VendorDashboard() {
 
   const handleDelete = async (id: string) => {
     if (!window.confirm('Are you sure?')) return;
-    const url = activeTab === 'products' ? `/api/products/${id}` : `/api/pujas/${id}`;
+    const url = activeTab === 'products' ? apiUrl(`/api/products/${id}`) : apiUrl(`/api/pujas/${id}`);
     try {
       const response = await fetch(url, { method: 'DELETE' });
       if (response.ok) fetchData();
@@ -159,7 +160,7 @@ export default function VendorDashboard() {
 
   const updateBookingStatus = async (id: string, status: string) => {
     try {
-      const response = await fetch(`/api/bookings/${id}/status`, {
+      const response = await fetch(apiUrl(`/api/bookings/${id}/status`), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status })

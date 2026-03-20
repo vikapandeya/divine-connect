@@ -3,10 +3,10 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches:
-      - main
+      - master
 
 jobs:
-  build-and-deploy:
+  build-and-deploy-docs:
     runs-on: ubuntu-latest
 
     steps:
@@ -22,11 +22,14 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Build project
-        run: npm run build
+      - name: Build docs site
+        env:
+          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
+        run: npm run build:pages
 
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
+      - name: Deploy docs path to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist
+          publish_dir: ./docs
+          destination_dir: docs

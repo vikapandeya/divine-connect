@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Product } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Edit2, Trash2, X, Save, Package, IndianRupee, Star, Tag, Database, Users, Store, Calendar } from 'lucide-react';
+import { apiUrl } from '../lib/api';
 
 export default function AdminDashboard() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -27,7 +28,7 @@ export default function AdminDashboard() {
 
   const fetchStats = async () => {
     try {
-      const response = await fetch('/api/admin/stats');
+      const response = await fetch(apiUrl('/api/admin/stats'));
       if (response.ok) {
         setStats(await response.json());
       }
@@ -38,7 +39,7 @@ export default function AdminDashboard() {
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch('/api/products');
+      const response = await fetch(apiUrl('/api/products'));
       if (response.ok) {
         const data = await response.json();
         setProducts(data);
@@ -84,7 +85,7 @@ export default function AdminDashboard() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const url = editingProduct ? `/api/products/${editingProduct.id}` : '/api/products';
+    const url = editingProduct ? apiUrl(`/api/products/${editingProduct.id}`) : apiUrl('/api/products');
     const method = editingProduct ? 'PUT' : 'POST';
 
     try {
@@ -114,7 +115,7 @@ export default function AdminDashboard() {
     if (!window.confirm('Are you sure you want to delete this product?')) return;
 
     try {
-      const response = await fetch(`/api/products/${id}`, { method: 'DELETE' });
+      const response = await fetch(apiUrl(`/api/products/${id}`), { method: 'DELETE' });
       if (response.ok) {
         alert('Product deleted!');
         fetchProducts();
