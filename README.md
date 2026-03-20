@@ -50,4 +50,5 @@ This project is licensed under the MIT License.
 Built with ❤️ by [Gautam Pince] 🧑‍💻 [Vikash Pandey] (https://github.com/GautamPince) (https://github.com/vikapandeya)
 
 
-Check live here
+Check live here :-
+👉https://vikapandeya.github.io/divine-connect/docs/
