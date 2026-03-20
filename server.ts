@@ -5,6 +5,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
+import { GoogleGenAI } from "@google/genai";
 
 dotenv.config();
 
@@ -12,6 +13,11 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 let mysqlPool: mysql.Pool | null = null;
+
+type SupportMessage = {
+  role: "user" | "assistant";
+  content: string;
+};
 
 export function getMySQL(): mysql.Pool {
   if (!mysqlPool) {
@@ -533,6 +539,82 @@ async function startServer() {
       res.json({ success: true, orderId });
     } catch (error) {
       res.status(500).json({ error: (error as Error).message });
+    }
+  });
+
+  app.post("/api/support/chat", async (req, res) => {
+    const messages = Array.isArray(req.body?.messages)
+      ? (req.body.messages as SupportMessage[])
+      : [];
+
+    const sanitizedMessages = messages
+      .filter(
+        (message) =>
+          message &&
+          (message.role === "user" || message.role === "assistant") &&
+          typeof message.content === "string",
+      )
+      .slice(-8);
+
+    if (sanitizedMessages.length === 0) {
+      return res.status(400).json({ error: "At least one chat message is required." });
+    }
+
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      return res.status(503).json({
+        error: "AI support is not configured yet. Please add GEMINI_API_KEY on the backend.",
+      });
+    }
+
+    try {
+      const ai = new GoogleGenAI({ apiKey });
+      const transcript = sanitizedMessages
+        .map((message) => `${message.role === "user" ? "User" : "Assistant"}: ${message.content}`)
+        .join("\n\n");
+
+      const prompt = `
+You are DivineConnect AI Support.
+Your role is to help users with:
+- puja bookings
+- darshan and prasad guidance
+- order and delivery support
+- account and sign-in issues
+- vendor onboarding questions
+
+Rules:
+- Be concise, practical, and warm.
+- Stay focused on product support, not open-ended spiritual predictions.
+- If the user needs direct human help, tell them to use the Contact Us page email or phone support.
+- Do not invent order status, account status, or booking confirmations.
+- If information is unavailable, say so clearly.
+
+Conversation:
+${transcript}
+
+Write the next assistant reply only.
+      `.trim();
+
+      const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: prompt,
+        config: {
+          temperature: 0.4,
+        },
+      });
+
+      const reply = response.text?.trim();
+
+      if (!reply) {
+        throw new Error("The AI support response was empty.");
+      }
+
+      res.json({ reply });
+    } catch (error) {
+      console.error("AI support error:", error);
+      res.status(500).json({
+        error: "AI support is temporarily unavailable. Please try again shortly.",
+      });
     }
   });
 
