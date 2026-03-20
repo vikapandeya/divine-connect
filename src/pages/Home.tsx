@@ -9,6 +9,8 @@ import {
   Star,
   ShoppingCart,
   IndianRupee,
+  Sparkles,
+  Quote,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { addToCart } from '../lib/cart';
@@ -47,6 +49,14 @@ const services = [
     color: 'bg-purple-50',
     link: '/shop?category=books',
   },
+  {
+    id: 'astrology',
+    title: 'AI Astrology',
+    description: 'Get guided astrological insights after sign-in from our AI assistant.',
+    icon: <Sparkles className="w-8 h-8 text-amber-500" />,
+    color: 'bg-amber-50',
+    link: '/astrology',
+  },
 ];
 
 const featuredProducts = [
@@ -78,6 +88,36 @@ const featuredProducts = [
     image: 'https://picsum.photos/seed/thali/400/400',
     rating: 4.7,
   },
+];
+
+const feedback = [
+  {
+    name: 'Anjali Sharma',
+    city: 'Mumbai',
+    rating: 5,
+    message:
+      'Booking a Satyanarayan Puja felt smooth and respectful. The experience was simple even for my family elders.',
+  },
+  {
+    name: 'Rohan Iyer',
+    city: 'Bengaluru',
+    rating: 5,
+    message:
+      'The product flow is clean, and I liked that I could find essentials quickly without feeling lost in the catalog.',
+  },
+  {
+    name: 'Meera Kapoor',
+    city: 'Delhi',
+    rating: 4.9,
+    message:
+      'The platform feels warm and trustworthy. I would especially recommend the guided support and puja discovery flow.',
+  },
+];
+
+const ratingStats = [
+  { label: 'Average Rating', value: '4.9/5' },
+  { label: 'Verified Reviews', value: '2,100+' },
+  { label: 'Repeat Users', value: '78%' },
 ];
 
 export default function Home() {
@@ -137,7 +177,7 @@ export default function Home() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-6">
           {services.map((service, index) => (
             <motion.div
               key={service.id}
@@ -166,6 +206,73 @@ export default function Home() {
               </Link>
             </motion.div>
           ))}
+        </div>
+      </section>
+
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 lg:grid-cols-[0.9fr_1.1fr] gap-8 items-stretch">
+          <div className="bg-stone-900 text-white rounded-[3rem] p-8 md:p-10 relative overflow-hidden">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(249,115,22,0.3),_transparent_35%)]" />
+            <div className="relative z-10">
+              <p className="text-xs font-bold uppercase tracking-[0.3em] text-orange-300 mb-4">
+                Feedback & Rating
+              </p>
+              <h2 className="text-3xl md:text-4xl font-serif font-bold mb-4">
+                Loved by devotees looking for trust, clarity, and ease.
+              </h2>
+              <p className="text-stone-300 leading-relaxed mb-8">
+                User feedback matters because this platform is built for moments
+                that feel personal. We focus on making each journey feel simple,
+                respectful, and reliable.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {ratingStats.map((stat) => (
+                  <div
+                    key={stat.label}
+                    className="rounded-[2rem] bg-white/5 border border-white/10 px-5 py-6"
+                  >
+                    <p className="text-3xl font-serif font-bold text-white mb-2">
+                      {stat.value}
+                    </p>
+                    <p className="text-sm text-stone-300">{stat.label}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {feedback.map((item) => (
+              <div
+                key={item.name}
+                className="bg-white rounded-[2rem] border border-stone-200 p-6 shadow-sm"
+              >
+                <Quote className="w-8 h-8 text-orange-200 mb-5" />
+                <div className="flex items-center gap-1 mb-4">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star
+                      key={star}
+                      className={`w-4 h-4 ${
+                        star <= Math.round(item.rating)
+                          ? 'text-orange-500 fill-orange-500'
+                          : 'text-stone-200'
+                      }`}
+                    />
+                  ))}
+                  <span className="ml-2 text-sm font-bold text-stone-700">
+                    {item.rating}
+                  </span>
+                </div>
+                <p className="text-stone-600 text-sm leading-relaxed mb-6">
+                  {item.message}
+                </p>
+                <div>
+                  <p className="font-bold text-stone-900">{item.name}</p>
+                  <p className="text-sm text-stone-500">{item.city}</p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 

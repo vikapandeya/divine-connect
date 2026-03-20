@@ -7,6 +7,7 @@ import { Search, ShoppingCart, Menu, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import AuthModal from './AuthModal';
 import { getCartCount, subscribeToCart } from '../lib/cart';
+import logoMark from '../assets/divineconnect-mark.svg';
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -81,9 +82,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
             <Link to="/" className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center">
-                <span className="text-white font-serif font-bold text-xl">D</span>
-              </div>
+              <img src={logoMark} alt="DivineConnect logo" className="w-8 h-8" />
               <span className="text-xl font-serif font-bold tracking-tight text-stone-900">DivineConnect</span>
             </Link>
 
@@ -205,9 +204,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div className="col-span-1 md:col-span-2">
               <div className="flex items-center space-x-2 mb-4">
-                <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center">
-                  <span className="text-white font-serif font-bold text-xl">D</span>
-                </div>
+                <img src={logoMark} alt="DivineConnect logo" className="w-8 h-8" />
                 <span className="text-xl font-serif font-bold tracking-tight text-white">DivineConnect</span>
               </div>
               <p className="max-w-xs text-sm leading-relaxed">
