@@ -212,7 +212,7 @@ export default function Shop() {
             Spiritual Offerings
           </h1>
           <p className="text-stone-600">
-            Discover temple prasad, puja essentials, idols, books, and devotional offerings.
+            Discover temple prasad, puja essentials, idols, books, and devotional offerings. All listed items are available for delivery.
           </p>
         </div>
 

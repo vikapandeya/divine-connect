@@ -60,6 +60,7 @@ export interface Booking {
   serviceId: string;
   vendorId: string;
   type: 'puja' | 'darshan';
+  mode?: 'online' | 'offline';
   date: string;
   timeSlot: string;
   status: 'pending' | 'confirmed' | 'completed' | 'cancelled';

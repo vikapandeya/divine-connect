@@ -24,7 +24,7 @@ const services = [
   {
     id: 'puja',
     title: 'Sacred Puja Services',
-    description: 'Book verified pandits for online and offline puja timings that suit your family and festival schedule.',
+    description: 'Book verified pandit ji for online and offline puja timings that suit your family and festival schedule.',
     meta: 'Online and offline slots daily',
     icon: <Flame className="w-8 h-8 text-orange-500" />,
     color: 'bg-orange-50',
@@ -42,7 +42,7 @@ const services = [
   {
     id: 'prasad',
     title: 'Temple Prasad',
-    description: 'Order authentic prasad from different mandirs with temple, weight, dispatch, and pack size details.',
+    description: 'Order authentic prasad from different mandirs with temple, weight, dispatch, and pack size details. All items are available for delivery.',
     meta: 'Fresh mandir offerings delivered',
     icon: <Utensils className="w-8 h-8 text-emerald-500" />,
     color: 'bg-emerald-50',
@@ -197,7 +197,7 @@ export default function Home() {
             </h1>
             <p className="text-xl text-stone-100 mb-8 leading-relaxed">
               Experience sacred rituals, online live darshan, and temple offerings on
-              a platform built for trust, clarity, and devotional ease.
+              a platform built for trust, clarity, devotional ease, and reliable delivery.
             </p>
             <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
               <Link

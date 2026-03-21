@@ -250,6 +250,9 @@ export default function Profile() {
                             <p className="text-xs text-stone-500">
                               {booking.date} at {booking.timeSlot}
                             </p>
+                            {booking.mode && (
+                              <p className="text-xs text-stone-500 capitalize">{booking.mode} pandit ji service</p>
+                            )}
                           </div>
                         </div>
                         <div className="text-right">

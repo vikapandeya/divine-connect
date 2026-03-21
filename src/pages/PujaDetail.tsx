@@ -15,16 +15,29 @@ import {
 } from 'lucide-react';
 import { apiFetch } from '../lib/api';
 import { formatIndianRupees } from '../lib/utils';
+import { onAuthStateChanged, User } from 'firebase/auth';
 
 export default function PujaDetail() {
-  const currentUser = auth?.currentUser;
+  const [currentUser, setCurrentUser] = useState<User | null>(auth?.currentUser || null);
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [puja, setPuja] = useState<Puja | null>(null);
   const [loading, setLoading] = useState(true);
   const [bookingDate, setBookingDate] = useState('');
   const [bookingTime, setBookingTime] = useState('');
+  const [bookingMode, setBookingMode] = useState<'online' | 'offline'>('online');
   const [isBooking, setIsBooking] = useState(false);
+
+  useEffect(() => {
+    if (!auth) {
+      setCurrentUser(null);
+      return;
+    }
+
+    return onAuthStateChanged(auth, (user) => {
+      setCurrentUser(user);
+    });
+  }, []);
 
   useEffect(() => {
     const fetchPuja = async () => {
@@ -45,6 +58,7 @@ export default function PujaDetail() {
               onlineTimings: ['06:30 AM - 08:00 AM', '07:00 PM - 08:30 PM'],
               offlineTimings: ['08:00 AM - 10:00 AM', '05:00 PM - 06:30 PM'],
               templeName: 'DivineConnect Certified Pandit Seva',
+              vendorId: 'system',
             },
             '2': {
               title: 'Satyanarayan Katha',
@@ -55,6 +69,7 @@ export default function PujaDetail() {
               offlineTimings: ['08:30 AM - 11:30 AM', '04:00 PM - 07:00 PM'],
               templeName: 'Family Home or Temple Mandap Setup',
               liveDarshanAvailable: true,
+              vendorId: 'system',
             },
             '3': {
               title: 'Lakshmi Puja',
@@ -64,6 +79,7 @@ export default function PujaDetail() {
               onlineTimings: ['07:30 AM - 09:30 AM', '06:30 PM - 08:30 PM'],
               offlineTimings: ['10:00 AM - 12:00 PM', '07:00 PM - 09:00 PM'],
               templeName: 'Festival and Griha Lakshmi Seva',
+              vendorId: 'system',
             }
           };
           if (mockPujas[id]) {
@@ -98,21 +114,23 @@ export default function PujaDetail() {
           serviceId: id,
           vendorId: puja?.vendorId || 'system',
           type: 'puja',
+          mode: bookingMode,
           date: bookingDate,
           timeSlot: bookingTime,
-          status: 'pending',
+          status: 'confirmed',
           totalAmount: puja?.price || 0
         })
       });
       if (response.ok) {
-        alert('Puja booked successfully! You can view it in your profile.');
+        alert('Puja booked successfully. Pandit ji will be available in your selected online or offline slot, and you can view the booking in your profile.');
         navigate('/profile');
       } else {
-        throw new Error('Failed to book puja');
+        const data = await response.json().catch(() => null);
+        throw new Error(data?.error || 'Failed to book puja');
       }
     } catch (error) {
       console.error('Booking error:', error);
-      alert('Failed to book puja. Please try again.');
+      alert(error instanceof Error ? error.message : 'Failed to book puja. Please try again.');
     } finally {
       setIsBooking(false);
     }
@@ -156,7 +174,7 @@ export default function PujaDetail() {
               </div>
               <div className="flex items-center bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full text-sm font-bold">
                 <ShieldCheck className="w-4 h-4 mr-2" />
-                Verified Pandit
+                Verified Pandit Ji
               </div>
             </div>
             <p className="text-stone-600 leading-relaxed text-lg">
@@ -198,6 +216,10 @@ export default function PujaDetail() {
                 Online live darshan coordination available with this service
               </div>
             ) : null}
+            <div className="flex items-center text-sm font-bold text-emerald-700 pt-2">
+              <ShieldCheck className="w-4 h-4 mr-2" />
+              Pandit ji is available both online and offline and will be there as per your booked slot.
+            </div>
           </div>
         </motion.div>
 
@@ -216,6 +238,36 @@ export default function PujaDetail() {
             </div>
 
           <div className="space-y-6">
+            <div>
+              <label className="block text-sm font-bold text-stone-700 mb-2">
+                Choose Puja Mode
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setBookingMode('online')}
+                  className={`px-4 py-3 rounded-xl border text-sm font-bold transition-colors ${
+                    bookingMode === 'online'
+                      ? 'border-orange-500 bg-orange-50 text-orange-600'
+                      : 'border-stone-200 text-stone-600'
+                  }`}
+                >
+                  Online Pandit Ji
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setBookingMode('offline')}
+                  className={`px-4 py-3 rounded-xl border text-sm font-bold transition-colors ${
+                    bookingMode === 'offline'
+                      ? 'border-orange-500 bg-orange-50 text-orange-600'
+                      : 'border-stone-200 text-stone-600'
+                  }`}
+                >
+                  Offline Visit
+                </button>
+              </div>
+            </div>
+
             <div>
               <label className="block text-sm font-bold text-stone-700 mb-2 flex items-center">
                 <Calendar className="w-4 h-4 mr-2" />
@@ -256,7 +308,7 @@ export default function PujaDetail() {
                 {isBooking ? 'Processing...' : 'Confirm Booking'}
               </button>
               <p className="text-center text-xs text-stone-400 mt-4">
-                Secure checkout powered by DivineConnect. No hidden charges.
+                Secure booking powered by DivineConnect. Pandit ji is available online and offline. No hidden charges.
               </p>
             </div>
           </div>

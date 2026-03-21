@@ -101,7 +101,7 @@ export default function Services() {
           Sacred Puja Services
         </h1>
         <p className="text-stone-600 max-w-2xl">
-          Connect with experienced pandits for authentic Vedic rituals, online and
+          Connect with experienced pandit ji for authentic Vedic rituals, online and
           offline puja timings, and guided live darshan support.
         </p>
       </div>
@@ -115,8 +115,7 @@ export default function Services() {
             Online & Offline Puja Timing
           </h2>
           <p className="text-sm text-stone-600">
-            Choose puja slots for home visits or online sankalp sessions with clear
-            morning and evening availability.
+            Choose puja slots for home visits or online sankalp sessions. Pandit ji is available in both online and offline mode.
           </p>
         </div>
         <div className="bg-white rounded-[2rem] border border-stone-200 p-6">
