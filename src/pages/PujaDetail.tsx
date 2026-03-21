@@ -17,6 +17,85 @@ import { apiFetch } from '../lib/api';
 import { formatIndianRupees } from '../lib/utils';
 import { onAuthStateChanged, User } from 'firebase/auth';
 
+const fallbackPujas: Record<string, Puja> = {
+  'puja-ganesh': {
+    id: 'puja-ganesh',
+    vendorId: 'system',
+    title: 'Ganesh Puja',
+    price: 2100,
+    duration: '1.5 Hours',
+    description:
+      'Invoke the blessings of Lord Ganesha for new beginnings and removing obstacles. This puja is ideal for starting new ventures, housewarming, or seeking general prosperity.',
+    samagriIncluded: true,
+    mode: 'hybrid',
+    onlineTimings: ['06:30 AM - 08:00 AM', '07:00 PM - 08:30 PM'],
+    offlineTimings: ['08:00 AM - 10:00 AM', '05:00 PM - 06:30 PM'],
+    templeName: 'DivineConnect Certified Pandit Seva',
+    liveDarshanAvailable: false,
+  },
+  'puja-satyanarayan': {
+    id: 'puja-satyanarayan',
+    vendorId: 'system',
+    title: 'Satyanarayan Katha',
+    price: 5100,
+    duration: '3 Hours',
+    description:
+      'A sacred ritual dedicated to Lord Vishnu for peace, prosperity, and happiness. It is traditionally performed on full moon days or special occasions.',
+    samagriIncluded: true,
+    mode: 'hybrid',
+    onlineTimings: ['09:00 AM - 12:00 PM'],
+    offlineTimings: ['08:30 AM - 11:30 AM', '04:00 PM - 07:00 PM'],
+    templeName: 'Family Home or Temple Mandap Setup',
+    liveDarshanAvailable: true,
+  },
+  'puja-lakshmi': {
+    id: 'puja-lakshmi',
+    vendorId: 'system',
+    title: 'Lakshmi Puja',
+    price: 3500,
+    duration: '2 Hours',
+    description:
+      'Attract wealth and prosperity with this special puja dedicated to Goddess Lakshmi. Perfect for business growth and financial stability.',
+    samagriIncluded: true,
+    mode: 'hybrid',
+    onlineTimings: ['07:30 AM - 09:30 AM', '06:30 PM - 08:30 PM'],
+    offlineTimings: ['10:00 AM - 12:00 PM', '07:00 PM - 09:00 PM'],
+    templeName: 'Festival and Griha Lakshmi Seva',
+    liveDarshanAvailable: false,
+  },
+  'puja-maha-mrityunjaya': {
+    id: 'puja-maha-mrityunjaya',
+    vendorId: 'system',
+    title: 'Maha Mrityunjaya Jaap',
+    price: 11000,
+    duration: '5 Hours',
+    description:
+      'Powerful Vedic chanting for health, longevity, and spiritual protection with guided sankalp and ceremony support.',
+    samagriIncluded: true,
+    mode: 'hybrid',
+    onlineTimings: ['06:00 AM - 11:00 AM'],
+    offlineTimings: ['05:30 AM - 10:30 AM'],
+    templeName: 'Special Sankalp Seva',
+    liveDarshanAvailable: true,
+  },
+};
+
+const pujaAliases: Record<string, string> = {
+  '1': 'puja-ganesh',
+  '2': 'puja-satyanarayan',
+  '3': 'puja-lakshmi',
+  '4': 'puja-maha-mrityunjaya',
+  ganesh: 'puja-ganesh',
+  satyanarayan: 'puja-satyanarayan',
+  lakshmi: 'puja-lakshmi',
+  mrityunjaya: 'puja-maha-mrityunjaya',
+};
+
+function resolveFallbackPuja(requestedId: string) {
+  const canonicalId = pujaAliases[requestedId] || requestedId;
+  return fallbackPujas[canonicalId] || null;
+}
+
 export default function PujaDetail() {
   const [currentUser, setCurrentUser] = useState<User | null>(auth?.currentUser || null);
   const { id } = useParams<{ id: string }>();
@@ -42,52 +121,18 @@ export default function PujaDetail() {
   useEffect(() => {
     const fetchPuja = async () => {
       if (!id) return;
+      const fallbackPuja = resolveFallbackPuja(id);
       try {
         const response = await apiFetch(`/api/pujas/${id}`);
         if (response.ok) {
           const data = await response.json();
           setPuja(data);
         } else {
-          // Fallback mock data for demo
-          const mockPujas: Record<string, any> = {
-            '1': {
-              title: 'Ganesh Puja',
-              price: 2100,
-              duration: '1.5 Hours',
-              description: 'Invoke the blessings of Lord Ganesha for new beginnings and removing obstacles. This puja is ideal for starting new ventures, housewarming, or seeking general prosperity.',
-              onlineTimings: ['06:30 AM - 08:00 AM', '07:00 PM - 08:30 PM'],
-              offlineTimings: ['08:00 AM - 10:00 AM', '05:00 PM - 06:30 PM'],
-              templeName: 'DivineConnect Certified Pandit Seva',
-              vendorId: 'system',
-            },
-            '2': {
-              title: 'Satyanarayan Katha',
-              price: 5100,
-              duration: '3 Hours',
-              description: 'A sacred ritual dedicated to Lord Vishnu for peace, prosperity, and happiness. It is traditionally performed on full moon days or special occasions.',
-              onlineTimings: ['09:00 AM - 12:00 PM'],
-              offlineTimings: ['08:30 AM - 11:30 AM', '04:00 PM - 07:00 PM'],
-              templeName: 'Family Home or Temple Mandap Setup',
-              liveDarshanAvailable: true,
-              vendorId: 'system',
-            },
-            '3': {
-              title: 'Lakshmi Puja',
-              price: 3500,
-              duration: '2 Hours',
-              description: 'Attract wealth and prosperity with this special puja dedicated to Goddess Lakshmi. Perfect for business growth and financial stability.',
-              onlineTimings: ['07:30 AM - 09:30 AM', '06:30 PM - 08:30 PM'],
-              offlineTimings: ['10:00 AM - 12:00 PM', '07:00 PM - 09:00 PM'],
-              templeName: 'Festival and Griha Lakshmi Seva',
-              vendorId: 'system',
-            }
-          };
-          if (mockPujas[id]) {
-            setPuja({ id, ...mockPujas[id] } as Puja);
-          }
+          setPuja(fallbackPuja);
         }
       } catch (error) {
         console.error(error);
+        setPuja(fallbackPuja);
       } finally {
         setLoading(false);
       }

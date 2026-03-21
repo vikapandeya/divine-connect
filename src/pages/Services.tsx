@@ -37,7 +37,7 @@ export default function Services() {
       ? pujas
       : [
           {
-            id: '1',
+            id: 'puja-ganesh',
             vendorId: 'system',
             title: 'Ganesh Puja',
             description: 'Invoke the blessings of Lord Ganesha for new beginnings and removing obstacles.',
@@ -51,7 +51,7 @@ export default function Services() {
             liveDarshanAvailable: false,
           },
           {
-            id: '2',
+            id: 'puja-satyanarayan',
             vendorId: 'system',
             title: 'Satyanarayan Katha',
             description: 'A sacred ritual dedicated to Lord Vishnu for peace, prosperity, and happiness.',
@@ -65,7 +65,7 @@ export default function Services() {
             liveDarshanAvailable: true,
           },
           {
-            id: '3',
+            id: 'puja-lakshmi',
             vendorId: 'system',
             title: 'Lakshmi Puja',
             description: 'Attract wealth and prosperity with this special puja dedicated to Goddess Lakshmi.',
@@ -79,7 +79,7 @@ export default function Services() {
             liveDarshanAvailable: false,
           },
           {
-            id: '4',
+            id: 'puja-maha-mrityunjaya',
             vendorId: 'system',
             title: 'Maha Mrityunjaya Jaap',
             description: 'Powerful Vedic chanting for health, longevity, and spiritual protection.',
