@@ -10,9 +10,15 @@ import {
   updateProfile,
   type Auth,
 } from 'firebase/auth';
-import { getFirestore, type Firestore } from 'firebase/firestore';
+import {
+  doc,
+  getDoc,
+  getFirestore,
+  serverTimestamp,
+  setDoc,
+  type Firestore,
+} from 'firebase/firestore';
 import firebaseConfig from '../firebase-applet-config.json';
-import { apiUrl } from './lib/api-base';
 
 let firebaseInitError: Error | null = null;
 let app: FirebaseApp | null = null;
@@ -31,6 +37,48 @@ try {
 }
 
 export { app, db, auth, googleProvider, firebaseInitError };
+
+async function syncUserProfile({
+  uid,
+  displayName,
+  email,
+  photoURL,
+  role,
+}: {
+  uid: string;
+  displayName: string | null;
+  email: string | null;
+  photoURL: string | null;
+  role: string;
+}) {
+  if (!db) {
+    throw new Error('Firestore is unavailable. Please verify your Firebase config.');
+  }
+
+  const userRef = doc(db, 'users', uid);
+  const existingSnapshot = await getDoc(userRef);
+  const existingData = existingSnapshot.exists() ? existingSnapshot.data() : {};
+  const resolvedRole =
+    existingData.role ||
+    (email === 'pg2331427@gmail.com' && auth?.currentUser?.emailVerified ? 'admin' : null) ||
+    (role === 'vendor' ? 'vendor' : 'devotee');
+
+  await setDoc(
+    userRef,
+    {
+      uid,
+      displayName: displayName || existingData.displayName || '',
+      email: email || existingData.email || '',
+      photoURL: photoURL || existingData.photoURL || '',
+      role: resolvedRole,
+      phoneNumber: existingData.phoneNumber || '',
+      addresses: existingData.addresses || [],
+      createdAt: existingData.createdAt || serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    },
+    { merge: true },
+  );
+}
 
 function requireAuth(): Auth {
   if (!auth) {
@@ -51,20 +99,12 @@ export const signInWithGoogle = async (role: string = 'devotee') => {
     const result = await signInWithPopup(authInstance, googleProvider);
     const user = result.user;
 
-    const token = await user.getIdToken();
-    await fetch(apiUrl('/api/users'), {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        uid: user.uid,
-        displayName: user.displayName,
-        email: user.email,
-        photoURL: user.photoURL,
-        role
-      })
+    await syncUserProfile({
+      uid: user.uid,
+      displayName: user.displayName,
+      email: user.email,
+      photoURL: user.photoURL,
+      role,
     });
 
     return user;
@@ -79,20 +119,12 @@ export const registerWithEmail = async (email: string, pass: string, name: strin
   const result = await createUserWithEmailAndPassword(authInstance, email, pass);
   await updateProfile(result.user, { displayName: name });
 
-  const token = await result.user.getIdToken();
-  await fetch(apiUrl('/api/users'), {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      uid: result.user.uid,
-      displayName: name,
-      email: email,
-      photoURL: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`,
-      role
-    })
+  await syncUserProfile({
+    uid: result.user.uid,
+    displayName: name,
+    email,
+    photoURL: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`,
+    role,
   });
   
   return result.user;

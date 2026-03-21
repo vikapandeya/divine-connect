@@ -2,8 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Product } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Edit2, Trash2, X, Save, Package, Star, Users, Store, Calendar } from 'lucide-react';
-import { apiFetch } from '../lib/api';
 import { formatIndianRupees } from '../lib/utils';
+import {
+  deleteProductDirect,
+  getAdminStatsDirect,
+  listProductsDirect,
+  saveProductDirect,
+} from '../lib/firestore-data';
 
 export default function AdminDashboard() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -35,10 +40,7 @@ export default function AdminDashboard() {
 
   const fetchStats = async () => {
     try {
-      const response = await apiFetch('/api/admin/stats');
-      if (response.ok) {
-        setStats(await response.json());
-      }
+      setStats(await getAdminStatsDirect());
     } catch (error) {
       console.error('Error fetching stats:', error);
     }
@@ -46,11 +48,7 @@ export default function AdminDashboard() {
 
   const fetchProducts = async () => {
     try {
-      const response = await apiFetch('/api/products');
-      if (response.ok) {
-        const data = await response.json();
-        setProducts(data);
-      }
+      setProducts(await listProductsDirect());
     } catch (error) {
       console.error('Error fetching products:', error);
     } finally {
@@ -104,26 +102,29 @@ export default function AdminDashboard() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const url = editingProduct ? `/api/products/${editingProduct.id}` : '/api/products';
-    const method = editingProduct ? 'PUT' : 'POST';
 
     try {
-      const response = await apiFetch(url, {
-        method,
-        body: JSON.stringify({
-          ...formData,
-          price: parseFloat(formData.price),
-          stock: parseInt(formData.stock, 10),
-          rating: parseFloat(formData.rating)
-        })
+      await saveProductDirect({
+        id: editingProduct?.id,
+        vendorId: editingProduct?.vendorId || 'system',
+        name: formData.name,
+        description: formData.description,
+        price: parseFloat(formData.price),
+        category: formData.category,
+        stock: parseInt(formData.stock, 10),
+        rating: parseFloat(formData.rating),
+        image: formData.image,
+        templeName: formData.templeName,
+        weight: formData.weight,
+        size: formData.size,
+        dispatchWindow: formData.dispatchWindow,
+        city: formData.city,
+        offeringType: formData.offeringType,
       });
-
-      if (response.ok) {
-        alert(editingProduct ? 'Product updated!' : 'Product added!');
-        setIsModalOpen(false);
-        fetchProducts();
-        fetchStats();
-      }
+      alert(editingProduct ? 'Product updated!' : 'Product added!');
+      setIsModalOpen(false);
+      fetchProducts();
+      fetchStats();
     } catch (error) {
       console.error('Error saving product:', error);
     }
@@ -133,12 +134,10 @@ export default function AdminDashboard() {
     if (!window.confirm('Are you sure you want to delete this product?')) return;
 
     try {
-      const response = await apiFetch(`/api/products/${id}`, { method: 'DELETE' });
-      if (response.ok) {
-        alert('Product deleted!');
-        fetchProducts();
-        fetchStats();
-      }
+      await deleteProductDirect(id);
+      alert('Product deleted!');
+      fetchProducts();
+      fetchStats();
     } catch (error) {
       console.error('Error deleting product:', error);
     }

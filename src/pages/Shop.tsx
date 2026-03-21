@@ -5,7 +5,7 @@ import { ShoppingCart, Star, Search, IndianRupee, X } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import { addToCart } from '../lib/cart';
 import { formatIndianRupees } from '../lib/utils';
-import { apiFetch } from '../lib/api';
+import { listProductsDirect } from '../lib/firestore-data';
 
 const categories = [
   'all',
@@ -149,15 +149,10 @@ export default function Shop() {
       setLoading(true);
 
       try {
-        const url =
-          selectedCategory === 'all'
-            ? '/api/products'
-            : `/api/products?category=${encodeURIComponent(selectedCategory)}`;
-        const response = await apiFetch(url);
-        if (response.ok) {
-          const data = await response.json();
-          setProducts(data);
-        }
+        const data = await listProductsDirect(
+          selectedCategory === 'all' ? {} : { category: selectedCategory },
+        );
+        setProducts(data);
       } catch (error) {
         console.error('Error fetching products:', error);
       } finally {

@@ -18,7 +18,7 @@ import { Link } from 'react-router-dom';
 import { auth } from '../firebase';
 import { addToCart } from '../lib/cart';
 import { formatIndianRupees } from '../lib/utils';
-import { apiFetch } from '../lib/api';
+import { createFeedbackDirect } from '../lib/firestore-data';
 
 const services = [
   {
@@ -141,20 +141,13 @@ export default function Home() {
     setIsSubmittingFeedback(true);
 
     try {
-      const response = await apiFetch('/api/feedback', {
-        method: 'POST',
-        body: JSON.stringify({
-          name: formState.name,
-          email: formState.email,
-          subject: formState.subject,
-          rating: Number(formState.rating),
-          message: formState.message,
-        }),
+      await createFeedbackDirect({
+        name: formState.name,
+        email: formState.email,
+        subject: formState.subject,
+        rating: Number(formState.rating),
+        message: formState.message,
       });
-
-      if (!response.ok) {
-        throw new Error('Feedback submission failed.');
-      }
 
       alert('Thank you. Your feedback has been shared with the DivineConnect team.');
       setFormState((previous) => ({

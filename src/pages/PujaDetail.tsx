@@ -13,9 +13,9 @@ import {
   Video,
   MapPin,
 } from 'lucide-react';
-import { apiFetch } from '../lib/api';
 import { formatIndianRupees } from '../lib/utils';
 import { onAuthStateChanged, User } from 'firebase/auth';
+import { createBookingDirect, getPujaDirect } from '../lib/firestore-data';
 
 const fallbackPujas: Record<string, Puja> = {
   'puja-ganesh': {
@@ -123,13 +123,8 @@ export default function PujaDetail() {
       if (!id) return;
       const fallbackPuja = resolveFallbackPuja(id);
       try {
-        const response = await apiFetch(`/api/pujas/${id}`);
-        if (response.ok) {
-          const data = await response.json();
-          setPuja(data);
-        } else {
-          setPuja(fallbackPuja);
-        }
+        const data = await getPujaDirect(id);
+        setPuja(data || fallbackPuja);
       } catch (error) {
         console.error(error);
         setPuja(fallbackPuja);
@@ -172,27 +167,19 @@ export default function PujaDetail() {
 
     setIsBooking(true);
     try {
-      const response = await apiFetch('/api/bookings', {
-        method: 'POST',
-        body: JSON.stringify({
-          userId: currentUser.uid,
-          serviceId: id,
-          vendorId: puja?.vendorId || 'system',
-          type: 'puja',
-          mode: bookingMode,
-          date: bookingDate,
-          timeSlot: bookingTime,
-          status: 'confirmed',
-          totalAmount: puja?.price || 0
-        })
+      await createBookingDirect({
+        userId: currentUser.uid,
+        serviceId: id || puja?.id || '',
+        vendorId: puja?.vendorId || 'system',
+        type: 'puja',
+        mode: bookingMode,
+        date: bookingDate,
+        timeSlot: bookingTime,
+        status: 'confirmed',
+        totalAmount: puja?.price || 0,
       });
-      if (response.ok) {
-        alert('Puja booked successfully. Pandit ji will be available in your selected online or offline slot, and you can view the booking in your profile.');
-        navigate('/profile');
-      } else {
-        const data = await response.json().catch(() => null);
-        throw new Error(data?.error || 'Failed to book puja');
-      }
+      alert('Puja booked successfully. Pandit ji will be available in your selected online or offline slot, and you can view the booking in your profile.');
+      navigate('/profile');
     } catch (error) {
       console.error('Booking error:', error);
       alert(error instanceof Error ? error.message : 'Failed to book puja. Please try again.');

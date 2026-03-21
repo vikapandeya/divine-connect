@@ -14,11 +14,16 @@ import {
   RotateCcw,
   ArrowRight,
 } from 'lucide-react';
-import { apiFetch } from '../lib/api';
 import { formatIndianRupees } from '../lib/utils';
 import { downloadReceipt, printReceipt } from '../lib/receipts';
 import { useNavigate } from 'react-router-dom';
 import { addItemsToCart } from '../lib/cart';
+import {
+  getUserProfileDirect,
+  listAstrologyReadingsDirect,
+  listBookingsByUserDirect,
+  listOrdersByUserDirect,
+} from '../lib/firestore-data';
 
 type ProfileTab = 'bookings' | 'orders' | 'readings' | 'profile';
 
@@ -37,29 +42,17 @@ export default function Profile() {
 
     const fetchProfileData = async () => {
       try {
-        const [profileResponse, bookingsResponse, ordersResponse, readingsResponse] =
-          await Promise.all([
-            apiFetch(`/api/users/${currentUser.uid}`),
-            apiFetch(`/api/bookings/${currentUser.uid}`),
-            apiFetch(`/api/orders/${currentUser.uid}`),
-            apiFetch(`/api/astrology/readings/${currentUser.uid}`),
-          ]);
+        const [profileData, bookingsData, ordersData, readingsData] = await Promise.all([
+          getUserProfileDirect(currentUser.uid),
+          listBookingsByUserDirect(currentUser.uid),
+          listOrdersByUserDirect(currentUser.uid),
+          listAstrologyReadingsDirect(currentUser.uid),
+        ]);
 
-        if (profileResponse.ok) {
-          setProfile(await profileResponse.json());
-        }
-
-        if (bookingsResponse.ok) {
-          setBookings(await bookingsResponse.json());
-        }
-
-        if (ordersResponse.ok) {
-          setOrders(await ordersResponse.json());
-        }
-
-        if (readingsResponse.ok) {
-          setReadings(await readingsResponse.json());
-        }
+        setProfile(profileData);
+        setBookings(bookingsData);
+        setOrders(ordersData);
+        setReadings(readingsData);
       } catch (error) {
         console.error('Error fetching profile data:', error);
       }

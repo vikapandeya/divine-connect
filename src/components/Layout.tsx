@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import AuthModal from './AuthModal';
 import { getCartCount, subscribeToCart } from '../lib/cart';
 import logoMark from '../assets/divineconnect-mark.svg';
-import { apiFetch } from '../lib/api';
+import { getUserProfileDirect } from '../lib/firestore-data';
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -38,11 +38,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       setUser(u);
       if (u) {
         try {
-          const response = await apiFetch(`/api/users/${u.uid}`);
-          if (response.ok) {
-            const data = await response.json();
-            setProfile(data);
-          }
+          const data = await getUserProfileDirect(u.uid);
+          setProfile(data);
         } catch (error) {
           console.error('Error fetching layout profile:', error);
         }

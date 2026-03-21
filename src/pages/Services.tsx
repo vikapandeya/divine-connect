@@ -11,8 +11,8 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { apiFetch } from '../lib/api';
 import { formatIndianRupees } from '../lib/utils';
+import { listPujasDirect } from '../lib/firestore-data';
 
 export default function Services() {
   const [pujas, setPujas] = useState<Puja[]>([]);
@@ -20,11 +20,8 @@ export default function Services() {
   useEffect(() => {
     const fetchPujas = async () => {
       try {
-        const response = await apiFetch('/api/pujas');
-        if (response.ok) {
-          const data = await response.json();
-          setPujas(data);
-        }
+        const data = await listPujasDirect();
+        setPujas(data);
       } catch (error) {
         console.error('Error fetching pujas:', error);
       }

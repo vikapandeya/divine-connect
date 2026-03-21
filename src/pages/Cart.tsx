@@ -21,7 +21,7 @@ import {
   updateCartItemQuantity,
 } from '../lib/cart';
 import { formatIndianRupees } from '../lib/utils';
-import { apiFetch } from '../lib/api';
+import { createOrderDirect } from '../lib/firestore-data';
 
 export default function Cart() {
   const currentUser = auth?.currentUser;
@@ -93,36 +93,38 @@ export default function Cart() {
 
     setIsCheckingOut(true);
     try {
-      const response = await apiFetch('/api/orders', {
-        method: 'POST',
-        body: JSON.stringify({
-          userId: currentUser.uid,
-          items: items.map((item) => ({
-            productId: item.id,
-            name: item.name,
-            category: item.category || 'Offerings',
-            quantity: item.quantity,
-            price: item.price,
-            image: item.image,
-            templeName: item.templeName,
-            weight: item.weight,
-            size: item.size,
-          })),
-          totalAmount: total,
-          status: 'processing',
-          customerDetails,
-          paymentMethod,
-          shippingFee: 0,
-        }),
+      await createOrderDirect({
+        userId: currentUser.uid,
+        items: items.map((item) => ({
+          productId: item.id,
+          name: item.name,
+          category: item.category || 'Offerings',
+          quantity: item.quantity,
+          price: item.price,
+          image: item.image,
+          templeName: item.templeName,
+          weight: item.weight,
+          size: item.size,
+        })),
+        totalAmount: total,
+        status: 'processing',
+        shippingAddress: [
+          customerDetails.addressLine1,
+          customerDetails.addressLine2,
+          customerDetails.city && customerDetails.state
+            ? `${customerDetails.city}, ${customerDetails.state}`
+            : customerDetails.city || customerDetails.state,
+          customerDetails.pincode,
+        ]
+          .filter(Boolean)
+          .join(', '),
+        customerDetails,
+        paymentMethod,
+        shippingFee: 0,
       });
-
-      if (response.ok) {
-        clearCart();
-        alert('Order placed successfully. Your receipt is available in My Orders.');
-        navigate('/profile');
-      } else {
-        throw new Error('Failed to place order');
-      }
+      clearCart();
+      alert('Order placed successfully. Your receipt is available in My Orders.');
+      navigate('/profile');
     } catch (error) {
       console.error('Checkout error:', error);
       alert('Failed to place order. Please try again.');

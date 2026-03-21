@@ -3,8 +3,17 @@ import { auth } from '../firebase';
 import { Product, Puja } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Edit2, Trash2, X, Save, CheckCircle, XCircle } from 'lucide-react';
-import { apiFetch } from '../lib/api';
 import { formatIndianRupees } from '../lib/utils';
+import {
+  deleteProductDirect,
+  deletePujaDirect,
+  listBookingsByVendorDirect,
+  listProductsDirect,
+  listPujasDirect,
+  saveProductDirect,
+  savePujaDirect,
+  updateBookingStatusDirect,
+} from '../lib/firestore-data';
 
 export default function VendorDashboard() {
   const currentUser = auth?.currentUser;
@@ -50,15 +59,15 @@ export default function VendorDashboard() {
     try {
       const vendorId = currentUser.uid;
       
-      const [prodRes, pujaRes, bookRes] = await Promise.all([
-        apiFetch(`/api/products?vendorId=${vendorId}`),
-        apiFetch(`/api/pujas?vendorId=${vendorId}`),
-        apiFetch(`/api/vendor/bookings/${vendorId}`)
+      const [productsData, pujasData, bookingsData] = await Promise.all([
+        listProductsDirect({ vendorId }),
+        listPujasDirect({ vendorId }),
+        listBookingsByVendorDirect(vendorId),
       ]);
 
-      if (prodRes.ok) setProducts(await prodRes.json());
-      if (pujaRes.ok) setPujas(await pujaRes.json());
-      if (bookRes.ok) setBookings(await bookRes.json());
+      setProducts(productsData);
+      setPujas(pujasData);
+      setBookings(bookingsData);
     } catch (error) {
       console.error('Error fetching vendor data:', error);
     } finally {
@@ -147,23 +156,26 @@ export default function VendorDashboard() {
 
   const handleProductSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const url = editingItem ? `/api/products/${editingItem.id}` : '/api/products';
-    const method = editingItem ? 'PUT' : 'POST';
     try {
-      const response = await apiFetch(url, {
-        method,
-        body: JSON.stringify({
-          ...productForm,
-          price: parseFloat(productForm.price),
-          stock: parseInt(productForm.stock, 10),
-          rating: editingItem?.rating || 4.5,
-          vendorId: currentUser?.uid
-        })
+      await saveProductDirect({
+        id: editingItem?.id,
+        vendorId: currentUser?.uid || editingItem?.vendorId || 'system',
+        name: productForm.name,
+        description: productForm.description,
+        price: parseFloat(productForm.price),
+        category: productForm.category,
+        stock: parseInt(productForm.stock, 10),
+        rating: editingItem?.rating || 4.5,
+        image: productForm.image,
+        templeName: productForm.templeName,
+        weight: productForm.weight,
+        size: productForm.size,
+        dispatchWindow: productForm.dispatchWindow,
+        city: productForm.city,
+        offeringType: productForm.offeringType,
       });
-      if (response.ok) {
-        setIsModalOpen(false);
-        fetchData();
-      }
+      setIsModalOpen(false);
+      fetchData();
     } catch (error) {
       console.error('Error saving product:', error);
     }
@@ -171,23 +183,23 @@ export default function VendorDashboard() {
 
   const handlePujaSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const url = editingItem ? `/api/pujas/${editingItem.id}` : '/api/pujas';
-    const method = editingItem ? 'PUT' : 'POST';
     try {
-      const response = await apiFetch(url, {
-        method,
-        body: JSON.stringify({
-          ...pujaForm,
-          price: parseFloat(pujaForm.price),
-          onlineTimings: pujaForm.onlineTimings.split(',').map((item) => item.trim()).filter(Boolean),
-          offlineTimings: pujaForm.offlineTimings.split(',').map((item) => item.trim()).filter(Boolean),
-          vendorId: currentUser?.uid
-        })
+      await savePujaDirect({
+        id: editingItem?.id,
+        vendorId: currentUser?.uid || editingItem?.vendorId || 'system',
+        title: pujaForm.title,
+        description: pujaForm.description,
+        price: parseFloat(pujaForm.price),
+        duration: pujaForm.duration,
+        samagriIncluded: editingItem?.samagriIncluded ?? true,
+        templeName: pujaForm.templeName,
+        mode: pujaForm.mode,
+        onlineTimings: pujaForm.onlineTimings.split(',').map((item) => item.trim()).filter(Boolean),
+        offlineTimings: pujaForm.offlineTimings.split(',').map((item) => item.trim()).filter(Boolean),
+        liveDarshanAvailable: pujaForm.liveDarshanAvailable,
       });
-      if (response.ok) {
-        setIsModalOpen(false);
-        fetchData();
-      }
+      setIsModalOpen(false);
+      fetchData();
     } catch (error) {
       console.error('Error saving puja:', error);
     }
@@ -195,10 +207,13 @@ export default function VendorDashboard() {
 
   const handleDelete = async (id: string) => {
     if (!window.confirm('Are you sure?')) return;
-    const url = activeTab === 'products' ? `/api/products/${id}` : `/api/pujas/${id}`;
     try {
-      const response = await apiFetch(url, { method: 'DELETE' });
-      if (response.ok) fetchData();
+      if (activeTab === 'products') {
+        await deleteProductDirect(id);
+      } else {
+        await deletePujaDirect(id);
+      }
+      fetchData();
     } catch (error) {
       console.error('Error deleting item:', error);
     }
@@ -206,11 +221,8 @@ export default function VendorDashboard() {
 
   const updateBookingStatus = async (id: string, status: string) => {
     try {
-      const response = await apiFetch(`/api/bookings/${id}/status`, {
-        method: 'PATCH',
-        body: JSON.stringify({ status })
-      });
-      if (response.ok) fetchData();
+      await updateBookingStatusDirect(id, status as 'pending' | 'confirmed' | 'completed' | 'cancelled');
+      fetchData();
     } catch (error) {
       console.error('Error updating booking:', error);
     }

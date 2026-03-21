@@ -4,8 +4,8 @@ import { Calendar, Clock, MapPin, Video, ShieldCheck, ArrowRight } from 'lucide-
 import { auth } from '../firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import AuthModal from '../components/AuthModal';
-import { apiFetch } from '../lib/api';
 import { useNavigate } from 'react-router-dom';
+import { createBookingDirect } from '../lib/firestore-data';
 
 const temples = [
   {
@@ -83,25 +83,17 @@ export default function DarshanBooking() {
 
     setIsSubmitting(true);
     try {
-      const response = await apiFetch('/api/bookings', {
-        method: 'POST',
-        body: JSON.stringify({
-          userId: currentUser.uid,
-          serviceId: formData.templeId,
-          vendorId: 'system',
-          type: 'darshan',
-          mode: formData.mode,
-          date: formData.date,
-          timeSlot: formData.timeSlot,
-          status: 'confirmed',
-          totalAmount: 0,
-        }),
+      await createBookingDirect({
+        userId: currentUser.uid,
+        serviceId: formData.templeId,
+        vendorId: 'system',
+        type: 'darshan',
+        mode: formData.mode,
+        date: formData.date,
+        timeSlot: formData.timeSlot,
+        status: 'confirmed',
+        totalAmount: 0,
       });
-
-      if (!response.ok) {
-        const data = await response.json().catch(() => null);
-        throw new Error(data?.error || 'Unable to reserve darshan right now.');
-      }
 
       alert('Darshan booked successfully. You can see it in your profile bookings.');
       navigate('/profile');
@@ -270,4 +262,3 @@ export default function DarshanBooking() {
     </div>
   );
 }
-
