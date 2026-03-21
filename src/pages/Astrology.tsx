@@ -1,19 +1,75 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, MapPin, Send, Star, Moon, Sun, Info } from 'lucide-react';
+import { Sparkles, MapPin, Send, Star, Moon, Sun, Info, HeartHandshake, ScrollText } from 'lucide-react';
 import { createAstrologyReadingDirect, DEMO_DEVOTEE_PROFILE, generateDemoAstrologyReading } from '../lib/firestore-data';
 
+type AstrologyMode = 'vedic-reading' | 'kundali-match' | 'rashi-phal';
+
+const astrologyModes: Array<{
+  id: AstrologyMode;
+  label: string;
+  description: string;
+  icon: React.ComponentType<{ className?: string }>;
+}> = [
+  {
+    id: 'vedic-reading',
+    label: 'AI Kundali Reading',
+    description: 'Personalized Vedic guidance from your own birth details.',
+    icon: Sparkles,
+  },
+  {
+    id: 'kundali-match',
+    label: 'Kundali Match',
+    description: 'Compare two charts for marriage and compatibility insights.',
+    icon: HeartHandshake,
+  },
+  {
+    id: 'rashi-phal',
+    label: 'Rashi Phal',
+    description: 'Quick sign-based predictions for your current direction.',
+    icon: ScrollText,
+  },
+];
+
+const rashiOptions = [
+  'Mesh',
+  'Vrishabh',
+  'Mithun',
+  'Kark',
+  'Singh',
+  'Kanya',
+  'Tula',
+  'Vrishchik',
+  'Dhanu',
+  'Makar',
+  'Kumbh',
+  'Meen',
+];
+
 export default function Astrology() {
+  const [mode, setMode] = useState<AstrologyMode>('vedic-reading');
   const [formData, setFormData] = useState({
     name: DEMO_DEVOTEE_PROFILE.displayName || '',
     dob: '',
     tob: '',
     pob: '',
-    query: ''
+    query: '',
+    partnerName: '',
+    partnerDob: '',
+    partnerTob: '',
+    partnerPob: '',
+    rashi: 'Mesh',
   });
   const [reading, setReading] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const activeMode = astrologyModes.find((item) => item.id === mode) || astrologyModes[0];
+
+  useEffect(() => {
+    setReading(null);
+    setError('');
+  }, [mode]);
 
   const generateReading = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,6 +84,12 @@ export default function Astrology() {
         dob: formData.dob,
         tob: formData.tob,
         pob: formData.pob,
+        readingType: mode,
+        partnerName: formData.partnerName,
+        partnerDob: formData.partnerDob,
+        partnerTob: formData.partnerTob,
+        partnerPob: formData.partnerPob,
+        rashi: formData.rashi,
         query: formData.query,
       });
       await createAstrologyReadingDirect({
@@ -36,6 +98,12 @@ export default function Astrology() {
         dob: formData.dob,
         tob: formData.tob,
         pob: formData.pob,
+        readingType: mode,
+        partnerName: mode === 'kundali-match' ? formData.partnerName : undefined,
+        partnerDob: mode === 'kundali-match' ? formData.partnerDob : undefined,
+        partnerTob: mode === 'kundali-match' ? formData.partnerTob : undefined,
+        partnerPob: mode === 'kundali-match' ? formData.partnerPob : undefined,
+        rashi: mode === 'rashi-phal' ? formData.rashi : undefined,
         userQuery: formData.query,
         reading: generatedReading,
       });
@@ -83,7 +151,7 @@ export default function Astrology() {
             transition={{ delay: 0.2 }}
             className="text-stone-400 text-lg max-w-2xl mx-auto"
           >
-            Unlock the secrets of your destiny with a static-demo Vedic astrologer experience. Enter your birth details for a personalized showcase reading.
+            Unlock the secrets of your destiny with a static-demo Vedic astrologer experience. Generate AI Kundali reading, Kundali Match, and Rashi Phal directly in this showcase.
           </motion.p>
         </div>
 
@@ -96,6 +164,34 @@ export default function Astrology() {
             className="lg:col-span-5"
           >
             <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-[2.5rem] p-8">
+              <div className="grid grid-cols-1 gap-3 mb-6">
+                {astrologyModes.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => setMode(item.id)}
+                      className={`rounded-2xl border p-4 text-left transition-all ${
+                        mode === item.id
+                          ? 'border-orange-500/50 bg-orange-500/10'
+                          : 'border-white/10 bg-white/5 hover:border-orange-500/30'
+                      }`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="mt-0.5 rounded-xl bg-white/10 p-2">
+                          <Icon className="w-5 h-5 text-orange-400" />
+                        </div>
+                        <div>
+                          <p className="font-bold text-white">{item.label}</p>
+                          <p className="text-sm text-stone-400 mt-1">{item.description}</p>
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+
               <form onSubmit={generateReading} className="space-y-6">
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-stone-500 uppercase tracking-wider ml-1">Full Name</label>
@@ -149,14 +245,95 @@ export default function Astrology() {
                   </div>
                 </div>
 
+                {mode === 'kundali-match' ? (
+                  <div className="rounded-[2rem] border border-white/10 bg-white/5 p-5 space-y-4">
+                    <p className="text-xs font-bold uppercase tracking-[0.24em] text-orange-400">
+                      Partner Details
+                    </p>
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-stone-500 uppercase tracking-wider ml-1">Partner Name</label>
+                      <input
+                        required={mode === 'kundali-match'}
+                        type="text"
+                        value={formData.partnerName}
+                        onChange={(e) => setFormData({ ...formData, partnerName: e.target.value })}
+                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white focus:ring-2 focus:ring-orange-500/50 outline-none transition-all"
+                        placeholder="Enter partner name"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-stone-500 uppercase tracking-wider ml-1">Partner DOB</label>
+                        <input
+                          required={mode === 'kundali-match'}
+                          type="date"
+                          value={formData.partnerDob}
+                          onChange={(e) => setFormData({ ...formData, partnerDob: e.target.value })}
+                          className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white focus:ring-2 focus:ring-orange-500/50 outline-none transition-all"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-stone-500 uppercase tracking-wider ml-1">Partner TOB</label>
+                        <input
+                          required={mode === 'kundali-match'}
+                          type="time"
+                          value={formData.partnerTob}
+                          onChange={(e) => setFormData({ ...formData, partnerTob: e.target.value })}
+                          className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white focus:ring-2 focus:ring-orange-500/50 outline-none transition-all"
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-stone-500 uppercase tracking-wider ml-1">Partner Place of Birth</label>
+                      <input
+                        required={mode === 'kundali-match'}
+                        type="text"
+                        value={formData.partnerPob}
+                        onChange={(e) => setFormData({ ...formData, partnerPob: e.target.value })}
+                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white focus:ring-2 focus:ring-orange-500/50 outline-none transition-all"
+                        placeholder="City, Country"
+                      />
+                    </div>
+                  </div>
+                ) : null}
+
+                {mode === 'rashi-phal' ? (
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-stone-500 uppercase tracking-wider ml-1">Select Rashi</label>
+                    <select
+                      value={formData.rashi}
+                      onChange={(e) => setFormData({ ...formData, rashi: e.target.value })}
+                      className="w-full bg-[#120a06] border border-white/10 rounded-2xl px-4 py-3 text-white focus:ring-2 focus:ring-orange-500/50 outline-none transition-all"
+                    >
+                      {rashiOptions.map((rashi) => (
+                        <option key={rashi} value={rashi}>
+                          {rashi}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                ) : null}
+
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-stone-500 uppercase tracking-wider ml-1">Your Query (Optional)</label>
+                  <label className="text-xs font-bold text-stone-500 uppercase tracking-wider ml-1">
+                    {mode === 'kundali-match'
+                      ? 'Focus (Optional)'
+                      : mode === 'rashi-phal'
+                        ? 'Area of Focus (Optional)'
+                        : 'Your Query (Optional)'}
+                  </label>
                   <textarea
                     rows={3}
                     value={formData.query}
                     onChange={(e) => setFormData({ ...formData, query: e.target.value })}
                     className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white focus:ring-2 focus:ring-orange-500/50 outline-none transition-all resize-none"
-                    placeholder="e.g. Career growth, marriage timing..."
+                    placeholder={
+                      mode === 'kundali-match'
+                        ? 'e.g. Marriage compatibility, family harmony...'
+                        : mode === 'rashi-phal'
+                          ? 'e.g. Career, health, finance...'
+                          : 'e.g. Career growth, marriage timing...'
+                    }
                   />
                 </div>
 
@@ -169,7 +346,7 @@ export default function Astrology() {
                     <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   ) : (
                     <>
-                      <span>Consult the Stars</span>
+                      <span>{activeMode.label}</span>
                       <Send className="w-5 h-5" />
                     </>
                   )}
@@ -177,7 +354,7 @@ export default function Astrology() {
                 <div className="flex items-start space-x-3 rounded-2xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-left">
                   <Info className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
                   <p className="text-sm text-amber-200">
-                    This static demo generates the reading locally in your browser and saves it to the demo profile history.
+                    This static demo generates astrology results locally in your browser and saves Kundali, match, and Rashi Phal history to the demo profile.
                   </p>
                 </div>
               </form>
@@ -195,7 +372,7 @@ export default function Astrology() {
               <div className="p-8 border-b border-white/10 flex justify-between items-center">
                 <h3 className="text-xl font-serif font-bold text-white flex items-center">
                   <Star className="w-5 h-5 mr-2 text-orange-500" />
-                  Your Reading
+                  {activeMode.label}
                 </h3>
                 {reading && (
                   <button 
@@ -225,7 +402,13 @@ export default function Astrology() {
                       </div>
                       <div>
                         <p className="text-xl font-serif text-white mb-2">Aligning the Planets...</p>
-                        <p className="text-stone-500 text-sm">Our AI is analyzing your birth chart across the cosmos.</p>
+                        <p className="text-stone-500 text-sm">
+                          {mode === 'kundali-match'
+                            ? 'Comparing both charts for compatibility and relationship strength.'
+                            : mode === 'rashi-phal'
+                              ? 'Preparing your Rashi-based guidance for the current phase.'
+                              : 'Our AI is analyzing your birth chart across the cosmos.'}
+                        </p>
                       </div>
                     </motion.div>
                   ) : reading ? (
@@ -247,7 +430,13 @@ export default function Astrology() {
                       className="h-full flex flex-col items-center justify-center text-center space-y-4 py-20"
                     >
                       <Sun className="w-16 h-16 text-stone-800" />
-                      <p className="text-stone-500">Your destiny awaits. Fill in your details to receive a divine reading.</p>
+                      <p className="text-stone-500">
+                        {mode === 'kundali-match'
+                          ? 'Fill in both birth charts to generate your demo Kundali Match.'
+                          : mode === 'rashi-phal'
+                            ? 'Choose your Rashi and focus area to receive your demo Rashi Phal.'
+                            : 'Your destiny awaits. Fill in your details to receive a divine reading.'}
+                      </p>
                     </motion.div>
                   )}
                 </AnimatePresence>

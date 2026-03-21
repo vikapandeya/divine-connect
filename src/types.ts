@@ -85,6 +85,12 @@ export interface AstrologyReading {
   dob: string;
   tob: string;
   pob: string;
+  readingType?: 'vedic-reading' | 'kundali-match' | 'rashi-phal';
+  partnerName?: string;
+  partnerDob?: string;
+  partnerTob?: string;
+  partnerPob?: string;
+  rashi?: string;
   userQuery?: string | null;
   reading: string;
   createdAt: string;

@@ -699,12 +699,26 @@ export default function Profile() {
                         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-4">
                           <div>
                             <p className="text-xs font-bold text-orange-500 uppercase tracking-wider">
-                              Astrology Reading
+                              {reading.readingType === 'kundali-match'
+                                ? 'Kundali Match'
+                                : reading.readingType === 'rashi-phal'
+                                  ? 'Rashi Phal'
+                                  : 'Astrology Reading'}
                             </p>
                             <h4 className="text-lg font-bold text-stone-900 mt-1">{reading.name}</h4>
                             <p className="text-xs text-stone-500 mt-1">
                               {new Date(reading.createdAt).toLocaleDateString()} | {reading.pob}
                             </p>
+                            {reading.partnerName ? (
+                              <p className="text-xs text-stone-500 mt-1">
+                                Match with {reading.partnerName}
+                              </p>
+                            ) : null}
+                            {reading.rashi ? (
+                              <p className="text-xs text-stone-500 mt-1">
+                                Rashi: {reading.rashi}
+                              </p>
+                            ) : null}
                           </div>
                           <button
                             type="button"

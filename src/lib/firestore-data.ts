@@ -619,9 +619,65 @@ export function generateDemoAstrologyReading(payload: {
   dob: string;
   tob: string;
   pob: string;
+  readingType?: 'vedic-reading' | 'kundali-match' | 'rashi-phal';
+  partnerName?: string;
+  partnerDob?: string;
+  partnerTob?: string;
+  partnerPob?: string;
+  rashi?: string;
   query?: string;
 }) {
+  const readingType = payload.readingType || 'vedic-reading';
   const focus = payload.query?.trim() || 'overall life guidance';
+
+  if (readingType === 'kundali-match') {
+    return [
+      `Namaste ${payload.name} and ${payload.partnerName || 'your partner'}.`,
+      '',
+      `This demo Kundali Match compares ${payload.name} (${payload.dob}, ${payload.tob}, ${payload.pob}) with ${payload.partnerName || 'your partner'} (${payload.partnerDob}, ${payload.partnerTob}, ${payload.partnerPob}).`,
+      '',
+      'Compatibility overview:',
+      '- Emotional compatibility is steady when both partners communicate gently and avoid reacting in haste.',
+      '- Family values and long-term commitment show supportive alignment in this match.',
+      '- Practical planning around finances and household responsibilities will strengthen harmony.',
+      '',
+      'Ashtakoota style demo summary:',
+      '- Guna Milan: 25 to 29 out of 36 range indicates a positive match for this showcase result.',
+      '- Mutual respect and shared spiritual values are stronger than short-term disagreements.',
+      '- Best growth comes through patience, trust, and regular family prayer or temple visits together.',
+      '',
+      'Recommended remedies:',
+      '- Perform Ganesh Puja before major marriage discussions or engagement milestones.',
+      '- Offer yellow sweets or flowers on Thursdays for grace and understanding.',
+      '- Choose open communication over silence during sensitive phases.',
+      '',
+      'This is a locally generated demo Kundali Match for the static DivineConnect showcase.',
+    ].join('\n');
+  }
+
+  if (readingType === 'rashi-phal') {
+    return [
+      `Namaste ${payload.name}.`,
+      '',
+      `Here is your demo Rashi Phal for ${payload.rashi || 'your sign'}, generated for the DivineConnect static showcase.`,
+      '',
+      'Rashi guidance:',
+      '- Career: steady progress is supported when you complete pending work before starting something new.',
+      '- Relationships: speak clearly and avoid overthinking small misunderstandings.',
+      '- Finance: stay practical, review expenses, and avoid emotional purchases this week.',
+      '- Health: maintain regular sleep, hydration, and a calm morning routine.',
+      '',
+      'Auspicious support:',
+      '- Favorable days: Monday and Thursday',
+      '- Favorable colors: saffron, white, and soft yellow',
+      '- Spiritual focus: diya lighting, mantra chanting, and temple darshan',
+      '',
+      `Special note for ${payload.rashi || 'this rashi'}: ${focus.charAt(0).toUpperCase()}${focus.slice(1)} improves when you stay disciplined and spiritually grounded.`,
+      '',
+      'This is a locally generated demo Rashi Phal for the static DivineConnect showcase.',
+    ].join('\n');
+  }
+
   return [
     `Namaste ${payload.name}.`,
     '',
