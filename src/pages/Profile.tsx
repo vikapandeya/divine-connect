@@ -12,6 +12,7 @@ import {
   Sparkles,
   RotateCcw,
   ArrowRight,
+  Receipt,
 } from 'lucide-react';
 import { formatIndianRupees } from '../lib/utils';
 import { downloadReceipt, printReceipt } from '../lib/receipts';
@@ -39,6 +40,7 @@ export default function Profile() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [readings, setReadings] = useState<AstrologyReading[]>([]);
   const [activeTab, setActiveTab] = useState<ProfileTab>('bookings');
+  const latestOrder = orders[0] || null;
 
   useEffect(() => {
     const requestedTab = searchParams.get('tab');
@@ -118,6 +120,16 @@ export default function Profile() {
           ? readings.length
           : 'Security';
 
+  const statCards: Array<{
+    key: Exclude<ProfileTab, 'profile'>;
+    label: string;
+    value: number;
+  }> = [
+    { key: 'bookings', label: 'Bookings', value: bookings.length },
+    { key: 'orders', label: 'Orders', value: orders.length },
+    { key: 'readings', label: 'Readings', value: readings.length },
+  ];
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
@@ -145,24 +157,27 @@ export default function Profile() {
             </div>
 
             <div className="grid grid-cols-3 gap-3 mt-6 text-left">
-              <div className="rounded-2xl border border-stone-100 bg-stone-50 p-4">
-                <p className="text-[11px] uppercase tracking-wider text-stone-400 font-bold mb-1">
-                  Bookings
-                </p>
-                <p className="text-xl font-bold text-stone-900">{bookings.length}</p>
-              </div>
-              <div className="rounded-2xl border border-stone-100 bg-stone-50 p-4">
-                <p className="text-[11px] uppercase tracking-wider text-stone-400 font-bold mb-1">
-                  Orders
-                </p>
-                <p className="text-xl font-bold text-stone-900">{orders.length}</p>
-              </div>
-              <div className="rounded-2xl border border-stone-100 bg-stone-50 p-4">
-                <p className="text-[11px] uppercase tracking-wider text-stone-400 font-bold mb-1">
-                  Readings
-                </p>
-                <p className="text-xl font-bold text-stone-900">{readings.length}</p>
-              </div>
+              {statCards.map((card) => (
+                <button
+                  key={card.key}
+                  type="button"
+                  onClick={() => switchTab(card.key)}
+                  className={`rounded-2xl border p-4 text-left transition-colors ${
+                    activeTab === card.key
+                      ? 'border-orange-200 bg-orange-50'
+                      : 'border-stone-100 bg-stone-50 hover:border-orange-100 hover:bg-orange-50/40'
+                  }`}
+                >
+                  <p
+                    className={`text-[11px] uppercase tracking-wider font-bold mb-1 ${
+                      activeTab === card.key ? 'text-orange-500' : 'text-stone-400'
+                    }`}
+                  >
+                    {card.label}
+                  </p>
+                  <p className="text-xl font-bold text-stone-900">{card.value}</p>
+                </button>
+              ))}
             </div>
           </div>
 
@@ -232,12 +247,73 @@ export default function Profile() {
           <div className="bg-white rounded-[2.5rem] border border-stone-200 min-h-[600px] overflow-hidden">
             <div className="px-8 py-6 border-b border-stone-100 flex justify-between items-center">
               <h3 className="text-xl font-serif font-bold text-stone-900">{tabTitle}</h3>
-              <span className="bg-stone-100 text-stone-600 px-3 py-1 rounded-full text-xs font-bold">
-                {tabCount}
-              </span>
+              <div className="flex items-center gap-3">
+                {latestOrder ? (
+                  <button
+                    type="button"
+                    onClick={() => switchTab('orders')}
+                    className="hidden md:inline-flex items-center rounded-full border border-orange-200 bg-orange-50 px-4 py-2 text-xs font-bold text-orange-600 hover:bg-orange-100 transition-colors"
+                  >
+                    <Receipt className="w-4 h-4 mr-2" />
+                    Invoice Ready
+                  </button>
+                ) : null}
+                <span className="bg-stone-100 text-stone-600 px-3 py-1 rounded-full text-xs font-bold">
+                  {tabCount}
+                </span>
+              </div>
             </div>
 
             <div className="p-8">
+              {latestOrder && activeTab !== 'orders' ? (
+                <div className="mb-8 rounded-[2rem] border border-orange-100 bg-gradient-to-r from-orange-50 via-white to-stone-50 p-6">
+                  <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
+                    <div>
+                      <p className="text-xs font-bold uppercase tracking-[0.24em] text-orange-500 mb-2">
+                        Latest Invoice
+                      </p>
+                      <h4 className="text-lg font-bold text-stone-900">
+                        Order #{latestOrder.orderNumber}
+                      </h4>
+                      <p className="text-sm text-stone-600 mt-1">
+                        {latestOrder.items.length} items, {latestOrder.customerDetails?.fullName},{' '}
+                        {latestOrder.customerDetails?.phoneNumber}
+                      </p>
+                      <p className="text-sm text-stone-500 mt-1">
+                        Total: Rs. {formatIndianRupees(latestOrder.totalAmount)} | Issued:{' '}
+                        {new Date(latestOrder.receipt?.issuedAt || latestOrder.createdAt).toLocaleString()}
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap gap-3">
+                      <button
+                        type="button"
+                        onClick={() => switchTab('orders')}
+                        className="inline-flex items-center px-4 py-3 rounded-2xl border border-orange-200 bg-white text-sm font-bold text-orange-600 hover:bg-orange-100 transition-colors"
+                      >
+                        <Package className="w-4 h-4 mr-2" />
+                        View Order
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => downloadReceipt(latestOrder)}
+                        className="inline-flex items-center px-4 py-3 rounded-2xl border border-orange-200 bg-white text-sm font-bold text-orange-600 hover:bg-orange-100 transition-colors"
+                      >
+                        <Download className="w-4 h-4 mr-2" />
+                        Download Invoice
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => printReceipt(latestOrder)}
+                        className="inline-flex items-center px-4 py-3 rounded-2xl border border-orange-200 bg-white text-sm font-bold text-orange-600 hover:bg-orange-100 transition-colors"
+                      >
+                        <Printer className="w-4 h-4 mr-2" />
+                        Print Invoice
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+
               {activeTab === 'profile' ? (
                 <div className="space-y-8">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -280,7 +356,7 @@ export default function Profile() {
                     </div>
                   </div>
 
-                  {orders[0] ? (
+                  {latestOrder ? (
                     <div className="rounded-[2rem] border border-orange-100 bg-orange-50 p-6">
                       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                         <div>
@@ -288,10 +364,10 @@ export default function Profile() {
                             Latest Receipt
                           </p>
                           <h4 className="text-lg font-bold text-stone-900">
-                            Order #{orders[0].orderNumber}
+                            Order #{latestOrder.orderNumber}
                           </h4>
                           <p className="text-sm text-stone-600 mt-1">
-                            {orders[0].items.length} items | Rs. {formatIndianRupees(orders[0].totalAmount)}
+                            {latestOrder.items.length} items | Rs. {formatIndianRupees(latestOrder.totalAmount)}
                           </p>
                         </div>
                         <div className="flex flex-wrap gap-3">
@@ -305,7 +381,7 @@ export default function Profile() {
                           </button>
                           <button
                             type="button"
-                            onClick={() => downloadReceipt(orders[0])}
+                            onClick={() => downloadReceipt(latestOrder)}
                             className="inline-flex items-center px-4 py-3 rounded-2xl border border-orange-200 bg-white text-sm font-bold text-orange-600 hover:bg-orange-100 transition-colors"
                           >
                             <Download className="w-4 h-4 mr-2" />
@@ -313,7 +389,7 @@ export default function Profile() {
                           </button>
                           <button
                             type="button"
-                            onClick={() => printReceipt(orders[0])}
+                            onClick={() => printReceipt(latestOrder)}
                             className="inline-flex items-center px-4 py-3 rounded-2xl border border-orange-200 bg-white text-sm font-bold text-orange-600 hover:bg-orange-100 transition-colors"
                           >
                             <Printer className="w-4 h-4 mr-2" />
@@ -417,6 +493,37 @@ export default function Profile() {
                   ) : (
                     orders.map((order) => (
                       <div key={order.id} className="p-6 rounded-2xl border border-stone-100">
+                        <div className="mb-4 rounded-2xl border border-orange-100 bg-orange-50 px-4 py-3">
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                            <div>
+                              <p className="text-xs font-bold uppercase tracking-[0.24em] text-orange-500">
+                                Invoice Ready
+                              </p>
+                              <p className="text-sm font-medium text-stone-600 mt-1">
+                                Full invoice includes order number, customer details, payment method, price breakup, and delivery address.
+                              </p>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              <button
+                                type="button"
+                                onClick={() => downloadReceipt(order)}
+                                className="inline-flex items-center px-3 py-2 rounded-xl border border-orange-200 bg-white text-sm font-bold text-orange-600 hover:bg-orange-100 transition-colors"
+                              >
+                                <Download className="w-4 h-4 mr-2" />
+                                Download Invoice
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => printReceipt(order)}
+                                className="inline-flex items-center px-3 py-2 rounded-xl border border-orange-200 bg-white text-sm font-bold text-orange-600 hover:bg-orange-100 transition-colors"
+                              >
+                                <Printer className="w-4 h-4 mr-2" />
+                                Print Invoice
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+
                         <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4 mb-4">
                           <div>
                             <span className="text-xs font-bold text-stone-400">
@@ -444,7 +551,7 @@ export default function Profile() {
                               className="inline-flex items-center px-3 py-2 rounded-xl border border-stone-200 text-sm font-bold text-stone-700 hover:border-orange-200 hover:text-orange-600 transition-colors"
                             >
                               <Download className="w-4 h-4 mr-2" />
-                              Download Receipt
+                              Download Invoice
                             </button>
                             <button
                               type="button"
@@ -452,7 +559,7 @@ export default function Profile() {
                               className="inline-flex items-center px-3 py-2 rounded-xl border border-stone-200 text-sm font-bold text-stone-700 hover:border-orange-200 hover:text-orange-600 transition-colors"
                             >
                               <Printer className="w-4 h-4 mr-2" />
-                              Print
+                              Print Invoice
                             </button>
                           </div>
                         </div>
