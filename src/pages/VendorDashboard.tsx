@@ -388,7 +388,10 @@ export default function VendorDashboard() {
                   {bookings.map(b => (
                     <tr key={b.id} className="hover:bg-stone-50">
                       <td className="px-6 py-4 font-bold text-stone-900">{b.customerName}</td>
-                      <td className="px-6 py-4 capitalize text-stone-600">{b.type}</td>
+                      <td className="px-6 py-4 text-stone-600">
+                        <div className="font-medium text-stone-900">{b.serviceTitle || `${b.type} service`}</div>
+                        <div className="capitalize text-xs text-stone-500">{b.type}</div>
+                      </td>
                       <td className="px-6 py-4 capitalize text-stone-500">{b.mode || 'online'}</td>
                       <td className="px-6 py-4 text-stone-500 text-sm">{b.date} at {b.timeSlot}</td>
                       <td className="px-6 py-4">

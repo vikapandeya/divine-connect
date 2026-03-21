@@ -15,6 +15,11 @@ import {
   Receipt,
 } from 'lucide-react';
 import { formatIndianRupees } from '../lib/utils';
+import {
+  downloadBookingCertificate,
+  downloadKundaliCertificate,
+  downloadOrderCertificate,
+} from '../lib/documents';
 import { downloadReceipt, printReceipt } from '../lib/receipts';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { addItemsToCart } from '../lib/cart';
@@ -100,6 +105,18 @@ export default function Profile() {
   const switchTab = (tab: ProfileTab) => {
     setActiveTab(tab);
     setSearchParams({ tab });
+  };
+
+  const resolveBookingTitle = (booking: Booking) => {
+    if (booking.serviceTitle) {
+      return booking.serviceTitle;
+    }
+
+    if (booking.type === 'darshan') {
+      return 'Darshan Support';
+    }
+
+    return 'Puja Booking';
   };
 
   const tabTitle =
@@ -361,13 +378,16 @@ export default function Profile() {
                       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                         <div>
                           <p className="text-xs font-bold uppercase tracking-[0.24em] text-orange-500 mb-2">
-                            Latest Receipt
+                            Latest Invoice
                           </p>
                           <h4 className="text-lg font-bold text-stone-900">
                             Order #{latestOrder.orderNumber}
                           </h4>
                           <p className="text-sm text-stone-600 mt-1">
                             {latestOrder.items.length} items | Rs. {formatIndianRupees(latestOrder.totalAmount)}
+                          </p>
+                          <p className="text-xs text-stone-500 mt-1">
+                            Transaction ID: {latestOrder.receipt?.transactionId || 'Generated at checkout'}
                           </p>
                         </div>
                         <div className="flex flex-wrap gap-3">
@@ -385,7 +405,7 @@ export default function Profile() {
                             className="inline-flex items-center px-4 py-3 rounded-2xl border border-orange-200 bg-white text-sm font-bold text-orange-600 hover:bg-orange-100 transition-colors"
                           >
                             <Download className="w-4 h-4 mr-2" />
-                            Download Receipt
+                            Download Invoice
                           </button>
                           <button
                             type="button"
@@ -393,7 +413,15 @@ export default function Profile() {
                             className="inline-flex items-center px-4 py-3 rounded-2xl border border-orange-200 bg-white text-sm font-bold text-orange-600 hover:bg-orange-100 transition-colors"
                           >
                             <Printer className="w-4 h-4 mr-2" />
-                            Print Receipt
+                            Print Invoice
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => downloadOrderCertificate(latestOrder)}
+                            className="inline-flex items-center px-4 py-3 rounded-2xl border border-orange-200 bg-white text-sm font-bold text-orange-600 hover:bg-orange-100 transition-colors"
+                          >
+                            <Download className="w-4 h-4 mr-2" />
+                            Order Certificate
                           </button>
                         </div>
                       </div>
@@ -440,9 +468,12 @@ export default function Profile() {
                             <Calendar className="w-6 h-6 text-orange-600" />
                           </div>
                           <div>
-                            <h4 className="font-bold text-stone-900 capitalize">{booking.type} Booking</h4>
+                            <h4 className="font-bold text-stone-900">{resolveBookingTitle(booking)}</h4>
                             <p className="text-xs text-stone-500">
                               {booking.date} at {booking.timeSlot}
+                            </p>
+                            <p className="text-xs text-stone-500">
+                              Certificate Ref: {booking.bookingReference || booking.id.slice(-8).toUpperCase()}
                             </p>
                             {booking.mode && (
                               <p className="text-xs text-stone-500 capitalize">
@@ -476,6 +507,16 @@ export default function Profile() {
                             >
                               Book Again
                               <ArrowRight className="w-4 h-4 ml-1" />
+                            </button>
+                          </div>
+                          <div>
+                            <button
+                              type="button"
+                              onClick={() => downloadBookingCertificate(booking, profile)}
+                              className="inline-flex items-center text-sm font-bold text-stone-700 hover:text-orange-600 transition-colors"
+                            >
+                              <Download className="w-4 h-4 mr-1.5" />
+                              Download Certificate
                             </button>
                           </div>
                         </div>
@@ -519,6 +560,14 @@ export default function Profile() {
                               >
                                 <Printer className="w-4 h-4 mr-2" />
                                 Print Invoice
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => downloadOrderCertificate(order)}
+                                className="inline-flex items-center px-3 py-2 rounded-xl border border-orange-200 bg-white text-sm font-bold text-orange-600 hover:bg-orange-100 transition-colors"
+                              >
+                                <Download className="w-4 h-4 mr-2" />
+                                Order Certificate
                               </button>
                             </div>
                           </div>
@@ -578,6 +627,10 @@ export default function Profile() {
                                   Payment: <span className="font-bold text-stone-900">{order.receipt?.paymentMethod}</span>
                                 </p>
                                 <p>
+                                  Payment Status:{' '}
+                                  <span className="font-bold text-stone-900">{order.receipt?.paymentStatus || 'Paid'}</span>
+                                </p>
+                                <p>
                                   Customer: <span className="font-bold text-stone-900">{order.customerDetails?.fullName}</span>
                                 </p>
                                 <p>
@@ -585,6 +638,10 @@ export default function Profile() {
                                 </p>
                                 <p className="md:col-span-2">
                                   Email: <span className="font-bold text-stone-900">{order.customerDetails?.email}</span>
+                                </p>
+                                <p className="md:col-span-2">
+                                  Transaction ID:{' '}
+                                  <span className="font-bold text-stone-900">{order.receipt?.transactionId || 'Generated at checkout'}</span>
                                 </p>
                               </div>
                             </div>
@@ -742,6 +799,18 @@ export default function Profile() {
                             {reading.reading}
                           </p>
                         </div>
+                        {reading.readingType === 'kundali-match' ? (
+                          <div className="mt-4">
+                            <button
+                              type="button"
+                              onClick={() => downloadKundaliCertificate(reading)}
+                              className="inline-flex items-center text-sm font-bold text-stone-700 hover:text-orange-600 transition-colors"
+                            >
+                              <Download className="w-4 h-4 mr-1.5" />
+                              Download Match Certificate
+                            </button>
+                          </div>
+                        ) : null}
                       </div>
                     ))
                   )}

@@ -136,9 +136,9 @@ export default function About() {
                 stay connected to spiritual practices from anywhere.
               </p>
               <p className="text-stone-600 leading-relaxed">
-                The strongest About pages usually answer three questions clearly:
-                what the product does, why people should trust it, and who is
-                building it. This version now leans into those trust signals.
+                Our focus is simple: reduce confusion, improve trust, and make
+                spiritual access feel more organized for families, first-time users,
+                and returning devotees alike.
               </p>
             </div>
             <div className="space-y-4">
@@ -230,22 +230,24 @@ export default function About() {
         <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="bg-orange-50 border border-orange-100 rounded-[2rem] p-8">
             <h3 className="text-2xl font-serif font-bold text-stone-900 mb-4">
-              What else works well on an About page
+              Why devotees can trust the platform
             </h3>
             <p className="text-stone-600 leading-relaxed">
-              Over time we can add real trust builders here too: partner temples,
-              testimonials, safety standards, verified pandit onboarding, and a
-              short roadmap for what is coming next.
+              DivineConnect is designed around clear flows, visible pricing,
+              temple-linked offerings, and service records that stay accessible
+              after booking or ordering. The goal is to make sacred services feel
+              respectful, transparent, and dependable.
             </p>
           </div>
           <div className="bg-white border border-stone-200 rounded-[2rem] p-8">
             <h3 className="text-2xl font-serif font-bold text-stone-900 mb-4">
-              Where this can grow next
+              What the experience is built to support
             </h3>
             <p className="text-stone-600 leading-relaxed">
-              A stronger next step would be adding real team photos, partnership
-              logos, FAQs, and a short "why users trust us" checklist backed by
-              actual operational details.
+              From puja booking and darshan planning to prasad ordering, invoices,
+              and devotional guidance, the platform is shaped to support the full
+              journey rather than isolated actions. Every improvement is aimed at
+              making that journey calmer and easier to follow.
             </p>
           </div>
         </section>

@@ -29,7 +29,7 @@ export default function PrasadDelivery() {
           Temple Prasad
         </p>
         <h1 className="text-4xl md:text-5xl font-serif font-bold text-stone-900 mb-4">
-          Order Deliverable Prasad from Trusted Mandirs
+          Order Temple Prasad from Trusted Mandirs
         </h1>
         <p className="text-stone-600 max-w-3xl leading-relaxed">
           Explore prasad from different mandirs with temple source, weight, size,

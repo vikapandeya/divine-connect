@@ -26,15 +26,8 @@ export class ErrorBoundary extends React.Component<Props, State> {
 
   render() {
     if (this.state.hasError) {
-      let errorMessage = 'Something went wrong.';
-      try {
-        const parsedError = JSON.parse(this.state.error?.message || '');
-        if (parsedError.error) {
-          errorMessage = `Firestore Error: ${parsedError.error} (Op: ${parsedError.operationType})`;
-        }
-      } catch (e) {
-        errorMessage = this.state.error?.message || errorMessage;
-      }
+      const errorMessage =
+        this.state.error?.message || 'Something went wrong while loading the DivineConnect experience.';
 
       return (
         <div className="min-h-screen flex items-center justify-center bg-stone-50 p-4">

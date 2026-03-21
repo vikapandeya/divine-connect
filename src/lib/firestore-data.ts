@@ -305,6 +305,11 @@ function createOrderNumber() {
   return `DC-${stamp}-${suffix}`;
 }
 
+function createTransactionId() {
+  const suffix = Math.random().toString(36).slice(2, 10).toUpperCase();
+  return `TXN-${suffix}`;
+}
+
 function createBookingReference() {
   return `BK-${Date.now().toString().slice(-8)}`;
 }
@@ -540,6 +545,8 @@ export async function createOrderDirect(
   const createdAt = nowIso();
   const id = nextId('order');
   const orderNumber = createOrderNumber();
+  const paymentStatus =
+    payload.paymentMethod === 'Cash on Delivery' ? 'Pending on delivery' : 'Paid';
   const order: Order = {
     id,
     userId: payload.userId,
@@ -554,6 +561,8 @@ export async function createOrderDirect(
       orderNumber,
       issuedAt: createdAt,
       paymentMethod: payload.paymentMethod,
+      paymentStatus,
+      transactionId: createTransactionId(),
       subtotal: payload.totalAmount,
       shippingFee: payload.shippingFee,
       totalAmount: payload.totalAmount,
@@ -565,6 +574,7 @@ export async function createOrderDirect(
   };
 
   writeOrders([order, ...readOrders()]);
+  return order;
 }
 
 export async function listAstrologyReadingsDirect(uid: string) {
@@ -708,7 +718,7 @@ export function generateDemoSupportReply(messages: Array<{ role: 'user' | 'assis
   }
 
   if (latestUserMessage.includes('order') || latestUserMessage.includes('track') || latestUserMessage.includes('prasad')) {
-    return 'For demo ordering, add any item from Shop to cart, complete checkout, and then open Profile > My Orders to download or print the receipt.';
+    return 'For demo ordering, add any item from Shop to cart, complete checkout, and then open Profile > My Orders to download the PDF invoice, print it, or save the order certificate.';
   }
 
   if (latestUserMessage.includes('vendor')) {

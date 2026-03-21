@@ -112,7 +112,7 @@ export default function Services() {
             Online & Offline Puja Timing
           </h2>
           <p className="text-sm text-stone-600">
-            Choose puja slots for home visits or online sankalp sessions. Pandit ji is available in both online and offline mode.
+            Choose puja slots for home visits or online sankalp sessions. Pandit ji is available in both online and offline modes.
           </p>
         </div>
         <div className="bg-white rounded-[2rem] border border-stone-200 p-6">

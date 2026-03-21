@@ -442,6 +442,7 @@ export default function Home() {
                     <button
                       type="button"
                       onClick={() => addToCart(product)}
+                      aria-label={`Add ${product.name} to cart`}
                       className="bg-stone-900 text-white p-2 rounded-xl hover:bg-orange-500 transition-colors"
                     >
                       <ShoppingCart className="w-4 h-4" />

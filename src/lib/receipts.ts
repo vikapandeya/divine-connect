@@ -1,4 +1,5 @@
 import { Order } from '../types';
+import { downloadPdfDocument } from './pdf';
 import { formatIndianRupees } from './utils';
 
 function escapeHtml(value: string) {
@@ -35,6 +36,8 @@ export function buildReceiptHtml(order: Order) {
     orderNumber,
     issuedAt: order.createdAt,
     paymentMethod: 'Secure checkout',
+    paymentStatus: 'Paid',
+    transactionId: 'Generated at checkout',
     subtotal: order.totalAmount,
     shippingFee: 0,
     totalAmount: order.totalAmount,
@@ -90,6 +93,7 @@ export function buildReceiptHtml(order: Order) {
           new Date(receipt.issuedAt || order.createdAt).toLocaleString('en-IN'),
         )}</p>
         <p><strong>Status:</strong> ${escapeHtml(order.status)}</p>
+        <p><strong>Transaction ID:</strong> ${escapeHtml(receipt.transactionId || 'Generated at checkout')}</p>
       </div>
     </div>
 
@@ -120,6 +124,7 @@ export function buildReceiptHtml(order: Order) {
         <p>Shipping: <strong>Rs. ${formatIndianRupees(receipt.shippingFee)}</strong></p>
         <p>Grand Total: <strong>Rs. ${formatIndianRupees(receipt.totalAmount)}</strong></p>
         <p>Payment Method: <strong>${escapeHtml(receipt.paymentMethod)}</strong></p>
+        <p>Payment Status: <strong>${escapeHtml(receipt.paymentStatus || 'Paid')}</strong></p>
       </div>
     </div>
   </body>
@@ -127,17 +132,40 @@ export function buildReceiptHtml(order: Order) {
 }
 
 export function downloadReceipt(order: Order) {
-  if (typeof window === 'undefined') {
-    return;
-  }
+  const receipt = order.receipt || {
+    orderNumber: order.orderNumber,
+    issuedAt: order.createdAt,
+    paymentMethod: 'Secure checkout',
+    paymentStatus: 'Paid',
+    transactionId: 'Generated at checkout',
+    subtotal: order.totalAmount,
+    shippingFee: 0,
+    totalAmount: order.totalAmount,
+  };
 
-  const blob = new Blob([buildReceiptHtml(order)], { type: 'text/html;charset=utf-8' });
-  const url = window.URL.createObjectURL(blob);
-  const anchor = window.document.createElement('a');
-  anchor.href = url;
-  anchor.download = `${(order.orderNumber || `order-${order.id.slice(-6)}`).toLowerCase()}-receipt.html`;
-  anchor.click();
-  window.URL.revokeObjectURL(url);
+  downloadPdfDocument(
+    `${(order.orderNumber || `order-${order.id.slice(-6)}`).toLowerCase()}-invoice`,
+    [
+      { text: 'DivineConnect', size: 24, bold: true },
+      { text: 'Tax Invoice / Order Receipt', size: 15, bold: true, gapBefore: 12 },
+      { text: `Order Number: ${order.orderNumber || order.id.slice(-6).toUpperCase()}`, bold: true, gapBefore: 20 },
+      { text: `Invoice Date: ${new Date(receipt.issuedAt || order.createdAt).toLocaleString('en-IN')}` },
+      { text: `Transaction ID: ${receipt.transactionId || 'Generated at checkout'}` },
+      { text: `Payment Method: ${receipt.paymentMethod}` },
+      { text: `Payment Status: ${receipt.paymentStatus || 'Paid'}` },
+      { text: `Customer: ${order.customerDetails?.fullName || 'DivineConnect Customer'}`, gapBefore: 12 },
+      { text: `Email: ${order.customerDetails?.email || 'Not provided'}` },
+      { text: `Contact: ${order.customerDetails?.phoneNumber || 'Not provided'}` },
+      { text: `Address: ${buildAddress(order) || order.shippingAddress}` },
+      { text: 'Items', bold: true, gapBefore: 18 },
+      ...order.items.flatMap((item) => [
+        { text: `${item.name} | ${item.category} | Qty ${item.quantity} | Rs. ${formatIndianRupees(item.price * item.quantity)}` },
+      ]),
+      { text: `Subtotal: Rs. ${formatIndianRupees(receipt.subtotal)}`, bold: true, gapBefore: 18 },
+      { text: `Shipping: Rs. ${formatIndianRupees(receipt.shippingFee)}` },
+      { text: `Grand Total: Rs. ${formatIndianRupees(receipt.totalAmount)}`, size: 14, bold: true },
+    ],
+  );
 }
 
 export function printReceipt(order: Order) {

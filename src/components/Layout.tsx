@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { UserProfile } from '../types';
 import { Search, ShoppingCart, Menu, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -47,6 +47,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-stone-50 font-sans text-stone-900">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[60] focus:rounded-full focus:bg-stone-900 focus:px-4 focus:py-2 focus:text-sm focus:font-bold focus:text-white"
+      >
+        Skip to main content
+      </a>
       {/* Header */}
       <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-stone-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -60,13 +66,17 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             {/* Desktop Nav */}
             <nav className="hidden md:flex items-center space-x-8">
               {navLinks.map((link) => (
-                <Link
+                <NavLink
                   key={link.to}
                   to={link.to}
-                  className="text-sm font-medium text-stone-600 hover:text-orange-500 transition-colors"
+                  className={({ isActive }) =>
+                    `text-sm font-medium transition-colors ${
+                      isActive ? 'text-orange-500' : 'text-stone-600 hover:text-orange-500'
+                    }`
+                  }
                 >
                   {link.label}
-                </Link>
+                </NavLink>
               ))}
             </nav>
 
@@ -87,7 +97,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 />
               </form>
               
-              <Link to="/cart" className="relative p-2 text-stone-600 hover:text-orange-500 transition-colors">
+              <Link
+                to="/cart"
+                aria-label="Open cart"
+                className="relative p-2 text-stone-600 hover:text-orange-500 transition-colors"
+              >
                 <ShoppingCart className="w-6 h-6" />
                 {cartCount > 0 && (
                   <span className="absolute top-0 right-0 bg-orange-500 text-white text-[10px] font-bold rounded-full min-w-4 h-4 px-1 flex items-center justify-center">
@@ -98,7 +112,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
               <div className="relative group">
                 <button className="flex items-center space-x-2 p-1 rounded-full hover:bg-stone-100 transition-colors">
-                  <img src={profile?.photoURL || DEMO_DEVOTEE_PROFILE.photoURL || ''} alt="" className="w-8 h-8 rounded-full border border-stone-200" />
+                  <img
+                    src={profile?.photoURL || DEMO_DEVOTEE_PROFILE.photoURL || ''}
+                    alt={`${profile?.displayName || 'Demo devotee'} profile`}
+                    className="w-8 h-8 rounded-full border border-stone-200"
+                  />
                 </button>
                 <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-stone-100 py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
                   <Link to="/profile" className="block px-4 py-2 text-sm text-stone-700 hover:bg-stone-50">Demo Profile</Link>
@@ -107,7 +125,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 </div>
               </div>
 
-              <button className="md:hidden p-2 text-stone-600" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+              <button
+                className="md:hidden p-2 text-stone-600"
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                aria-label={isMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+              >
                 {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
               </button>
             </div>
@@ -137,14 +159,18 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   </div>
                 </form>
                 {navLinks.map((link) => (
-                  <Link
+                  <NavLink
                     key={link.to}
                     to={link.to}
                     onClick={() => setIsMenuOpen(false)}
-                    className="block px-3 py-2 text-base font-medium text-stone-600 hover:text-orange-500"
+                    className={({ isActive }) =>
+                      `block px-3 py-2 text-base font-medium ${
+                        isActive ? 'text-orange-500' : 'text-stone-600 hover:text-orange-500'
+                      }`
+                    }
                   >
                     {link.label}
-                  </Link>
+                  </NavLink>
                 ))}
               </div>
             </motion.div>
@@ -153,7 +179,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       </header>
 
       {/* Main Content */}
-      <main className="flex-grow">
+      <main id="main-content" className="flex-grow">
         {children}
       </main>
 

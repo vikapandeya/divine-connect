@@ -65,6 +65,7 @@ export default function DarshanBooking() {
       await createBookingDirect({
         userId: DEMO_DEVOTEE_PROFILE.uid,
         serviceId: formData.templeId,
+        serviceTitle: `${selectedTemple.name} Darshan`,
         vendorId: 'system',
         type: 'darshan',
         mode: formData.mode,
@@ -75,7 +76,7 @@ export default function DarshanBooking() {
       });
 
       alert('Darshan booked successfully. You can see it in your profile bookings.');
-      navigate('/profile');
+      navigate('/profile?tab=bookings');
     } catch (error) {
       console.error('Darshan booking error:', error);
       alert(error instanceof Error ? error.message : 'Unable to reserve darshan right now.');

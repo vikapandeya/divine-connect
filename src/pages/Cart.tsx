@@ -116,7 +116,7 @@ export default function Cart() {
         shippingFee: 0,
       });
       clearCart();
-      alert('Order placed successfully. Your receipt is available in My Orders.');
+      alert('Order placed successfully. Your PDF invoice and order certificate are available in My Orders.');
       navigate('/profile?tab=orders');
     } catch (error) {
       console.error('Checkout error:', error);

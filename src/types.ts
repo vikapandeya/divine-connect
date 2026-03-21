@@ -66,6 +66,7 @@ export interface Booking {
   id: string;
   userId: string;
   serviceId: string;
+  serviceTitle?: string;
   vendorId: string;
   type: 'puja' | 'darshan';
   mode?: 'online' | 'offline';
@@ -124,6 +125,8 @@ export interface OrderReceipt {
   orderNumber: string;
   issuedAt: string;
   paymentMethod: string;
+  paymentStatus: string;
+  transactionId: string;
   subtotal: number;
   shippingFee: number;
   totalAmount: number;

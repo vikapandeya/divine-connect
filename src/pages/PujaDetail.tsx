@@ -152,6 +152,7 @@ export default function PujaDetail() {
       await createBookingDirect({
         userId: DEMO_DEVOTEE_PROFILE.uid,
         serviceId: id || puja?.id || '',
+        serviceTitle: puja?.title || 'Puja Service',
         vendorId: puja?.vendorId || 'system',
         type: 'puja',
         mode: bookingMode,
@@ -161,7 +162,7 @@ export default function PujaDetail() {
         totalAmount: puja?.price || 0,
       });
       alert('Puja booked successfully. Pandit ji will be available in your selected online or offline slot, and you can view the booking in your profile.');
-      navigate('/profile');
+      navigate('/profile?tab=bookings');
     } catch (error) {
       console.error('Booking error:', error);
       alert(error instanceof Error ? error.message : 'Failed to book puja. Please try again.');
@@ -170,8 +171,27 @@ export default function PujaDetail() {
     }
   };
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
-  if (!puja) return <div className="min-h-screen flex items-center justify-center">Puja not found.</div>;
+  if (loading) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center px-4">
+        <div className="text-center">
+          <div className="w-12 h-12 mx-auto mb-4 rounded-full border-4 border-orange-100 border-t-orange-500 animate-spin" />
+          <p className="text-sm font-medium text-stone-500">Loading puja details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!puja) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center px-4">
+        <div className="text-center rounded-[2rem] border border-stone-200 bg-white px-8 py-10">
+          <p className="text-xl font-serif font-bold text-stone-900 mb-2">Puja not found</p>
+          <p className="text-sm text-stone-500">Please return to the services page and choose another ritual.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
