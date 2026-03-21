@@ -66,6 +66,28 @@ export function addToCart(item: Omit<CartItem, 'quantity'>) {
   saveCartItems([...items, { ...item, quantity: 1 }]);
 }
 
+export function addItemsToCart(itemsToAdd: CartItem[]) {
+  if (!itemsToAdd.length) {
+    return;
+  }
+
+  const currentItems = getCartItems();
+  const mergedItems = [...currentItems];
+
+  itemsToAdd.forEach((itemToAdd) => {
+    const existingItem = mergedItems.find((cartItem) => cartItem.id === itemToAdd.id);
+
+    if (existingItem) {
+      existingItem.quantity += itemToAdd.quantity;
+      return;
+    }
+
+    mergedItems.push({ ...itemToAdd });
+  });
+
+  saveCartItems(mergedItems);
+}
+
 export function removeFromCart(itemId: string) {
   saveCartItems(getCartItems().filter((item) => item.id !== itemId));
 }

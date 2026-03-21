@@ -67,6 +67,18 @@ export interface Booking {
   totalAmount: number;
 }
 
+export interface AstrologyReading {
+  id: string;
+  userId: string;
+  name: string;
+  dob: string;
+  tob: string;
+  pob: string;
+  userQuery?: string | null;
+  reading: string;
+  createdAt: string;
+}
+
 export interface OrderItem {
   productId: string;
   name: string;
@@ -100,6 +112,13 @@ export interface OrderReceipt {
   totalAmount: number;
 }
 
+export interface OrderStatusStep {
+  status: 'processing' | 'packed' | 'shipped' | 'delivered' | 'cancelled';
+  label: string;
+  note: string;
+  completedAt: string;
+}
+
 export interface Order {
   id: string;
   userId: string;
@@ -110,5 +129,7 @@ export interface Order {
   shippingAddress: string;
   customerDetails: CustomerDetails;
   receipt: OrderReceipt;
+  estimatedDeliveryDate?: string;
+  statusTimeline?: OrderStatusStep[];
   createdAt: string;
 }

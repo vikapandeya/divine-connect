@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { auth, sendResetPasswordEmail } from '../firebase';
-import { UserProfile, Booking, Order } from '../types';
+import { UserProfile, Booking, Order, AstrologyReading } from '../types';
 import {
   User,
   Package,
@@ -10,11 +10,17 @@ import {
   Mail,
   Download,
   Printer,
+  Sparkles,
+  RotateCcw,
+  ArrowRight,
 } from 'lucide-react';
 import { apiFetch } from '../lib/api';
 import { formatIndianRupees } from '../lib/utils';
 import { downloadReceipt, printReceipt } from '../lib/receipts';
 import { useNavigate } from 'react-router-dom';
+import { addItemsToCart } from '../lib/cart';
+
+type ProfileTab = 'bookings' | 'orders' | 'readings' | 'profile';
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -22,51 +28,44 @@ export default function Profile() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
-  const [activeTab, setActiveTab] = useState<'bookings' | 'orders' | 'profile'>('bookings');
+  const [readings, setReadings] = useState<AstrologyReading[]>([]);
+  const [activeTab, setActiveTab] = useState<ProfileTab>('bookings');
   const [isSendingResetEmail, setIsSendingResetEmail] = useState(false);
 
   useEffect(() => {
     if (!currentUser) return;
 
-    const fetchProfile = async () => {
+    const fetchProfileData = async () => {
       try {
-        const response = await apiFetch(`/api/users/${currentUser.uid}`);
-        if (response.ok) {
-          const data = await response.json();
-          setProfile(data);
+        const [profileResponse, bookingsResponse, ordersResponse, readingsResponse] =
+          await Promise.all([
+            apiFetch(`/api/users/${currentUser.uid}`),
+            apiFetch(`/api/bookings/${currentUser.uid}`),
+            apiFetch(`/api/orders/${currentUser.uid}`),
+            apiFetch(`/api/astrology/readings/${currentUser.uid}`),
+          ]);
+
+        if (profileResponse.ok) {
+          setProfile(await profileResponse.json());
+        }
+
+        if (bookingsResponse.ok) {
+          setBookings(await bookingsResponse.json());
+        }
+
+        if (ordersResponse.ok) {
+          setOrders(await ordersResponse.json());
+        }
+
+        if (readingsResponse.ok) {
+          setReadings(await readingsResponse.json());
         }
       } catch (error) {
-        console.error('Error fetching profile:', error);
+        console.error('Error fetching profile data:', error);
       }
     };
 
-    const fetchBookings = async () => {
-      try {
-        const response = await apiFetch(`/api/bookings/${currentUser.uid}`);
-        if (response.ok) {
-          const data = await response.json();
-          setBookings(data);
-        }
-      } catch (error) {
-        console.error('Error fetching bookings:', error);
-      }
-    };
-
-    const fetchOrders = async () => {
-      try {
-        const response = await apiFetch(`/api/orders/${currentUser.uid}`);
-        if (response.ok) {
-          const data = await response.json();
-          setOrders(data);
-        }
-      } catch (error) {
-        console.error('Error fetching orders:', error);
-      }
-    };
-
-    fetchProfile();
-    fetchBookings();
-    fetchOrders();
+    fetchProfileData();
   }, [currentUser]);
 
   const handleResetPassword = async () => {
@@ -83,6 +82,32 @@ export default function Profile() {
     }
   };
 
+  const handleReorder = (order: Order) => {
+    addItemsToCart(
+      order.items.map((item) => ({
+        id: item.productId,
+        name: item.name,
+        price: item.price,
+        image: item.image || 'https://picsum.photos/seed/reorder/400/400',
+        quantity: item.quantity,
+        category: item.category,
+        templeName: item.templeName,
+        weight: item.weight,
+        size: item.size,
+      })),
+    );
+    navigate('/cart');
+  };
+
+  const handleBookAgain = (booking: Booking) => {
+    if (booking.type === 'darshan') {
+      navigate('/services/darshan');
+      return;
+    }
+
+    navigate(`/services/puja/${booking.serviceId}`);
+  };
+
   if (!currentUser) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
@@ -90,6 +115,24 @@ export default function Profile() {
       </div>
     );
   }
+
+  const tabTitle =
+    activeTab === 'bookings'
+      ? 'Service Bookings'
+      : activeTab === 'orders'
+        ? 'Order History'
+        : activeTab === 'readings'
+          ? 'Astrology History'
+          : 'Account Settings';
+
+  const tabCount =
+    activeTab === 'bookings'
+      ? bookings.length
+      : activeTab === 'orders'
+        ? orders.length
+        : activeTab === 'readings'
+          ? readings.length
+          : 'Security';
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -116,13 +159,36 @@ export default function Profile() {
                 </div>
               )}
             </div>
+
+            <div className="grid grid-cols-3 gap-3 mt-6 text-left">
+              <div className="rounded-2xl border border-stone-100 bg-stone-50 p-4">
+                <p className="text-[11px] uppercase tracking-wider text-stone-400 font-bold mb-1">
+                  Bookings
+                </p>
+                <p className="text-xl font-bold text-stone-900">{bookings.length}</p>
+              </div>
+              <div className="rounded-2xl border border-stone-100 bg-stone-50 p-4">
+                <p className="text-[11px] uppercase tracking-wider text-stone-400 font-bold mb-1">
+                  Orders
+                </p>
+                <p className="text-xl font-bold text-stone-900">{orders.length}</p>
+              </div>
+              <div className="rounded-2xl border border-stone-100 bg-stone-50 p-4">
+                <p className="text-[11px] uppercase tracking-wider text-stone-400 font-bold mb-1">
+                  Readings
+                </p>
+                <p className="text-xl font-bold text-stone-900">{readings.length}</p>
+              </div>
+            </div>
           </div>
 
           <nav className="bg-white rounded-[2rem] border border-stone-200 overflow-hidden">
             <button
               onClick={() => setActiveTab('profile')}
               className={`w-full flex items-center px-6 py-4 text-sm font-bold transition-colors ${
-                activeTab === 'profile' ? 'bg-orange-50 text-orange-600' : 'text-stone-600 hover:bg-stone-50'
+                activeTab === 'profile'
+                  ? 'bg-orange-50 text-orange-600'
+                  : 'text-stone-600 hover:bg-stone-50'
               }`}
             >
               <User className="w-5 h-5 mr-3" />
@@ -131,7 +197,9 @@ export default function Profile() {
             <button
               onClick={() => setActiveTab('bookings')}
               className={`w-full flex items-center px-6 py-4 text-sm font-bold transition-colors ${
-                activeTab === 'bookings' ? 'bg-orange-50 text-orange-600' : 'text-stone-600 hover:bg-stone-50'
+                activeTab === 'bookings'
+                  ? 'bg-orange-50 text-orange-600'
+                  : 'text-stone-600 hover:bg-stone-50'
               }`}
             >
               <Calendar className="w-5 h-5 mr-3" />
@@ -140,11 +208,24 @@ export default function Profile() {
             <button
               onClick={() => setActiveTab('orders')}
               className={`w-full flex items-center px-6 py-4 text-sm font-bold transition-colors ${
-                activeTab === 'orders' ? 'bg-orange-50 text-orange-600' : 'text-stone-600 hover:bg-stone-50'
+                activeTab === 'orders'
+                  ? 'bg-orange-50 text-orange-600'
+                  : 'text-stone-600 hover:bg-stone-50'
               }`}
             >
               <Package className="w-5 h-5 mr-3" />
               My Orders
+            </button>
+            <button
+              onClick={() => setActiveTab('readings')}
+              className={`w-full flex items-center px-6 py-4 text-sm font-bold transition-colors ${
+                activeTab === 'readings'
+                  ? 'bg-orange-50 text-orange-600'
+                  : 'text-stone-600 hover:bg-stone-50'
+              }`}
+            >
+              <Sparkles className="w-5 h-5 mr-3" />
+              Astrology History
             </button>
             {profile?.role === 'vendor' && (
               <button
@@ -170,19 +251,9 @@ export default function Profile() {
         <div className="lg:col-span-3">
           <div className="bg-white rounded-[2.5rem] border border-stone-200 min-h-[600px] overflow-hidden">
             <div className="px-8 py-6 border-b border-stone-100 flex justify-between items-center">
-              <h3 className="text-xl font-serif font-bold text-stone-900">
-                {activeTab === 'bookings'
-                  ? 'Service Bookings'
-                  : activeTab === 'orders'
-                    ? 'Order History'
-                    : 'Account Settings'}
-              </h3>
+              <h3 className="text-xl font-serif font-bold text-stone-900">{tabTitle}</h3>
               <span className="bg-stone-100 text-stone-600 px-3 py-1 rounded-full text-xs font-bold">
-                {activeTab === 'bookings'
-                  ? bookings.length
-                  : activeTab === 'orders'
-                    ? orders.length
-                    : 'Security'}
+                {tabCount}
               </span>
             </div>
 
@@ -205,6 +276,27 @@ export default function Profile() {
                       <div className="p-4 bg-stone-50 rounded-2xl border border-stone-100 font-bold text-stone-900">
                         {currentUser.email}
                       </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="rounded-2xl border border-stone-100 p-5">
+                      <p className="text-sm font-bold text-stone-900 mb-2">Quick Reorder</p>
+                      <p className="text-sm text-stone-500">
+                        Rebuild past prasad and spiritual offering orders directly into your cart.
+                      </p>
+                    </div>
+                    <div className="rounded-2xl border border-stone-100 p-5">
+                      <p className="text-sm font-bold text-stone-900 mb-2">Book Again</p>
+                      <p className="text-sm text-stone-500">
+                        Repeat past puja or darshan flows without manually searching again.
+                      </p>
+                    </div>
+                    <div className="rounded-2xl border border-stone-100 p-5">
+                      <p className="text-sm font-bold text-stone-900 mb-2">Saved Readings</p>
+                      <p className="text-sm text-stone-500">
+                        Review recent astrology insights and continue into remedies when needed.
+                      </p>
                     </div>
                   </div>
 
@@ -240,7 +332,7 @@ export default function Profile() {
                         className="flex items-center justify-between p-6 rounded-2xl border border-stone-100 hover:border-orange-100 transition-colors"
                       >
                         <div className="flex items-center space-x-4">
-                          <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
+                          <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center shrink-0">
                             <Calendar className="w-6 h-6 text-orange-600" />
                           </div>
                           <div>
@@ -249,11 +341,13 @@ export default function Profile() {
                               {booking.date} at {booking.timeSlot}
                             </p>
                             {booking.mode && (
-                              <p className="text-xs text-stone-500 capitalize">{booking.mode} pandit ji service</p>
+                              <p className="text-xs text-stone-500 capitalize">
+                                {booking.mode} pandit ji service
+                              </p>
                             )}
                           </div>
                         </div>
-                        <div className="text-right">
+                        <div className="text-right space-y-3">
                           <p className="font-bold text-stone-900">
                             Rs. {formatIndianRupees(booking.totalAmount)}
                           </p>
@@ -263,17 +357,29 @@ export default function Profile() {
                                 ? 'bg-emerald-100 text-emerald-700'
                                 : booking.status === 'pending'
                                   ? 'bg-amber-100 text-amber-700'
-                                  : 'bg-stone-100 text-stone-500'
+                                  : booking.status === 'completed'
+                                    ? 'bg-blue-100 text-blue-700'
+                                    : 'bg-stone-100 text-stone-500'
                             }`}
                           >
                             {booking.status}
                           </span>
+                          <div>
+                            <button
+                              type="button"
+                              onClick={() => handleBookAgain(booking)}
+                              className="inline-flex items-center text-sm font-bold text-orange-600 hover:text-orange-500 transition-colors"
+                            >
+                              Book Again
+                              <ArrowRight className="w-4 h-4 ml-1" />
+                            </button>
+                          </div>
                         </div>
                       </div>
                     ))
                   )}
                 </div>
-              ) : (
+              ) : activeTab === 'orders' ? (
                 <div className="space-y-4">
                   {orders.length === 0 ? (
                     <div className="text-center py-20">
@@ -295,6 +401,14 @@ export default function Profile() {
                           <div className="flex flex-wrap gap-2">
                             <button
                               type="button"
+                              onClick={() => handleReorder(order)}
+                              className="inline-flex items-center px-3 py-2 rounded-xl border border-stone-200 text-sm font-bold text-stone-700 hover:border-orange-200 hover:text-orange-600 transition-colors"
+                            >
+                              <RotateCcw className="w-4 h-4 mr-2" />
+                              Reorder
+                            </button>
+                            <button
+                              type="button"
                               onClick={() => downloadReceipt(order)}
                               className="inline-flex items-center px-3 py-2 rounded-xl border border-stone-200 text-sm font-bold text-stone-700 hover:border-orange-200 hover:text-orange-600 transition-colors"
                             >
@@ -314,16 +428,34 @@ export default function Profile() {
 
                         <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-6 items-end">
                           <div className="space-y-3">
-                            <p className="text-sm font-bold text-stone-900">
-                              {order.items.length} Items
-                            </p>
+                            <p className="text-sm font-bold text-stone-900">{order.items.length} Items</p>
+                            <div className="flex flex-wrap gap-2">
+                              {order.items.slice(0, 3).map((item) => (
+                                <span
+                                  key={`${order.id}-${item.productId}`}
+                                  className="px-3 py-1 rounded-full bg-orange-50 text-orange-700 text-xs font-bold"
+                                >
+                                  {item.name} x {item.quantity}
+                                </span>
+                              ))}
+                            </div>
                             <p className="text-sm text-stone-500">{order.shippingAddress}</p>
                             <div className="text-xs text-stone-500 space-y-1">
                               <p>
-                                {order.customerDetails?.fullName} • {order.customerDetails?.phoneNumber}
+                                {order.customerDetails?.fullName} | {order.customerDetails?.phoneNumber}
                               </p>
                               <p>{order.customerDetails?.email}</p>
                             </div>
+                            {order.estimatedDeliveryDate ? (
+                              <div className="rounded-2xl bg-emerald-50 border border-emerald-100 p-4">
+                                <p className="text-xs font-bold text-emerald-700 uppercase tracking-wider mb-1">
+                                  Estimated Delivery
+                                </p>
+                                <p className="text-sm font-bold text-stone-900">
+                                  {new Date(order.estimatedDeliveryDate).toLocaleDateString()}
+                                </p>
+                              </div>
+                            ) : null}
                             <div className="rounded-2xl bg-stone-50 border border-stone-100 p-4">
                               <p className="text-xs font-bold text-stone-400 uppercase tracking-wider mb-2">
                                 Receipt Summary
@@ -349,6 +481,29 @@ export default function Profile() {
                                 </p>
                               </div>
                             </div>
+                            {order.statusTimeline?.length ? (
+                              <div className="rounded-2xl border border-stone-100 p-4">
+                                <p className="text-xs font-bold text-stone-400 uppercase tracking-wider mb-3">
+                                  Order Journey
+                                </p>
+                                <div className="space-y-3">
+                                  {order.statusTimeline.map((step) => (
+                                    <div
+                                      key={`${order.id}-${step.status}`}
+                                      className="flex items-start justify-between gap-4"
+                                    >
+                                      <div>
+                                        <p className="text-sm font-bold text-stone-900">{step.label}</p>
+                                        <p className="text-xs text-stone-500">{step.note}</p>
+                                      </div>
+                                      <span className="text-[11px] font-medium text-stone-400 whitespace-nowrap">
+                                        {new Date(step.completedAt).toLocaleDateString()}
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            ) : null}
                           </div>
                           <div className="text-right">
                             <p className="font-bold text-stone-900">
@@ -358,6 +513,52 @@ export default function Profile() {
                               {order.status}
                             </span>
                           </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {readings.length === 0 ? (
+                    <div className="text-center py-20">
+                      <Sparkles className="w-12 h-12 text-stone-200 mx-auto mb-4" />
+                      <p className="text-stone-400">No astrology readings found yet.</p>
+                    </div>
+                  ) : (
+                    readings.map((reading) => (
+                      <div key={reading.id} className="p-6 rounded-2xl border border-stone-100">
+                        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-4">
+                          <div>
+                            <p className="text-xs font-bold text-orange-500 uppercase tracking-wider">
+                              Astrology Reading
+                            </p>
+                            <h4 className="text-lg font-bold text-stone-900 mt-1">{reading.name}</h4>
+                            <p className="text-xs text-stone-500 mt-1">
+                              {new Date(reading.createdAt).toLocaleDateString()} | {reading.pob}
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => navigate('/astrology')}
+                            className="inline-flex items-center text-sm font-bold text-orange-600 hover:text-orange-500 transition-colors"
+                          >
+                            Open AI Astrology
+                            <ArrowRight className="w-4 h-4 ml-1" />
+                          </button>
+                        </div>
+                        {reading.userQuery ? (
+                          <div className="rounded-2xl bg-orange-50 border border-orange-100 p-4 mb-4">
+                            <p className="text-xs font-bold text-orange-600 uppercase tracking-wider mb-2">
+                              Your Question
+                            </p>
+                            <p className="text-sm text-stone-700">{reading.userQuery}</p>
+                          </div>
+                        ) : null}
+                        <div className="rounded-2xl bg-stone-50 border border-stone-100 p-4">
+                          <p className="text-sm text-stone-700 whitespace-pre-wrap line-clamp-6">
+                            {reading.reading}
+                          </p>
                         </div>
                       </div>
                     ))

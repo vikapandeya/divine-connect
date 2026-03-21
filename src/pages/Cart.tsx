@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { auth } from '../firebase';
 import {
@@ -9,6 +9,8 @@ import {
   MapPin,
   Minus,
   Plus,
+  ShieldCheck,
+  Truck,
 } from 'lucide-react';
 import {
   CartItem,
@@ -37,6 +39,7 @@ export default function Cart() {
     pincode: '',
     deliveryNotes: '',
   });
+  const [paymentMethod, setPaymentMethod] = useState('UPI / Wallet');
 
   useEffect(() => {
     const syncCart = () => {
@@ -48,6 +51,9 @@ export default function Cart() {
   }, []);
 
   const total = items.reduce((acc, item) => acc + item.price * item.quantity, 0);
+  const estimatedDeliveryLabel = useMemo(() => {
+    return items.some((item) => item.category === 'Prasad') ? '3 to 5 days' : '2 to 4 days';
+  }, [items]);
 
   const handleCheckout = async () => {
     if (!currentUser) {
@@ -67,6 +73,21 @@ export default function Cart() {
 
     if (requiredFields.some((field) => !field.trim())) {
       alert('Please fill in full name, email, phone number, address, city, state, and pincode.');
+      return;
+    }
+
+    if (!/^\S+@\S+\.\S+$/.test(customerDetails.email.trim())) {
+      alert('Please enter a valid email address.');
+      return;
+    }
+
+    if (!/^\d{10}$/.test(customerDetails.phoneNumber.trim())) {
+      alert('Please enter a valid 10-digit contact number.');
+      return;
+    }
+
+    if (!/^\d{6}$/.test(customerDetails.pincode.trim())) {
+      alert('Please enter a valid 6-digit pincode.');
       return;
     }
 
@@ -90,7 +111,7 @@ export default function Cart() {
           totalAmount: total,
           status: 'processing',
           customerDetails,
-          paymentMethod: 'Secure checkout',
+          paymentMethod,
           shippingFee: 0,
         }),
       });
@@ -155,7 +176,7 @@ export default function Cart() {
                 <h3 className="font-bold text-stone-900">{item.name}</h3>
                 {(item.templeName || item.weight || item.size) && (
                   <p className="text-xs text-stone-500 mt-1">
-                    {[item.templeName, item.weight, item.size].filter(Boolean).join(' • ')}
+                    {[item.templeName, item.weight, item.size].filter(Boolean).join(' | ')}
                   </p>
                 )}
                 <div className="flex items-center text-orange-600 font-bold mt-2">
@@ -215,6 +236,10 @@ export default function Cart() {
               <div className="flex justify-between text-stone-600">
                 <span>Shipping</span>
                 <span className="text-emerald-600 font-bold">FREE</span>
+              </div>
+              <div className="flex justify-between text-stone-600">
+                <span>Estimated Delivery</span>
+                <span className="font-bold text-stone-900">{estimatedDeliveryLabel}</span>
               </div>
               <div className="pt-4 border-t border-stone-100 flex justify-between items-center">
                 <span className="font-bold text-stone-900">Total</span>
@@ -342,6 +367,35 @@ export default function Cart() {
                     placeholder="Delivery notes, preferred timing, or special instructions"
                     className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all resize-none h-20"
                   />
+                  <div className="space-y-3 rounded-2xl border border-stone-100 bg-stone-50 p-4">
+                    <p className="text-sm font-bold text-stone-900">Payment Method</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      {['UPI / Wallet', 'Card', 'Cash on Delivery'].map((method) => (
+                        <button
+                          key={method}
+                          type="button"
+                          onClick={() => setPaymentMethod(method)}
+                          className={`rounded-xl border px-4 py-3 text-sm font-bold transition-colors ${
+                            paymentMethod === method
+                              ? 'border-orange-500 bg-orange-50 text-orange-600'
+                              : 'border-stone-200 bg-white text-stone-600'
+                          }`}
+                        >
+                          {method}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-stone-500">
+                      <div className="flex items-start gap-2 rounded-xl bg-white p-3 border border-stone-200">
+                        <ShieldCheck className="w-4 h-4 mt-0.5 text-emerald-500" />
+                        <span>Secure checkout and printable receipt are available as soon as the order is placed.</span>
+                      </div>
+                      <div className="flex items-start gap-2 rounded-xl bg-white p-3 border border-stone-200">
+                        <Truck className="w-4 h-4 mt-0.5 text-blue-500" />
+                        <span>Your order summary now includes an estimated delivery window for temple offerings.</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
 

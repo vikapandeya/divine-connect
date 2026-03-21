@@ -250,6 +250,41 @@ function createOrderNumber() {
   return `DC-${stamp}-${suffix}`;
 }
 
+function addDays(date, days) {
+  const nextDate = new Date(date);
+  nextDate.setDate(nextDate.getDate() + days);
+  return nextDate;
+}
+
+function buildOrderTimeline(createdAtIso) {
+  return [
+    {
+      status: 'processing',
+      label: 'Order placed',
+      note: 'We received your sacred offering request and are preparing the fulfillment flow.',
+      completedAt: createdAtIso,
+    },
+    {
+      status: 'packed',
+      label: 'Temple packing',
+      note: 'Your items are being packed, blessed, and quality-checked before dispatch.',
+      completedAt: addDays(createdAtIso, 1).toISOString(),
+    },
+    {
+      status: 'shipped',
+      label: 'Out for dispatch',
+      note: 'The parcel is expected to move into courier delivery after temple dispatch.',
+      completedAt: addDays(createdAtIso, 2).toISOString(),
+    },
+    {
+      status: 'delivered',
+      label: 'Estimated delivery',
+      note: 'The package is expected to reach the devotee address within the estimated window.',
+      completedAt: addDays(createdAtIso, 4).toISOString(),
+    },
+  ];
+}
+
 function isAdmin(requester) {
   return Boolean(
     requester &&
@@ -892,6 +927,24 @@ app.get(['/orders/:uid', '/api/orders/:uid'], async (req, res) => {
   res.json(orders);
 });
 
+app.get(['/astrology/readings/:uid', '/api/astrology/readings/:uid'], async (req, res) => {
+  const requester = await requireAuth(req, res);
+  if (!requester) {
+    return;
+  }
+
+  if (requester.uid !== req.params.uid && !isAdmin(requester)) {
+    return res.status(403).json({ error: 'You are not allowed to view these astrology readings.' });
+  }
+
+  const snapshot = await db.collection('astrologyReadings').where('userId', '==', req.params.uid).get();
+  const readings = snapshot.docs
+    .map(serializeDoc)
+    .sort((left, right) => String(right.createdAt || '').localeCompare(String(left.createdAt || '')));
+
+  res.json(readings);
+});
+
 app.post(['/orders', '/api/orders'], async (req, res) => {
   try {
     const requester = await requireAuth(req, res);
@@ -936,14 +989,17 @@ app.post(['/orders', '/api/orders'], async (req, res) => {
       size: item.size || '',
     }));
     const totalAmount = Number(payload.totalAmount || 0);
+    const createdAtIso = new Date().toISOString();
+    const estimatedDeliveryDate = addDays(createdAtIso, 4).toISOString();
     const receipt = {
       orderNumber,
-      issuedAt: new Date().toISOString(),
+      issuedAt: createdAtIso,
       paymentMethod: payload.paymentMethod || 'Secure checkout',
       subtotal: totalAmount,
       shippingFee: Number(payload.shippingFee || 0),
       totalAmount,
     };
+    const statusTimeline = buildOrderTimeline(createdAtIso);
 
     await orderRef.set({
       userId: payload.userId,
@@ -954,6 +1010,8 @@ app.post(['/orders', '/api/orders'], async (req, res) => {
       shippingAddress: buildShippingAddress(customerDetails),
       customerDetails,
       receipt,
+      estimatedDeliveryDate,
+      statusTimeline,
       createdAt: FieldValue.serverTimestamp(),
       updatedAt: FieldValue.serverTimestamp(),
     });
