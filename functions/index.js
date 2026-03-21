@@ -192,6 +192,14 @@ onInit(() => {
 app.use(cors({ origin: true }));
 app.use(express.json({ limit: '1mb' }));
 
+const apiWelcomePayload = {
+  status: 'ok',
+  service: 'DivineConnect API',
+  database: 'firestore',
+  backend: 'firebase-functions',
+  healthEndpoint: '/health',
+};
+
 function getAiClient() {
   if (!aiClient) {
     aiClient = new GoogleGenAI({ apiKey: geminiApiKey.value() });
@@ -360,15 +368,17 @@ async function getUserProfile(uid) {
   return snapshot.exists ? serializeDoc(snapshot) : null;
 }
 
-app.get('/api/health', async (req, res) => {
+app.get(['/', '/api'], async (req, res) => {
+  res.json(apiWelcomePayload);
+});
+
+app.get(['/health', '/api/health'], async (req, res) => {
   res.json({
-    status: 'ok',
-    database: 'firestore',
-    backend: 'firebase-functions',
+    ...apiWelcomePayload,
   });
 });
 
-app.get('/api/users/:uid', async (req, res) => {
+app.get(['/users/:uid', '/api/users/:uid'], async (req, res) => {
   const requester = await requireAuth(req, res);
   if (!requester) {
     return;
@@ -387,7 +397,7 @@ app.get('/api/users/:uid', async (req, res) => {
   res.json(profile);
 });
 
-app.post('/api/users', async (req, res) => {
+app.post(['/users', '/api/users'], async (req, res) => {
   try {
     const requester = await requireAuth(req, res);
     if (!requester) {
@@ -427,7 +437,7 @@ app.post('/api/users', async (req, res) => {
   }
 });
 
-app.get('/api/admin/stats', async (req, res) => {
+app.get(['/admin/stats', '/api/admin/stats'], async (req, res) => {
   const requester = await requireAuth(req, res);
   if (!requester) {
     return;
@@ -454,7 +464,7 @@ app.get('/api/admin/stats', async (req, res) => {
   });
 });
 
-app.get('/api/products', async (req, res) => {
+app.get(['/products', '/api/products'], async (req, res) => {
   await ensureSeedData();
 
   let query = db.collection('products');
@@ -472,7 +482,7 @@ app.get('/api/products', async (req, res) => {
   res.json(snapshot.docs.map(serializeDoc));
 });
 
-app.post('/api/products', async (req, res) => {
+app.post(['/products', '/api/products'], async (req, res) => {
   try {
     const requester = await requireAuth(req, res);
     if (!requester) {
@@ -524,7 +534,7 @@ app.post('/api/products', async (req, res) => {
   }
 });
 
-app.put('/api/products/:id', async (req, res) => {
+app.put(['/products/:id', '/api/products/:id'], async (req, res) => {
   try {
     const requester = await requireAuth(req, res);
     if (!requester) {
@@ -572,7 +582,7 @@ app.put('/api/products/:id', async (req, res) => {
   }
 });
 
-app.delete('/api/products/:id', async (req, res) => {
+app.delete(['/products/:id', '/api/products/:id'], async (req, res) => {
   try {
     const requester = await requireAuth(req, res);
     if (!requester) {
@@ -598,7 +608,7 @@ app.delete('/api/products/:id', async (req, res) => {
   }
 });
 
-app.get('/api/pujas', async (req, res) => {
+app.get(['/pujas', '/api/pujas'], async (req, res) => {
   await ensureSeedData();
 
   let query = db.collection('pujas');
@@ -612,7 +622,7 @@ app.get('/api/pujas', async (req, res) => {
   res.json(snapshot.docs.map(serializeDoc));
 });
 
-app.get('/api/pujas/:id', async (req, res) => {
+app.get(['/pujas/:id', '/api/pujas/:id'], async (req, res) => {
   await ensureSeedData();
 
   const snapshot = await db.collection('pujas').doc(req.params.id).get();
@@ -624,7 +634,7 @@ app.get('/api/pujas/:id', async (req, res) => {
   res.json(serializeDoc(snapshot));
 });
 
-app.post('/api/pujas', async (req, res) => {
+app.post(['/pujas', '/api/pujas'], async (req, res) => {
   try {
     const requester = await requireAuth(req, res);
     if (!requester) {
@@ -670,7 +680,7 @@ app.post('/api/pujas', async (req, res) => {
   }
 });
 
-app.put('/api/pujas/:id', async (req, res) => {
+app.put(['/pujas/:id', '/api/pujas/:id'], async (req, res) => {
   try {
     const requester = await requireAuth(req, res);
     if (!requester) {
@@ -724,7 +734,7 @@ app.put('/api/pujas/:id', async (req, res) => {
   }
 });
 
-app.delete('/api/pujas/:id', async (req, res) => {
+app.delete(['/pujas/:id', '/api/pujas/:id'], async (req, res) => {
   try {
     const requester = await requireAuth(req, res);
     if (!requester) {
@@ -750,7 +760,7 @@ app.delete('/api/pujas/:id', async (req, res) => {
   }
 });
 
-app.get('/api/bookings/:uid', async (req, res) => {
+app.get(['/bookings/:uid', '/api/bookings/:uid'], async (req, res) => {
   const requester = await requireAuth(req, res);
   if (!requester) {
     return;
@@ -764,7 +774,7 @@ app.get('/api/bookings/:uid', async (req, res) => {
   res.json(snapshot.docs.map(serializeDoc));
 });
 
-app.get('/api/vendor/bookings/:vendorId', async (req, res) => {
+app.get(['/vendor/bookings/:vendorId', '/api/vendor/bookings/:vendorId'], async (req, res) => {
   const requester = await requireAuth(req, res);
   if (!requester) {
     return;
@@ -790,7 +800,7 @@ app.get('/api/vendor/bookings/:vendorId', async (req, res) => {
   res.json(bookings);
 });
 
-app.patch('/api/bookings/:id/status', async (req, res) => {
+app.patch(['/bookings/:id/status', '/api/bookings/:id/status'], async (req, res) => {
   try {
     const requester = await requireAuth(req, res);
     if (!requester) {
@@ -828,7 +838,7 @@ app.patch('/api/bookings/:id/status', async (req, res) => {
   }
 });
 
-app.post('/api/bookings', async (req, res) => {
+app.post(['/bookings', '/api/bookings'], async (req, res) => {
   try {
     const requester = await requireAuth(req, res);
     if (!requester) {
@@ -863,7 +873,7 @@ app.post('/api/bookings', async (req, res) => {
   }
 });
 
-app.get('/api/orders/:uid', async (req, res) => {
+app.get(['/orders/:uid', '/api/orders/:uid'], async (req, res) => {
   const requester = await requireAuth(req, res);
   if (!requester) {
     return;
@@ -881,7 +891,7 @@ app.get('/api/orders/:uid', async (req, res) => {
   res.json(orders);
 });
 
-app.post('/api/orders', async (req, res) => {
+app.post(['/orders', '/api/orders'], async (req, res) => {
   try {
     const requester = await requireAuth(req, res);
     if (!requester) {
@@ -954,7 +964,7 @@ app.post('/api/orders', async (req, res) => {
   }
 });
 
-app.get('/api/orders/:uid/:orderId/receipt', async (req, res) => {
+app.get(['/orders/:uid/:orderId/receipt', '/api/orders/:uid/:orderId/receipt'], async (req, res) => {
   const requester = await requireAuth(req, res);
   if (!requester) {
     return;
@@ -983,7 +993,7 @@ app.get('/api/orders/:uid/:orderId/receipt', async (req, res) => {
   });
 });
 
-app.post('/api/feedback', async (req, res) => {
+app.post(['/feedback', '/api/feedback'], async (req, res) => {
   try {
     const requester = await getRequester(req);
     const payload = req.body || {};
@@ -1011,7 +1021,7 @@ app.post('/api/feedback', async (req, res) => {
   }
 });
 
-app.post('/api/astrology/reading', async (req, res) => {
+app.post(['/astrology/reading', '/api/astrology/reading'], async (req, res) => {
   try {
     const requester = await requireAuth(req, res);
     if (!requester) {
@@ -1076,7 +1086,7 @@ Keep it warm, structured, and easy to read.
   }
 });
 
-app.post('/api/support/chat', async (req, res) => {
+app.post(['/support/chat', '/api/support/chat'], async (req, res) => {
   try {
     const requester = await getRequester(req);
     const messages = Array.isArray(req.body?.messages) ? req.body.messages : [];
@@ -1158,3 +1168,4 @@ exports.api = onRequest(
   },
   app,
 );
+exports.app = app;
