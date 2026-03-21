@@ -12,6 +12,33 @@ export default defineConfig(({ mode }) => {
     build: {
       outDir: isPagesBuild ? 'docs' : 'dist',
       emptyOutDir: true,
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (!id.includes('node_modules')) {
+              return undefined;
+            }
+
+            if (id.includes('firebase')) {
+              return 'firebase';
+            }
+
+            if (id.includes('framer-motion')) {
+              return 'motion';
+            }
+
+            if (id.includes('react-router')) {
+              return 'router';
+            }
+
+            if (id.includes('lucide-react')) {
+              return 'icons';
+            }
+
+            return 'vendor';
+          },
+        },
+      },
     },
     plugins: [react(), tailwindcss()],
     resolve: {

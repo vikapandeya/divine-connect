@@ -12,7 +12,7 @@ import {
 } from 'firebase/auth';
 import { getFirestore, type Firestore } from 'firebase/firestore';
 import firebaseConfig from '../firebase-applet-config.json';
-import { apiUrl } from './lib/api';
+import { apiUrl } from './lib/api-base';
 
 let firebaseInitError: Error | null = null;
 let app: FirebaseApp | null = null;
