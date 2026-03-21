@@ -52,9 +52,3 @@ Built with ❤️ by [Gautam Pince] 🧑‍💻 [Vikash Pandey] (https://github.
 
 Check live here :-
 👉https://vikapandeya.github.io/divine-connect/docs/
-
-hi this is testing
-
-
-
-
