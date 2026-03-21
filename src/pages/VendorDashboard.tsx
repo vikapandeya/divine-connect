@@ -39,6 +39,7 @@ export default function VendorDashboard() {
     dispatchWindow: '',
     city: '',
     offeringType: '',
+    isActive: true,
   });
 
   const [pujaForm, setPujaForm] = useState({
@@ -51,6 +52,7 @@ export default function VendorDashboard() {
     onlineTimings: '',
     offlineTimings: '',
     liveDarshanAvailable: false,
+    isActive: true,
   });
 
   const fetchData = async () => {
@@ -60,8 +62,8 @@ export default function VendorDashboard() {
       const vendorId = currentUser.uid;
       
       const [productsData, pujasData, bookingsData] = await Promise.all([
-        listProductsDirect({ vendorId }),
-        listPujasDirect({ vendorId }),
+        listProductsDirect({ vendorId, includeInactive: true }),
+        listPujasDirect({ vendorId, includeInactive: true }),
         listBookingsByVendorDirect(vendorId),
       ]);
 
@@ -104,6 +106,7 @@ export default function VendorDashboard() {
           dispatchWindow: item.dispatchWindow || '',
           city: item.city || '',
           offeringType: item.offeringType || '',
+          isActive: item.isActive !== false,
         });
       } else {
         setEditingItem(null);
@@ -120,6 +123,7 @@ export default function VendorDashboard() {
           dispatchWindow: '',
           city: '',
           offeringType: '',
+          isActive: true,
         });
       }
     } else if (activeTab === 'pujas') {
@@ -135,6 +139,7 @@ export default function VendorDashboard() {
           onlineTimings: (item.onlineTimings || []).join(', '),
           offlineTimings: (item.offlineTimings || []).join(', '),
           liveDarshanAvailable: item.liveDarshanAvailable === true,
+          isActive: item.isActive !== false,
         });
       } else {
         setEditingItem(null);
@@ -148,6 +153,7 @@ export default function VendorDashboard() {
           onlineTimings: '',
           offlineTimings: '',
           liveDarshanAvailable: false,
+          isActive: true,
         });
       }
     }
@@ -173,6 +179,7 @@ export default function VendorDashboard() {
         dispatchWindow: productForm.dispatchWindow,
         city: productForm.city,
         offeringType: productForm.offeringType,
+        isActive: productForm.isActive,
       });
       setIsModalOpen(false);
       fetchData();
@@ -197,6 +204,7 @@ export default function VendorDashboard() {
         onlineTimings: pujaForm.onlineTimings.split(',').map((item) => item.trim()).filter(Boolean),
         offlineTimings: pujaForm.offlineTimings.split(',').map((item) => item.trim()).filter(Boolean),
         liveDarshanAvailable: pujaForm.liveDarshanAvailable,
+        isActive: pujaForm.isActive,
       });
       setIsModalOpen(false);
       fetchData();
@@ -284,6 +292,7 @@ export default function VendorDashboard() {
                     <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase">Temple / Detail</th>
                     <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase">Price</th>
                     <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase">Stock</th>
+                    <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase">Visibility</th>
                     <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase text-right">Actions</th>
                   </tr>
                 </thead>
@@ -306,6 +315,13 @@ export default function VendorDashboard() {
                       </td>
                       <td className="px-6 py-4 font-bold text-orange-600">Rs. {formatIndianRupees(p.price)}</td>
                       <td className="px-6 py-4 text-stone-600">{p.stock}</td>
+                      <td className="px-6 py-4">
+                        <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full ${
+                          p.isActive === false ? 'bg-stone-100 text-stone-500' : 'bg-emerald-100 text-emerald-700'
+                        }`}>
+                          {p.isActive === false ? 'Hidden' : 'Live'}
+                        </span>
+                      </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex justify-end space-x-2">
                           <button onClick={() => handleOpenModal(p)} className="p-2 text-stone-400 hover:text-orange-500"><Edit2 className="w-4 h-4" /></button>
@@ -328,6 +344,7 @@ export default function VendorDashboard() {
                     <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase">Mode / Timings</th>
                     <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase">Price</th>
                     <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase">Duration</th>
+                    <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase">Visibility</th>
                     <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase text-right">Actions</th>
                   </tr>
                 </thead>
@@ -343,6 +360,13 @@ export default function VendorDashboard() {
                       </td>
                       <td className="px-6 py-4 font-bold text-orange-600">Rs. {formatIndianRupees(p.price)}</td>
                       <td className="px-6 py-4 text-stone-600">{p.duration}</td>
+                      <td className="px-6 py-4">
+                        <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full ${
+                          p.isActive === false ? 'bg-stone-100 text-stone-500' : 'bg-emerald-100 text-emerald-700'
+                        }`}>
+                          {p.isActive === false ? 'Hidden' : 'Live'}
+                        </span>
+                      </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex justify-end space-x-2">
                           <button onClick={() => handleOpenModal(p)} className="p-2 text-stone-400 hover:text-orange-500"><Edit2 className="w-4 h-4" /></button>
@@ -483,6 +507,10 @@ export default function VendorDashboard() {
                       <label className="text-xs font-bold text-stone-400 uppercase">Description</label>
                       <textarea required rows={3} value={productForm.description} onChange={e => setProductForm({...productForm, description: e.target.value})} className="w-full px-4 py-3 bg-stone-50 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500 resize-none" />
                     </div>
+                    <label className="flex items-center space-x-3 text-sm font-medium text-stone-600">
+                      <input type="checkbox" checked={productForm.isActive} onChange={e => setProductForm({...productForm, isActive: e.target.checked})} className="w-4 h-4 rounded border-stone-300 text-orange-500 focus:ring-orange-500" />
+                      <span>Show this offering on the public shop</span>
+                    </label>
                   </>
                 ) : (
                   <>
@@ -525,6 +553,10 @@ export default function VendorDashboard() {
                     <label className="flex items-center space-x-3 text-sm font-medium text-stone-600">
                       <input type="checkbox" checked={pujaForm.liveDarshanAvailable} onChange={e => setPujaForm({...pujaForm, liveDarshanAvailable: e.target.checked})} className="w-4 h-4 rounded border-stone-300 text-orange-500 focus:ring-orange-500" />
                       <span>Live darshan assistance available with this puja</span>
+                    </label>
+                    <label className="flex items-center space-x-3 text-sm font-medium text-stone-600">
+                      <input type="checkbox" checked={pujaForm.isActive} onChange={e => setPujaForm({...pujaForm, isActive: e.target.checked})} className="w-4 h-4 rounded border-stone-300 text-orange-500 focus:ring-orange-500" />
+                      <span>Show this puja on the public services page</span>
                     </label>
                     <div className="space-y-2">
                       <label className="text-xs font-bold text-stone-400 uppercase">Description</label>

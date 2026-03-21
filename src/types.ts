@@ -37,6 +37,10 @@ export interface Product {
   city?: string;
   offeringType?: string;
   tags?: string[];
+  searchKeywords?: string[];
+  isActive?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Puja {
@@ -52,6 +56,10 @@ export interface Puja {
   offlineTimings?: string[];
   templeName?: string;
   liveDarshanAvailable?: boolean;
+  searchKeywords?: string[];
+  isActive?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Booking {
@@ -65,6 +73,9 @@ export interface Booking {
   timeSlot: string;
   status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
   totalAmount: number;
+  bookingReference?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface AstrologyReading {
@@ -131,5 +142,7 @@ export interface Order {
   receipt: OrderReceipt;
   estimatedDeliveryDate?: string;
   statusTimeline?: OrderStatusStep[];
+  itemCount?: number;
+  updatedAt?: string;
   createdAt: string;
 }

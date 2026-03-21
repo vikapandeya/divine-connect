@@ -1,31 +1,6 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // ===============================================================
-    // Assumed Data Model
-    // ===============================================================
-    // Collection: users
-    // Fields: uid, displayName, email, photoURL, role, phoneNumber, addresses, createdAt
-    //
-    // Collection: vendors
-    // Fields: uid, businessName, description, type, status, gstNumber, rating, commissionRate
-    //
-    // Collection: products
-    // Fields: vendorId, name, description, price, category, images, stock, rating
-    //
-    // Collection: pujas
-    // Fields: vendorId, title, description, price, duration, samagriIncluded
-    //
-    // Collection: bookings
-    // Fields: userId, serviceId, vendorId, type, date, timeSlot, status, totalAmount
-    //
-    // Collection: orders
-    // Fields: userId, items, totalAmount, status, shippingAddress, createdAt
-    // ===============================================================
-
-    // ===============================================================
-    // Helper Functions
-    // ===============================================================
     function isAuthenticated() {
       return request.auth != null;
     }
@@ -34,41 +9,196 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
+    function currentUserDoc() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
     function isAdmin() {
-      return isAuthenticated() && 
-        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
-         (request.auth.token.email == "pg2331427@gmail.com" && request.auth.token.email_verified == true));
+      return isAuthenticated() &&
+        (
+          currentUserDoc().data.role == 'admin' ||
+          (request.auth.token.email == "pg2331427@gmail.com" && request.auth.token.email_verified == true)
+        );
     }
 
     function isVendor() {
-      return isAuthenticated() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'vendor';
+      return isAuthenticated() && currentUserDoc().data.role == 'vendor';
     }
 
-    function hasOnlyAllowedFields(fields) {
-      return request.resource.data.keys().hasOnly(fields);
+    function hasOnlyAllowedFields(data, fields) {
+      return data.keys().hasOnly(fields);
     }
 
-    // ===============================================================
-    // Domain Validators
-    // ===============================================================
+    function isString(value) {
+      return value is string;
+    }
+
+    function isOptionalString(data, field) {
+      return !(field in data) || data[field] is string;
+    }
+
+    function isOptionalBool(data, field) {
+      return !(field in data) || data[field] is bool;
+    }
+
+    function isOptionalTimestamp(data, field) {
+      return !(field in data) || data[field] is timestamp;
+    }
+
+    function isOptionalList(data, field, maxSize) {
+      return !(field in data) || (data[field] is list && data[field].size() <= maxSize);
+    }
+
     function isValidUser(data) {
-      return data.uid is string && data.email is string && data.role in ['devotee', 'vendor', 'admin'];
+      return hasOnlyAllowedFields(
+          data,
+          ['uid', 'displayName', 'email', 'photoURL', 'role', 'phoneNumber', 'addresses', 'createdAt', 'updatedAt']
+        ) &&
+        data.uid is string &&
+        data.email is string &&
+        data.role in ['devotee', 'vendor', 'admin'] &&
+        isOptionalString(data, 'displayName') &&
+        isOptionalString(data, 'photoURL') &&
+        isOptionalString(data, 'phoneNumber') &&
+        (!( 'addresses' in data) || data.addresses is list) &&
+        isOptionalTimestamp(data, 'createdAt') &&
+        isOptionalTimestamp(data, 'updatedAt');
     }
 
     function isValidProduct(data) {
-      return data.vendorId is string && data.name is string && data.price is number && data.stock is int;
+      return hasOnlyAllowedFields(
+          data,
+          [
+            'vendorId', 'name', 'description', 'price', 'category', 'image', 'stock', 'rating',
+            'templeName', 'weight', 'size', 'dispatchWindow', 'city', 'offeringType',
+            'tags', 'searchKeywords', 'isActive', 'createdAt', 'updatedAt'
+          ]
+        ) &&
+        data.vendorId is string &&
+        data.name is string &&
+        data.description is string &&
+        data.price is number &&
+        data.price >= 0 &&
+        data.category is string &&
+        data.image is string &&
+        data.stock is int &&
+        data.stock >= 0 &&
+        data.rating is number &&
+        data.rating >= 0 &&
+        data.rating <= 5 &&
+        isOptionalString(data, 'templeName') &&
+        isOptionalString(data, 'weight') &&
+        isOptionalString(data, 'size') &&
+        isOptionalString(data, 'dispatchWindow') &&
+        isOptionalString(data, 'city') &&
+        isOptionalString(data, 'offeringType') &&
+        isOptionalList(data, 'tags', 12) &&
+        isOptionalList(data, 'searchKeywords', 24) &&
+        isOptionalBool(data, 'isActive') &&
+        isOptionalTimestamp(data, 'createdAt') &&
+        isOptionalTimestamp(data, 'updatedAt');
+    }
+
+    function isValidPuja(data) {
+      return hasOnlyAllowedFields(
+          data,
+          [
+            'vendorId', 'title', 'description', 'price', 'duration', 'samagriIncluded', 'mode',
+            'onlineTimings', 'offlineTimings', 'templeName', 'liveDarshanAvailable',
+            'searchKeywords', 'isActive', 'createdAt', 'updatedAt'
+          ]
+        ) &&
+        data.vendorId is string &&
+        data.title is string &&
+        data.description is string &&
+        data.price is number &&
+        data.price >= 0 &&
+        data.duration is string &&
+        data.samagriIncluded is bool &&
+        data.mode in ['online', 'offline', 'hybrid'] &&
+        isOptionalList(data, 'onlineTimings', 10) &&
+        isOptionalList(data, 'offlineTimings', 10) &&
+        isOptionalString(data, 'templeName') &&
+        isOptionalBool(data, 'liveDarshanAvailable') &&
+        isOptionalList(data, 'searchKeywords', 24) &&
+        isOptionalBool(data, 'isActive') &&
+        isOptionalTimestamp(data, 'createdAt') &&
+        isOptionalTimestamp(data, 'updatedAt');
+    }
+
+    function isValidBooking(data) {
+      return hasOnlyAllowedFields(
+          data,
+          ['userId', 'serviceId', 'vendorId', 'type', 'mode', 'date', 'timeSlot', 'status', 'totalAmount', 'bookingReference', 'createdAt', 'updatedAt']
+        ) &&
+        data.userId is string &&
+        data.serviceId is string &&
+        data.vendorId is string &&
+        data.type in ['puja', 'darshan'] &&
+        data.mode in ['online', 'offline'] &&
+        data.date is string &&
+        data.timeSlot is string &&
+        data.status in ['pending', 'confirmed', 'completed', 'cancelled'] &&
+        data.totalAmount is number &&
+        data.totalAmount >= 0 &&
+        isOptionalString(data, 'bookingReference') &&
+        isOptionalTimestamp(data, 'createdAt') &&
+        isOptionalTimestamp(data, 'updatedAt');
     }
 
     function isValidFeedback(data) {
-      return data.name is string &&
+      return hasOnlyAllowedFields(
+          data,
+          ['userId', 'name', 'email', 'subject', 'rating', 'message', 'createdAt']
+        ) &&
+        data.name is string &&
         data.email is string &&
         data.message is string &&
-        data.rating is number;
+        data.rating is number &&
+        data.rating >= 1 &&
+        data.rating <= 5 &&
+        isOptionalString(data, 'subject') &&
+        isOptionalString(data, 'userId') &&
+        isOptionalTimestamp(data, 'createdAt');
     }
 
-    // ===============================================================
-    // Rules
-    // ===============================================================
+    function isValidOrder(data) {
+      return hasOnlyAllowedFields(
+          data,
+          [
+            'userId', 'orderNumber', 'items', 'itemCount', 'totalAmount', 'status', 'shippingAddress',
+            'customerDetails', 'receipt', 'estimatedDeliveryDate', 'statusTimeline', 'createdAt', 'updatedAt'
+          ]
+        ) &&
+        data.userId is string &&
+        data.orderNumber is string &&
+        data.items is list &&
+        data.items.size() > 0 &&
+        data.totalAmount is number &&
+        data.totalAmount >= 0 &&
+        data.status in ['processing', 'shipped', 'delivered', 'cancelled'] &&
+        data.shippingAddress is string &&
+        data.customerDetails is map &&
+        data.customerDetails.fullName is string &&
+        data.customerDetails.email is string &&
+        data.customerDetails.phoneNumber is string &&
+        data.customerDetails.addressLine1 is string &&
+        data.customerDetails.city is string &&
+        data.customerDetails.state is string &&
+        data.customerDetails.pincode is string &&
+        data.receipt is map &&
+        data.receipt.orderNumber is string &&
+        data.receipt.issuedAt is string &&
+        data.receipt.paymentMethod is string &&
+        data.receipt.subtotal is number &&
+        data.receipt.shippingFee is number &&
+        data.receipt.totalAmount is number &&
+        isOptionalString(data, 'estimatedDeliveryDate') &&
+        isOptionalList(data, 'statusTimeline', 10) &&
+        (!( 'itemCount' in data) || (data.itemCount is int && data.itemCount >= 0)) &&
+        isOptionalTimestamp(data, 'createdAt') &&
+        isOptionalTimestamp(data, 'updatedAt');
+    }
 
     match /users/{userId} {
       allow read: if isAuthenticated();
@@ -78,7 +208,12 @@ service cloud.firestore {
           request.resource.data.role != 'admin' ||
           (request.auth.token.email == "pg2331427@gmail.com" && request.auth.token.email_verified == true)
         );
-      allow update: if (isOwner(userId) && request.resource.data.role == resource.data.role) || isAdmin();
+      allow update: if (
+          isOwner(userId) &&
+          isValidUser(request.resource.data) &&
+          request.resource.data.uid == resource.data.uid &&
+          request.resource.data.role == resource.data.role
+        ) || isAdmin();
     }
 
     match /vendors/{vendorId} {
@@ -89,28 +224,61 @@ service cloud.firestore {
 
     match /products/{productId} {
       allow read: if true;
-      allow create: if ((isVendor() && isValidProduct(request.resource.data) && request.resource.data.vendorId == request.auth.uid) || isAdmin());
-      allow update: if (isVendor() && resource.data.vendorId == request.auth.uid) || isAdmin();
+      allow create: if isValidProduct(request.resource.data) &&
+        (
+          (isVendor() && request.resource.data.vendorId == request.auth.uid) ||
+          isAdmin()
+        );
+      allow update: if isValidProduct(request.resource.data) &&
+        (
+          (isVendor() && resource.data.vendorId == request.auth.uid && request.resource.data.vendorId == resource.data.vendorId) ||
+          isAdmin()
+        );
       allow delete: if (isVendor() && resource.data.vendorId == request.auth.uid) || isAdmin();
     }
 
     match /pujas/{pujaId} {
       allow read: if true;
-      allow create: if isVendor() || isAdmin();
-      allow update: if (isVendor() && resource.data.vendorId == request.auth.uid) || isAdmin();
+      allow create: if isValidPuja(request.resource.data) &&
+        (
+          (isVendor() && request.resource.data.vendorId == request.auth.uid) ||
+          isAdmin()
+        );
+      allow update: if isValidPuja(request.resource.data) &&
+        (
+          (isVendor() && resource.data.vendorId == request.auth.uid && request.resource.data.vendorId == resource.data.vendorId) ||
+          isAdmin()
+        );
       allow delete: if (isVendor() && resource.data.vendorId == request.auth.uid) || isAdmin();
     }
 
     match /bookings/{bookingId} {
-      allow read: if isAuthenticated() && (request.auth.uid == resource.data.userId || request.auth.uid == resource.data.vendorId || isAdmin());
-      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
-      allow update: if isAuthenticated() && (request.auth.uid == resource.data.userId || request.auth.uid == resource.data.vendorId || isAdmin());
+      allow read: if isAuthenticated() &&
+        (request.auth.uid == resource.data.userId || request.auth.uid == resource.data.vendorId || isAdmin());
+      allow create: if isAuthenticated() &&
+        request.resource.data.userId == request.auth.uid &&
+        isValidBooking(request.resource.data);
+      allow update: if isAuthenticated() && isValidBooking(request.resource.data) &&
+        (
+          (
+            request.auth.uid == resource.data.userId &&
+            request.resource.data.diff(resource.data).changedKeys().hasOnly(['status', 'updatedAt']) &&
+            request.resource.data.status == 'cancelled'
+          ) ||
+          (
+            request.auth.uid == resource.data.vendorId &&
+            request.resource.data.diff(resource.data).changedKeys().hasOnly(['status', 'updatedAt'])
+          ) ||
+          isAdmin()
+        );
     }
 
     match /orders/{orderId} {
       allow read: if isAuthenticated() && (request.auth.uid == resource.data.userId || isAdmin());
-      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
-      allow update: if isAdmin();
+      allow create: if isAuthenticated() &&
+        request.resource.data.userId == request.auth.uid &&
+        isValidOrder(request.resource.data);
+      allow update: if isAdmin() && isValidOrder(request.resource.data);
     }
 
     match /astrologyReadings/{readingId} {

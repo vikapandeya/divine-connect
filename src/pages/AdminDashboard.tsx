@@ -29,6 +29,7 @@ export default function AdminDashboard() {
     dispatchWindow: '',
     city: '',
     offeringType: '',
+    isActive: true,
   });
 
   const [stats, setStats] = useState({
@@ -48,7 +49,7 @@ export default function AdminDashboard() {
 
   const fetchProducts = async () => {
     try {
-      setProducts(await listProductsDirect());
+      setProducts(await listProductsDirect({ includeInactive: true }));
     } catch (error) {
       console.error('Error fetching products:', error);
     } finally {
@@ -78,6 +79,7 @@ export default function AdminDashboard() {
         dispatchWindow: product.dispatchWindow || '',
         city: product.city || '',
         offeringType: product.offeringType || '',
+        isActive: product.isActive !== false,
       });
     } else {
       setEditingProduct(null);
@@ -95,6 +97,7 @@ export default function AdminDashboard() {
         dispatchWindow: '',
         city: '',
         offeringType: '',
+        isActive: true,
       });
     }
     setIsModalOpen(true);
@@ -120,6 +123,7 @@ export default function AdminDashboard() {
         dispatchWindow: formData.dispatchWindow,
         city: formData.city,
         offeringType: formData.offeringType,
+        isActive: formData.isActive,
       });
       alert(editingProduct ? 'Product updated!' : 'Product added!');
       setIsModalOpen(false);
@@ -223,6 +227,7 @@ export default function AdminDashboard() {
                     <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase tracking-wider">Price</th>
                     <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase tracking-wider">Stock</th>
                     <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase tracking-wider">Rating</th>
+                    <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase tracking-wider">Visibility</th>
                     <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase tracking-wider text-right">Actions</th>
                 </tr>
               </thead>
@@ -259,6 +264,13 @@ export default function AdminDashboard() {
                         <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
                         <span className="text-sm font-bold text-stone-900">{product.rating}</span>
                       </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full ${
+                        product.isActive === false ? 'bg-stone-100 text-stone-500' : 'bg-emerald-100 text-emerald-700'
+                      }`}>
+                        {product.isActive === false ? 'Hidden' : 'Live'}
+                      </span>
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end space-x-2">
@@ -452,6 +464,16 @@ export default function AdminDashboard() {
                     placeholder="Describe the product..."
                   />
                 </div>
+
+                <label className="flex items-center space-x-3 text-sm font-medium text-stone-600">
+                  <input
+                    type="checkbox"
+                    checked={formData.isActive}
+                    onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+                    className="w-4 h-4 rounded border-stone-300 text-orange-500 focus:ring-orange-500"
+                  />
+                  <span>Show this offering on the public shop</span>
+                </label>
 
                 <div className="flex space-x-4 pt-4">
                   <button
