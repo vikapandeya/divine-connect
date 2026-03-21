@@ -95,6 +95,26 @@ export default function PujaDetail() {
     fetchPuja();
   }, [id]);
 
+  const availableSlots =
+    bookingMode === 'online'
+      ? puja?.onlineTimings?.length
+        ? puja.onlineTimings
+        : puja?.offlineTimings || []
+      : puja?.offlineTimings?.length
+        ? puja.offlineTimings
+        : puja?.onlineTimings || [];
+
+  useEffect(() => {
+    if (availableSlots.length === 0) {
+      setBookingTime('');
+      return;
+    }
+
+    if (!availableSlots.includes(bookingTime)) {
+      setBookingTime(availableSlots[0]);
+    }
+  }, [availableSlots, bookingTime]);
+
   const handleBooking = async () => {
     if (!currentUser) {
       alert('Please sign in to book a puja.');
@@ -275,6 +295,7 @@ export default function PujaDetail() {
               </label>
               <input 
                 type="date" 
+                min={new Date().toISOString().split('T')[0]}
                 value={bookingDate}
                 onChange={(e) => setBookingDate(e.target.value)}
                 className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
@@ -291,11 +312,15 @@ export default function PujaDetail() {
                 onChange={(e) => setBookingTime(e.target.value)}
                 className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
               >
-                <option value="">Choose a slot</option>
-                <option value="06:00 AM">06:00 AM - 08:00 AM</option>
-                <option value="09:00 AM">09:00 AM - 11:00 AM</option>
-                <option value="04:00 PM">04:00 PM - 06:00 PM</option>
-                <option value="07:00 PM">07:00 PM - 09:00 PM</option>
+                {availableSlots.length === 0 ? (
+                  <option value="">No slots available</option>
+                ) : (
+                  availableSlots.map((slot) => (
+                    <option key={slot} value={slot}>
+                      {slot}
+                    </option>
+                  ))
+                )}
               </select>
             </div>
 

@@ -129,8 +129,8 @@ export default function Services() {
             Reserve live darshan coordination for special temple moments, family prayers,
             and remote participation.
           </p>
-          <Link to="/contact" className="inline-flex items-center mt-4 text-sm font-bold text-orange-500">
-            Contact for Darshan Support
+          <Link to="/services/darshan" className="inline-flex items-center mt-4 text-sm font-bold text-orange-500">
+            Book Darshan Support
           </Link>
         </div>
         <div className="bg-white rounded-[2rem] border border-stone-200 p-6">

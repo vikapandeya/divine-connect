@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { auth } from '../firebase';
-import { Product, Puja, Booking } from '../types';
+import { Product, Puja } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Edit2, Trash2, X, Save, Package, IndianRupee, Star, Calendar, Clock, User, CheckCircle, XCircle } from 'lucide-react';
+import { Plus, Edit2, Trash2, X, Save, CheckCircle, XCircle } from 'lucide-react';
 import { apiFetch } from '../lib/api';
+import { formatIndianRupees } from '../lib/utils';
 
 export default function VendorDashboard() {
   const currentUser = auth?.currentUser;
@@ -22,14 +23,25 @@ export default function VendorDashboard() {
     price: '',
     category: '',
     stock: '',
-    image: ''
+    image: '',
+    templeName: '',
+    weight: '',
+    size: '',
+    dispatchWindow: '',
+    city: '',
+    offeringType: '',
   });
 
   const [pujaForm, setPujaForm] = useState({
     title: '',
     description: '',
     price: '',
-    duration: ''
+    duration: '',
+    templeName: '',
+    mode: 'hybrid',
+    onlineTimings: '',
+    offlineTimings: '',
+    liveDarshanAvailable: false,
   });
 
   const fetchData = async () => {
@@ -76,11 +88,30 @@ export default function VendorDashboard() {
           price: item.price.toString(),
           category: item.category,
           stock: item.stock.toString(),
-          image: item.image
+          image: item.image,
+          templeName: item.templeName || '',
+          weight: item.weight || '',
+          size: item.size || '',
+          dispatchWindow: item.dispatchWindow || '',
+          city: item.city || '',
+          offeringType: item.offeringType || '',
         });
       } else {
         setEditingItem(null);
-        setProductForm({ name: '', description: '', price: '', category: '', stock: '', image: '' });
+        setProductForm({
+          name: '',
+          description: '',
+          price: '',
+          category: '',
+          stock: '',
+          image: '',
+          templeName: '',
+          weight: '',
+          size: '',
+          dispatchWindow: '',
+          city: '',
+          offeringType: '',
+        });
       }
     } else if (activeTab === 'pujas') {
       if (item) {
@@ -89,11 +120,26 @@ export default function VendorDashboard() {
           title: item.title,
           description: item.description,
           price: item.price.toString(),
-          duration: item.duration
+          duration: item.duration,
+          templeName: item.templeName || '',
+          mode: item.mode || 'hybrid',
+          onlineTimings: (item.onlineTimings || []).join(', '),
+          offlineTimings: (item.offlineTimings || []).join(', '),
+          liveDarshanAvailable: item.liveDarshanAvailable === true,
         });
       } else {
         setEditingItem(null);
-        setPujaForm({ title: '', description: '', price: '', duration: '' });
+        setPujaForm({
+          title: '',
+          description: '',
+          price: '',
+          duration: '',
+          templeName: '',
+          mode: 'hybrid',
+          onlineTimings: '',
+          offlineTimings: '',
+          liveDarshanAvailable: false,
+        });
       }
     }
     setIsModalOpen(true);
@@ -109,7 +155,7 @@ export default function VendorDashboard() {
         body: JSON.stringify({
           ...productForm,
           price: parseFloat(productForm.price),
-          stock: parseInt(productForm.stock),
+          stock: parseInt(productForm.stock, 10),
           rating: editingItem?.rating || 4.5,
           vendorId: currentUser?.uid
         })
@@ -133,6 +179,8 @@ export default function VendorDashboard() {
         body: JSON.stringify({
           ...pujaForm,
           price: parseFloat(pujaForm.price),
+          onlineTimings: pujaForm.onlineTimings.split(',').map((item) => item.trim()).filter(Boolean),
+          offlineTimings: pujaForm.offlineTimings.split(',').map((item) => item.trim()).filter(Boolean),
           vendorId: currentUser?.uid
         })
       });
@@ -221,6 +269,7 @@ export default function VendorDashboard() {
                 <thead className="bg-stone-50 border-b border-stone-200">
                   <tr>
                     <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase">Product</th>
+                    <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase">Temple / Detail</th>
                     <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase">Price</th>
                     <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase">Stock</th>
                     <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase text-right">Actions</th>
@@ -235,7 +284,15 @@ export default function VendorDashboard() {
                           <span className="font-bold text-stone-900">{p.name}</span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 font-bold text-orange-600">₹{p.price}</td>
+                      <td className="px-6 py-4 text-sm text-stone-500">
+                        <div>{p.templeName || p.offeringType || 'General offering'}</div>
+                        {(p.weight || p.size) && (
+                          <div className="text-xs text-stone-400">
+                            {[p.weight, p.size].filter(Boolean).join(' | ')}
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 font-bold text-orange-600">Rs. {formatIndianRupees(p.price)}</td>
                       <td className="px-6 py-4 text-stone-600">{p.stock}</td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex justify-end space-x-2">
@@ -256,6 +313,7 @@ export default function VendorDashboard() {
                 <thead className="bg-stone-50 border-b border-stone-200">
                   <tr>
                     <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase">Puja Title</th>
+                    <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase">Mode / Timings</th>
                     <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase">Price</th>
                     <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase">Duration</th>
                     <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase text-right">Actions</th>
@@ -265,7 +323,13 @@ export default function VendorDashboard() {
                   {pujas.map(p => (
                     <tr key={p.id} className="hover:bg-stone-50">
                       <td className="px-6 py-4 font-bold text-stone-900">{p.title}</td>
-                      <td className="px-6 py-4 font-bold text-orange-600">₹{p.price}</td>
+                      <td className="px-6 py-4 text-sm text-stone-500">
+                        <div className="capitalize">{p.mode || 'hybrid'}</div>
+                        <div className="text-xs text-stone-400">
+                          {p.onlineTimings?.[0] || p.offlineTimings?.[0] || 'Timing added on service page'}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 font-bold text-orange-600">Rs. {formatIndianRupees(p.price)}</td>
                       <td className="px-6 py-4 text-stone-600">{p.duration}</td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex justify-end space-x-2">
@@ -287,6 +351,7 @@ export default function VendorDashboard() {
                   <tr>
                     <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase">Customer</th>
                     <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase">Service</th>
+                    <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase">Mode</th>
                     <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase">Date/Time</th>
                     <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase">Status</th>
                     <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase text-right">Actions</th>
@@ -297,11 +362,13 @@ export default function VendorDashboard() {
                     <tr key={b.id} className="hover:bg-stone-50">
                       <td className="px-6 py-4 font-bold text-stone-900">{b.customerName}</td>
                       <td className="px-6 py-4 capitalize text-stone-600">{b.type}</td>
+                      <td className="px-6 py-4 capitalize text-stone-500">{b.mode || 'online'}</td>
                       <td className="px-6 py-4 text-stone-500 text-sm">{b.date} at {b.timeSlot}</td>
                       <td className="px-6 py-4">
                         <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full ${
                           b.status === 'confirmed' ? 'bg-emerald-100 text-emerald-700' : 
-                          b.status === 'pending' ? 'bg-amber-100 text-amber-700' : 'bg-stone-100 text-stone-500'
+                          b.status === 'pending' ? 'bg-amber-100 text-amber-700' :
+                          b.status === 'completed' ? 'bg-blue-100 text-blue-700' : 'bg-stone-100 text-stone-500'
                         }`}>{b.status}</span>
                       </td>
                       <td className="px-6 py-4 text-right">
@@ -309,6 +376,12 @@ export default function VendorDashboard() {
                           {b.status === 'pending' && (
                             <>
                               <button onClick={() => updateBookingStatus(b.id, 'confirmed')} className="p-2 text-emerald-500 hover:bg-emerald-50 rounded-lg"><CheckCircle className="w-4 h-4" /></button>
+                              <button onClick={() => updateBookingStatus(b.id, 'cancelled')} className="p-2 text-red-500 hover:bg-red-50 rounded-lg"><XCircle className="w-4 h-4" /></button>
+                            </>
+                          )}
+                          {b.status === 'confirmed' && (
+                            <>
+                              <button onClick={() => updateBookingStatus(b.id, 'completed')} className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg"><CheckCircle className="w-4 h-4" /></button>
                               <button onClick={() => updateBookingStatus(b.id, 'cancelled')} className="p-2 text-red-500 hover:bg-red-50 rounded-lg"><XCircle className="w-4 h-4" /></button>
                             </>
                           )}
@@ -356,12 +429,38 @@ export default function VendorDashboard() {
                         </select>
                       </div>
                       <div className="space-y-2">
-                        <label className="text-xs font-bold text-stone-400 uppercase">Price (₹)</label>
+                        <label className="text-xs font-bold text-stone-400 uppercase">Price (Rs.)</label>
                         <input required type="number" value={productForm.price} onChange={e => setProductForm({...productForm, price: e.target.value})} className="w-full px-4 py-3 bg-stone-50 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500" />
                       </div>
                       <div className="space-y-2">
                         <label className="text-xs font-bold text-stone-400 uppercase">Stock</label>
                         <input required type="number" value={productForm.stock} onChange={e => setProductForm({...productForm, stock: e.target.value})} className="w-full px-4 py-3 bg-stone-50 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500" />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-stone-400 uppercase">Temple / Source</label>
+                      <input type="text" value={productForm.templeName} onChange={e => setProductForm({...productForm, templeName: e.target.value})} className="w-full px-4 py-3 bg-stone-50 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500" placeholder="e.g. Kashi Vishwanath Mandir" />
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-stone-400 uppercase">Offering Type</label>
+                        <input type="text" value={productForm.offeringType} onChange={e => setProductForm({...productForm, offeringType: e.target.value})} className="w-full px-4 py-3 bg-stone-50 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500" placeholder="e.g. Mahaprasad" />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-stone-400 uppercase">Weight</label>
+                        <input type="text" value={productForm.weight} onChange={e => setProductForm({...productForm, weight: e.target.value})} className="w-full px-4 py-3 bg-stone-50 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500" placeholder="e.g. 500 g" />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-stone-400 uppercase">Size / Pack</label>
+                        <input type="text" value={productForm.size} onChange={e => setProductForm({...productForm, size: e.target.value})} className="w-full px-4 py-3 bg-stone-50 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500" placeholder="e.g. Family Box" />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-stone-400 uppercase">Dispatch Window</label>
+                        <input type="text" value={productForm.dispatchWindow} onChange={e => setProductForm({...productForm, dispatchWindow: e.target.value})} className="w-full px-4 py-3 bg-stone-50 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500" placeholder="e.g. Dispatch in 24 hours" />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-stone-400 uppercase">City</label>
+                        <input type="text" value={productForm.city} onChange={e => setProductForm({...productForm, city: e.target.value})} className="w-full px-4 py-3 bg-stone-50 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500" placeholder="e.g. Varanasi" />
                       </div>
                     </div>
                     <div className="space-y-2">
@@ -381,7 +480,7 @@ export default function VendorDashboard() {
                     </div>
                     <div className="grid grid-cols-2 gap-6">
                       <div className="space-y-2">
-                        <label className="text-xs font-bold text-stone-400 uppercase">Price (₹)</label>
+                        <label className="text-xs font-bold text-stone-400 uppercase">Price (Rs.)</label>
                         <input required type="number" value={pujaForm.price} onChange={e => setPujaForm({...pujaForm, price: e.target.value})} className="w-full px-4 py-3 bg-stone-50 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500" />
                       </div>
                       <div className="space-y-2">
@@ -389,6 +488,32 @@ export default function VendorDashboard() {
                         <input required type="text" value={pujaForm.duration} onChange={e => setPujaForm({...pujaForm, duration: e.target.value})} className="w-full px-4 py-3 bg-stone-50 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500" placeholder="e.g. 2 Hours" />
                       </div>
                     </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-stone-400 uppercase">Temple / Service Area</label>
+                        <input type="text" value={pujaForm.templeName} onChange={e => setPujaForm({...pujaForm, templeName: e.target.value})} className="w-full px-4 py-3 bg-stone-50 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500" placeholder="e.g. DivineConnect Certified Pandit Seva" />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-stone-400 uppercase">Mode</label>
+                        <select value={pujaForm.mode} onChange={e => setPujaForm({...pujaForm, mode: e.target.value as 'online' | 'offline' | 'hybrid'})} className="w-full px-4 py-3 bg-stone-50 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500">
+                          <option value="hybrid">Hybrid</option>
+                          <option value="online">Online</option>
+                          <option value="offline">Offline</option>
+                        </select>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-stone-400 uppercase">Online Timings</label>
+                        <input type="text" value={pujaForm.onlineTimings} onChange={e => setPujaForm({...pujaForm, onlineTimings: e.target.value})} className="w-full px-4 py-3 bg-stone-50 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500" placeholder="Comma separated slots" />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-stone-400 uppercase">Offline Timings</label>
+                        <input type="text" value={pujaForm.offlineTimings} onChange={e => setPujaForm({...pujaForm, offlineTimings: e.target.value})} className="w-full px-4 py-3 bg-stone-50 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500" placeholder="Comma separated slots" />
+                      </div>
+                    </div>
+                    <label className="flex items-center space-x-3 text-sm font-medium text-stone-600">
+                      <input type="checkbox" checked={pujaForm.liveDarshanAvailable} onChange={e => setPujaForm({...pujaForm, liveDarshanAvailable: e.target.checked})} className="w-4 h-4 rounded border-stone-300 text-orange-500 focus:ring-orange-500" />
+                      <span>Live darshan assistance available with this puja</span>
+                    </label>
                     <div className="space-y-2">
                       <label className="text-xs font-bold text-stone-400 uppercase">Description</label>
                       <textarea required rows={3} value={pujaForm.description} onChange={e => setPujaForm({...pujaForm, description: e.target.value})} className="w-full px-4 py-3 bg-stone-50 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500 resize-none" />

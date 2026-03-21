@@ -216,7 +216,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <h4 className="text-white font-medium mb-4">Quick Links</h4>
               <ul className="space-y-2 text-sm">
                 <li><Link to="/services" className="hover:text-orange-500 transition-colors">Puja Booking</Link></li>
-                <li><Link to="/services" className="hover:text-orange-500 transition-colors">Darshan Slots</Link></li>
+                <li><Link to="/services/darshan" className="hover:text-orange-500 transition-colors">Darshan Slots</Link></li>
+                <li><Link to="/services/prasad" className="hover:text-orange-500 transition-colors">Temple Prasad</Link></li>
                 <li><Link to="/shop" className="hover:text-orange-500 transition-colors">Spiritual Shop</Link></li>
                 <li><Link to="/about" className="hover:text-orange-500 transition-colors">Our Mission</Link></li>
               </ul>

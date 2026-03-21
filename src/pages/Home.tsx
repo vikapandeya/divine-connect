@@ -37,7 +37,7 @@ const services = [
     meta: 'Temple support and remote participation',
     icon: <Hand className="w-8 h-8 text-blue-500" />,
     color: 'bg-blue-50',
-    link: '/contact',
+    link: '/services/darshan',
   },
   {
     id: 'prasad',
@@ -201,7 +201,7 @@ export default function Home() {
             </p>
             <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
               <Link
-                to="/services"
+                to="/services/puja"
                 className="bg-orange-500 text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/20 text-center"
               >
                 Book a Puja

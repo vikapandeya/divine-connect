@@ -14,8 +14,10 @@ import {
 import { apiFetch } from '../lib/api';
 import { formatIndianRupees } from '../lib/utils';
 import { downloadReceipt, printReceipt } from '../lib/receipts';
+import { useNavigate } from 'react-router-dom';
 
 export default function Profile() {
+  const navigate = useNavigate();
   const currentUser = auth?.currentUser;
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -146,9 +148,7 @@ export default function Profile() {
             </button>
             {profile?.role === 'vendor' && (
               <button
-                onClick={() => {
-                  window.location.href = '/vendor';
-                }}
+                onClick={() => navigate('/vendor')}
                 className="w-full flex items-center px-6 py-4 text-sm font-bold text-stone-600 hover:bg-stone-50 transition-colors"
               >
                 <Settings className="w-5 h-5 mr-3" />
@@ -157,9 +157,7 @@ export default function Profile() {
             )}
             {profile?.role === 'admin' && (
               <button
-                onClick={() => {
-                  window.location.href = '/admin';
-                }}
+                onClick={() => navigate('/admin')}
                 className="w-full flex items-center px-6 py-4 text-sm font-bold text-stone-600 hover:bg-stone-50 transition-colors"
               >
                 <Settings className="w-5 h-5 mr-3" />

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Product } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Edit2, Trash2, X, Save, Package, IndianRupee, Star, Tag, Database, Users, Store, Calendar } from 'lucide-react';
+import { Plus, Edit2, Trash2, X, Save, Package, Star, Users, Store, Calendar } from 'lucide-react';
 import { apiFetch } from '../lib/api';
+import { formatIndianRupees } from '../lib/utils';
 
 export default function AdminDashboard() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -16,7 +17,13 @@ export default function AdminDashboard() {
     category: '',
     stock: '',
     rating: '4.5',
-    image: ''
+    image: '',
+    templeName: '',
+    weight: '',
+    size: '',
+    dispatchWindow: '',
+    city: '',
+    offeringType: '',
   });
 
   const [stats, setStats] = useState({
@@ -66,7 +73,13 @@ export default function AdminDashboard() {
         category: product.category,
         stock: product.stock.toString(),
         rating: product.rating.toString(),
-        image: product.image
+        image: product.image,
+        templeName: product.templeName || '',
+        weight: product.weight || '',
+        size: product.size || '',
+        dispatchWindow: product.dispatchWindow || '',
+        city: product.city || '',
+        offeringType: product.offeringType || '',
       });
     } else {
       setEditingProduct(null);
@@ -77,7 +90,13 @@ export default function AdminDashboard() {
         category: '',
         stock: '',
         rating: '4.5',
-        image: ''
+        image: '',
+        templeName: '',
+        weight: '',
+        size: '',
+        dispatchWindow: '',
+        city: '',
+        offeringType: '',
       });
     }
     setIsModalOpen(true);
@@ -94,7 +113,7 @@ export default function AdminDashboard() {
         body: JSON.stringify({
           ...formData,
           price: parseFloat(formData.price),
-          stock: parseInt(formData.stock),
+          stock: parseInt(formData.stock, 10),
           rating: parseFloat(formData.rating)
         })
       });
@@ -198,13 +217,14 @@ export default function AdminDashboard() {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-stone-50 border-bottom border-stone-200">
-                  <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase tracking-wider">Product</th>
-                  <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase tracking-wider">Category</th>
-                  <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase tracking-wider">Price</th>
-                  <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase tracking-wider">Stock</th>
-                  <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase tracking-wider">Rating</th>
-                  <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase tracking-wider text-right">Actions</th>
+                <tr className="bg-stone-50 border-b border-stone-200">
+                    <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase tracking-wider">Product</th>
+                    <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase tracking-wider">Category</th>
+                    <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase tracking-wider">Temple / Detail</th>
+                    <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase tracking-wider">Price</th>
+                    <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase tracking-wider">Stock</th>
+                    <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase tracking-wider">Rating</th>
+                    <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase tracking-wider text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-stone-100">
@@ -220,9 +240,18 @@ export default function AdminDashboard() {
                       <span className="px-3 py-1 bg-stone-100 text-stone-600 rounded-full text-xs font-bold">{product.category}</span>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="flex items-center font-bold text-orange-600">
-                        <IndianRupee className="w-3 h-3 mr-1" />
-                        {product.price}
+                      <div className="text-sm text-stone-500">
+                        <div>{product.templeName || product.offeringType || 'General offering'}</div>
+                        {(product.weight || product.size) && (
+                          <div className="text-xs text-stone-400">
+                            {[product.weight, product.size].filter(Boolean).join(' | ')}
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="font-bold text-orange-600">
+                        Rs. {formatIndianRupees(product.price)}
                       </div>
                     </td>
                     <td className="px-6 py-4 text-stone-600 font-medium">{product.stock}</td>
@@ -314,7 +343,7 @@ export default function AdminDashboard() {
                     </select>
                   </div>
                   <div className="space-y-2">
-                    <label className="text-xs font-bold text-stone-400 uppercase tracking-wider">Price (₹)</label>
+                    <label className="text-xs font-bold text-stone-400 uppercase tracking-wider">Price (Rs.)</label>
                     <input
                       required
                       type="number"
@@ -347,6 +376,70 @@ export default function AdminDashboard() {
                     className="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
                     placeholder="https://example.com/image.jpg"
                   />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-stone-400 uppercase tracking-wider">Temple / Source</label>
+                  <input
+                    type="text"
+                    value={formData.templeName}
+                    onChange={(e) => setFormData({ ...formData, templeName: e.target.value })}
+                    className="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
+                    placeholder="e.g. Tirumala Tirupati Devasthanam"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-stone-400 uppercase tracking-wider">Offering Type</label>
+                    <input
+                      type="text"
+                      value={formData.offeringType}
+                      onChange={(e) => setFormData({ ...formData, offeringType: e.target.value })}
+                      className="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
+                      placeholder="e.g. Mahaprasad"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-stone-400 uppercase tracking-wider">Weight</label>
+                    <input
+                      type="text"
+                      value={formData.weight}
+                      onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
+                      className="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
+                      placeholder="e.g. 500 g"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-stone-400 uppercase tracking-wider">Size / Pack</label>
+                    <input
+                      type="text"
+                      value={formData.size}
+                      onChange={(e) => setFormData({ ...formData, size: e.target.value })}
+                      className="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
+                      placeholder="e.g. Family Box"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-stone-400 uppercase tracking-wider">Dispatch Window</label>
+                    <input
+                      type="text"
+                      value={formData.dispatchWindow}
+                      onChange={(e) => setFormData({ ...formData, dispatchWindow: e.target.value })}
+                      className="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
+                      placeholder="e.g. Dispatch within 24 hours"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-stone-400 uppercase tracking-wider">City</label>
+                    <input
+                      type="text"
+                      value={formData.city}
+                      onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                      className="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
+                      placeholder="e.g. Varanasi"
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-2">

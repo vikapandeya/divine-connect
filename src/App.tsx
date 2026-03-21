@@ -13,16 +13,8 @@ import VendorDashboard from './pages/VendorDashboard';
 import Astrology from './pages/Astrology';
 import About from './pages/About';
 import Contact from './pages/Contact';
-
-// Placeholder components for other pages
-const Placeholder = ({ title }: { title: string }) => (
-  <div className="min-h-[60vh] flex items-center justify-center">
-    <div className="text-center">
-      <h1 className="text-4xl font-serif font-bold text-stone-900 mb-4">{title}</h1>
-      <p className="text-stone-600">This section is coming soon. Stay tuned for divine updates!</p>
-    </div>
-  </div>
-);
+import DarshanBooking from './pages/DarshanBooking';
+import PrasadDelivery from './pages/PrasadDelivery';
 
 export default function App() {
   return (
@@ -34,8 +26,8 @@ export default function App() {
             <Route path="/services" element={<Services />} />
             <Route path="/services/puja" element={<Services />} />
             <Route path="/services/puja/:id" element={<PujaDetail />} />
-            <Route path="/services/darshan" element={<Placeholder title="Darshan Booking" />} />
-            <Route path="/services/prasad" element={<Placeholder title="Order Prasad" />} />
+            <Route path="/services/darshan" element={<DarshanBooking />} />
+            <Route path="/services/prasad" element={<PrasadDelivery />} />
             <Route path="/shop" element={<Shop />} />
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
