@@ -73,7 +73,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             {/* Actions */}
             <div className="flex items-center space-x-4">
               <div className="hidden lg:block rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700">
-                Demo Mode
+                Coming Soon
               </div>
 
               <form onSubmit={handleSearch} className="hidden sm:flex items-center bg-stone-100 rounded-full px-3 py-1.5">
