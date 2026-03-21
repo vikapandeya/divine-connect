@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { auth, sendResetPasswordEmail } from '../firebase';
 import { UserProfile, Booking, Order, AstrologyReading } from '../types';
 import {
   User,
@@ -19,6 +18,10 @@ import { downloadReceipt, printReceipt } from '../lib/receipts';
 import { useNavigate } from 'react-router-dom';
 import { addItemsToCart } from '../lib/cart';
 import {
+  DEMO_ADMIN_PROFILE,
+  DEMO_CREDENTIALS,
+  DEMO_DEVOTEE_PROFILE,
+  DEMO_VENDOR_PROFILE,
   getUserProfileDirect,
   listAstrologyReadingsDirect,
   listBookingsByUserDirect,
@@ -29,17 +32,14 @@ type ProfileTab = 'bookings' | 'orders' | 'readings' | 'profile';
 
 export default function Profile() {
   const navigate = useNavigate();
-  const currentUser = auth?.currentUser;
+  const currentUser = DEMO_DEVOTEE_PROFILE;
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [readings, setReadings] = useState<AstrologyReading[]>([]);
   const [activeTab, setActiveTab] = useState<ProfileTab>('bookings');
-  const [isSendingResetEmail, setIsSendingResetEmail] = useState(false);
 
   useEffect(() => {
-    if (!currentUser) return;
-
     const fetchProfileData = async () => {
       try {
         const [profileData, bookingsData, ordersData, readingsData] = await Promise.all([
@@ -60,20 +60,6 @@ export default function Profile() {
 
     fetchProfileData();
   }, [currentUser]);
-
-  const handleResetPassword = async () => {
-    if (!currentUser?.email) return;
-    setIsSendingResetEmail(true);
-    try {
-      await sendResetPasswordEmail(currentUser.email);
-      alert('Password reset email sent. Please check your inbox.');
-    } catch (error) {
-      console.error('Reset password error:', error);
-      alert('Unable to send reset email right now. Please try again.');
-    } finally {
-      setIsSendingResetEmail(false);
-    }
-  };
 
   const handleReorder = (order: Order) => {
     addItemsToCart(
@@ -100,14 +86,6 @@ export default function Profile() {
 
     navigate(`/services/puja/${booking.serviceId}`);
   };
-
-  if (!currentUser) {
-    return (
-      <div className="min-h-[60vh] flex items-center justify-center">
-        <p className="text-stone-500">Please sign in to view your profile.</p>
-      </div>
-    );
-  }
 
   const tabTitle =
     activeTab === 'bookings'
@@ -220,24 +198,20 @@ export default function Profile() {
               <Sparkles className="w-5 h-5 mr-3" />
               Astrology History
             </button>
-            {profile?.role === 'vendor' && (
-              <button
-                onClick={() => navigate('/vendor')}
-                className="w-full flex items-center px-6 py-4 text-sm font-bold text-stone-600 hover:bg-stone-50 transition-colors"
-              >
-                <Settings className="w-5 h-5 mr-3" />
-                Vendor Dashboard
-              </button>
-            )}
-            {profile?.role === 'admin' && (
-              <button
-                onClick={() => navigate('/admin')}
-                className="w-full flex items-center px-6 py-4 text-sm font-bold text-stone-600 hover:bg-stone-50 transition-colors"
-              >
-                <Settings className="w-5 h-5 mr-3" />
-                Admin Dashboard
-              </button>
-            )}
+            <button
+              onClick={() => navigate('/vendor')}
+              className="w-full flex items-center px-6 py-4 text-sm font-bold text-stone-600 hover:bg-stone-50 transition-colors"
+            >
+              <Settings className="w-5 h-5 mr-3" />
+              Vendor Dashboard
+            </button>
+            <button
+              onClick={() => navigate('/admin')}
+              className="w-full flex items-center px-6 py-4 text-sm font-bold text-stone-600 hover:bg-stone-50 transition-colors"
+            >
+              <Settings className="w-5 h-5 mr-3" />
+              Admin Dashboard
+            </button>
           </nav>
         </div>
 
@@ -294,20 +268,24 @@ export default function Profile() {
                   </div>
 
                   <div className="pt-8 border-t border-stone-100">
-                    <h4 className="text-lg font-bold text-stone-900 mb-6">Reset Password</h4>
+                    <h4 className="text-lg font-bold text-stone-900 mb-6">Demo Access</h4>
                     <div className="max-w-md space-y-4">
                       <p className="text-sm text-stone-600">
-                        For better account security, DivineConnect uses Firebase password reset emails. We will send the reset link to{' '}
-                        <span className="font-bold text-stone-900">{currentUser.email}</span>.
+                        This static demo does not require sign-in. If you want sample credentials for presentations, use{' '}
+                        <span className="font-bold text-stone-900">{DEMO_CREDENTIALS.email}</span> /{' '}
+                        <span className="font-bold text-stone-900">{DEMO_CREDENTIALS.password}</span>.
                       </p>
-                      <button
-                        type="button"
-                        onClick={handleResetPassword}
-                        disabled={isSendingResetEmail}
-                        className="bg-stone-900 text-white px-8 py-3 rounded-2xl font-bold hover:bg-orange-500 transition-colors disabled:opacity-50"
-                      >
-                        {isSendingResetEmail ? 'Sending...' : 'Send Reset Email'}
-                      </button>
+                      <div className="grid grid-cols-1 gap-3 text-sm text-stone-600">
+                        <div className="rounded-2xl border border-stone-100 p-4">
+                          Devotee demo: <span className="font-bold text-stone-900">{DEMO_DEVOTEE_PROFILE.email}</span>
+                        </div>
+                        <div className="rounded-2xl border border-stone-100 p-4">
+                          Vendor demo: <span className="font-bold text-stone-900">{DEMO_VENDOR_PROFILE.email}</span>
+                        </div>
+                        <div className="rounded-2xl border border-stone-100 p-4">
+                          Admin demo: <span className="font-bold text-stone-900">{DEMO_ADMIN_PROFILE.email}</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>

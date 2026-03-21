@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { auth } from '../firebase';
 import { Puja } from '../types';
 import { motion } from 'framer-motion';
 import {
@@ -14,8 +13,7 @@ import {
   MapPin,
 } from 'lucide-react';
 import { formatIndianRupees } from '../lib/utils';
-import { onAuthStateChanged, User } from 'firebase/auth';
-import { createBookingDirect, getPujaDirect } from '../lib/firestore-data';
+import { createBookingDirect, DEMO_DEVOTEE_PROFILE, getPujaDirect } from '../lib/firestore-data';
 
 const fallbackPujas: Record<string, Puja> = {
   'puja-ganesh': {
@@ -97,7 +95,6 @@ function resolveFallbackPuja(requestedId: string) {
 }
 
 export default function PujaDetail() {
-  const [currentUser, setCurrentUser] = useState<User | null>(auth?.currentUser || null);
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [puja, setPuja] = useState<Puja | null>(null);
@@ -106,17 +103,6 @@ export default function PujaDetail() {
   const [bookingTime, setBookingTime] = useState('');
   const [bookingMode, setBookingMode] = useState<'online' | 'offline'>('online');
   const [isBooking, setIsBooking] = useState(false);
-
-  useEffect(() => {
-    if (!auth) {
-      setCurrentUser(null);
-      return;
-    }
-
-    return onAuthStateChanged(auth, (user) => {
-      setCurrentUser(user);
-    });
-  }, []);
 
   useEffect(() => {
     const fetchPuja = async () => {
@@ -156,10 +142,6 @@ export default function PujaDetail() {
   }, [availableSlots, bookingTime]);
 
   const handleBooking = async () => {
-    if (!currentUser) {
-      alert('Please sign in to book a puja.');
-      return;
-    }
     if (!bookingDate || !bookingTime) {
       alert('Please select a date and time.');
       return;
@@ -168,7 +150,7 @@ export default function PujaDetail() {
     setIsBooking(true);
     try {
       await createBookingDirect({
-        userId: currentUser.uid,
+        userId: DEMO_DEVOTEE_PROFILE.uid,
         serviceId: id || puja?.id || '',
         vendorId: puja?.vendorId || 'system',
         type: 'puja',

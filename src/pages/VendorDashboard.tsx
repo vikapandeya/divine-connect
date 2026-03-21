@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { auth } from '../firebase';
 import { Product, Puja } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Edit2, Trash2, X, Save, CheckCircle, XCircle } from 'lucide-react';
@@ -7,6 +6,7 @@ import { formatIndianRupees } from '../lib/utils';
 import {
   deleteProductDirect,
   deletePujaDirect,
+  DEMO_VENDOR_PROFILE,
   listBookingsByVendorDirect,
   listProductsDirect,
   listPujasDirect,
@@ -16,7 +16,7 @@ import {
 } from '../lib/firestore-data';
 
 export default function VendorDashboard() {
-  const currentUser = auth?.currentUser;
+  const currentUser = DEMO_VENDOR_PROFILE;
   const [activeTab, setActiveTab] = useState<'products' | 'pujas' | 'bookings'>('products');
   const [products, setProducts] = useState<Product[]>([]);
   const [pujas, setPujas] = useState<Puja[]>([]);
@@ -56,7 +56,6 @@ export default function VendorDashboard() {
   });
 
   const fetchData = async () => {
-    if (!currentUser) return;
     setLoading(true);
     try {
       const vendorId = currentUser.uid;
@@ -80,14 +79,6 @@ export default function VendorDashboard() {
   useEffect(() => {
     fetchData();
   }, [currentUser]);
-
-  if (!currentUser) {
-    return (
-      <div className="min-h-[60vh] flex items-center justify-center">
-        <p className="text-stone-500">Please sign in to access the vendor dashboard.</p>
-      </div>
-    );
-  }
 
   const handleOpenModal = (item?: any) => {
     if (activeTab === 'products') {

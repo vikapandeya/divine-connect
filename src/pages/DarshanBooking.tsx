@@ -1,11 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Calendar, Clock, MapPin, Video, ShieldCheck, ArrowRight } from 'lucide-react';
-import { auth } from '../firebase';
-import { onAuthStateChanged, User } from 'firebase/auth';
-import AuthModal from '../components/AuthModal';
 import { useNavigate } from 'react-router-dom';
-import { createBookingDirect } from '../lib/firestore-data';
+import { createBookingDirect, DEMO_DEVOTEE_PROFILE } from '../lib/firestore-data';
 
 const temples = [
   {
@@ -33,8 +30,6 @@ const offlineSlots = ['07:30 AM - 09:00 AM', '10:00 AM - 11:30 AM', '05:00 PM - 
 
 export default function DarshanBooking() {
   const navigate = useNavigate();
-  const [currentUser, setCurrentUser] = useState<User | null>(auth?.currentUser || null);
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [formData, setFormData] = useState({
     templeId: temples[0].id,
     date: '',
@@ -42,17 +37,6 @@ export default function DarshanBooking() {
     mode: 'online' as 'online' | 'offline',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  useEffect(() => {
-    if (!auth) {
-      setCurrentUser(null);
-      return;
-    }
-
-    return onAuthStateChanged(auth, (user) => {
-      setCurrentUser(user);
-    });
-  }, []);
 
   const selectedTemple = useMemo(
     () => temples.find((temple) => temple.id === formData.templeId) || temples[0],
@@ -71,11 +55,6 @@ export default function DarshanBooking() {
   }, [availableSlots, formData.timeSlot]);
 
   const handleBookDarshan = async () => {
-    if (!currentUser) {
-      setIsAuthModalOpen(true);
-      return;
-    }
-
     if (!formData.date || !formData.timeSlot) {
       alert('Please choose your darshan date and time slot.');
       return;
@@ -84,7 +63,7 @@ export default function DarshanBooking() {
     setIsSubmitting(true);
     try {
       await createBookingDirect({
-        userId: currentUser.uid,
+        userId: DEMO_DEVOTEE_PROFILE.uid,
         serviceId: formData.templeId,
         vendorId: 'system',
         type: 'darshan',
@@ -107,7 +86,6 @@ export default function DarshanBooking() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
       <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-10">
         <div className="space-y-8">
           <div>

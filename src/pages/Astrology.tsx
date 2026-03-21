@@ -1,17 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, MapPin, Send, Star, Moon, Sun, Info, Lock, ArrowRight } from 'lucide-react';
-import { auth } from '../firebase';
-import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
-import AuthModal from '../components/AuthModal';
-import { Link } from 'react-router-dom';
-import { apiFetch, getApiConnectionHelp } from '../lib/api';
+import { Sparkles, MapPin, Send, Star, Moon, Sun, Info } from 'lucide-react';
+import { createAstrologyReadingDirect, DEMO_DEVOTEE_PROFILE, generateDemoAstrologyReading } from '../lib/firestore-data';
 
 export default function Astrology() {
-  const [currentUser, setCurrentUser] = useState<FirebaseUser | null>(auth?.currentUser ?? null);
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [formData, setFormData] = useState({
-    name: '',
+    name: DEMO_DEVOTEE_PROFILE.displayName || '',
     dob: '',
     tob: '',
     pob: '',
@@ -21,62 +15,34 @@ export default function Astrology() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    if (!auth) {
-      setCurrentUser(null);
-      setIsAuthModalOpen(true);
-      return;
-    }
-
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setCurrentUser(user);
-      setIsAuthModalOpen(!user);
-    });
-
-    return unsubscribe;
-  }, []);
-
-  useEffect(() => {
-    if (currentUser?.displayName && !formData.name) {
-      setFormData((current) => ({ ...current, name: currentUser.displayName || '' }));
-    }
-  }, [currentUser, formData.name]);
-
   const generateReading = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!currentUser) {
-      setIsAuthModalOpen(true);
-      return;
-    }
 
     setLoading(true);
     setError('');
     setReading(null);
 
     try {
-      const response = await apiFetch('/api/astrology/reading', {
-        method: 'POST',
-        body: JSON.stringify({
-          userId: currentUser.uid,
-          ...formData,
-        }),
+      const generatedReading = generateDemoAstrologyReading({
+        name: formData.name,
+        dob: formData.dob,
+        tob: formData.tob,
+        pob: formData.pob,
+        query: formData.query,
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to generate astrology reading.');
-      }
-
-      setReading(data.reading);
+      await createAstrologyReadingDirect({
+        userId: DEMO_DEVOTEE_PROFILE.uid,
+        name: formData.name,
+        dob: formData.dob,
+        tob: formData.tob,
+        pob: formData.pob,
+        userQuery: formData.query,
+        reading: generatedReading,
+      });
+      setReading(generatedReading);
     } catch (err) {
       console.error('Astrology error:', err);
-      if (err instanceof Error && /failed to fetch|networkerror/i.test(err.message)) {
-        setError(getApiConnectionHelp('astrology'));
-      } else {
-        setError(err instanceof Error ? err.message : getApiConnectionHelp('astrology'));
-      }
+      setError(err instanceof Error ? err.message : 'Unable to generate the demo reading right now.');
     } finally {
       setLoading(false);
     }
@@ -84,7 +50,6 @@ export default function Astrology() {
 
   return (
     <div className="min-h-screen bg-[#0a0502] text-stone-200 py-20 px-4 relative overflow-hidden">
-      <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
       {/* Immersive Background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-orange-900/20 rounded-full blur-[120px]" />
@@ -118,45 +83,10 @@ export default function Astrology() {
             transition={{ delay: 0.2 }}
             className="text-stone-400 text-lg max-w-2xl mx-auto"
           >
-            Unlock the secrets of your destiny with our AI-powered Vedic Astrologer. Enter your birth details for a personalized spiritual reading.
+            Unlock the secrets of your destiny with a static-demo Vedic astrologer experience. Enter your birth details for a personalized showcase reading.
           </motion.p>
         </div>
 
-        {!currentUser ? (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="max-w-2xl mx-auto"
-          >
-            <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-[2.5rem] p-8 md:p-10 text-center">
-              <div className="w-16 h-16 mx-auto rounded-2xl bg-orange-500/15 text-orange-400 flex items-center justify-center mb-6">
-                <Lock className="w-8 h-8" />
-              </div>
-              <h2 className="text-3xl font-serif font-bold text-white mb-4">
-                Sign in to unlock AI Astrology
-              </h2>
-              <p className="text-stone-400 leading-relaxed mb-8">
-                Personalized astrological guidance is available only for signed-in users. Please sign in to continue to your reading dashboard.
-              </p>
-              <div className="flex flex-col sm:flex-row justify-center gap-4">
-                <button
-                  type="button"
-                  onClick={() => setIsAuthModalOpen(true)}
-                  className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-2xl font-bold transition-all inline-flex items-center justify-center gap-2"
-                >
-                  <span>Sign In to Continue</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-                <Link
-                  to="/contact"
-                  className="border border-white/15 text-white px-6 py-3 rounded-2xl font-bold hover:bg-white/10 transition-all"
-                >
-                  Contact Us
-                </Link>
-              </div>
-            </div>
-          </motion.div>
-        ) : (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
           {/* Form Section */}
           <motion.div
@@ -247,7 +177,7 @@ export default function Astrology() {
                 <div className="flex items-start space-x-3 rounded-2xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-left">
                   <Info className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
                   <p className="text-sm text-amber-200">
-                    Your astrology reading is generated securely through the DivineConnect backend and saved for support quality and future improvements.
+                    This static demo generates the reading locally in your browser and saves it to the demo profile history.
                   </p>
                 </div>
               </form>
@@ -347,7 +277,6 @@ export default function Astrology() {
             </div>
           </motion.div>
         </div>
-        )}
       </div>
     </div>
   );

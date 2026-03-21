@@ -9,8 +9,7 @@ import {
   Sparkles,
   Send,
 } from 'lucide-react';
-import { auth } from '../firebase';
-import { apiFetch, getApiConnectionHelp } from '../lib/api';
+import { generateDemoSupportReply } from '../lib/firestore-data';
 
 const contactCards = [
   {
@@ -72,37 +71,15 @@ export default function Contact() {
     setChatError('');
 
     try {
-      const response = await apiFetch('/api/support/chat', {
-        method: 'POST',
-        body: JSON.stringify({
-          userId: auth?.currentUser?.uid ?? null,
-          messages: nextMessages,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'AI support is unavailable right now.');
-      }
-
       setMessages([
         ...nextMessages,
         {
           role: 'assistant',
-          content: data.reply,
+          content: generateDemoSupportReply(nextMessages),
         },
       ]);
     } catch (error) {
-      if (error instanceof Error && /failed to fetch|networkerror/i.test(error.message)) {
-        setChatError(getApiConnectionHelp('support'));
-      } else {
-        setChatError(
-          error instanceof Error
-            ? error.message
-            : getApiConnectionHelp('support'),
-        );
-      }
+      setChatError(error instanceof Error ? error.message : 'Demo support is unavailable right now.');
     } finally {
       setIsSending(false);
     }
@@ -162,7 +139,7 @@ export default function Contact() {
                   Live Chat
                 </h2>
                 <p className="text-sm text-stone-500">
-                  AI support for bookings, orders, and onboarding questions.
+                  Demo AI support for bookings, orders, and onboarding questions.
                 </p>
               </div>
             </div>

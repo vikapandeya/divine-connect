@@ -1,20 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { auth, firebaseInitError, logout } from '../firebase';
-import { onAuthStateChanged, User } from 'firebase/auth';
 import { UserProfile } from '../types';
 import { Search, ShoppingCart, Menu, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import AuthModal from './AuthModal';
 import { getCartCount, subscribeToCart } from '../lib/cart';
 import logoMark from '../assets/divineconnect-mark.svg';
-import { getUserProfileDirect } from '../lib/firestore-data';
+import { DEMO_DEVOTEE_PROFILE, getUserProfileDirect } from '../lib/firestore-data';
 
 export default function Layout({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(DEMO_DEVOTEE_PROFILE);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
   const navigate = useNavigate();
@@ -28,26 +23,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   ];
 
   useEffect(() => {
-    if (!auth) {
-      setUser(null);
-      setProfile(null);
-      return;
-    }
-
-    const unsubscribe = onAuthStateChanged(auth, async (u) => {
-      setUser(u);
-      if (u) {
-        try {
-          const data = await getUserProfileDirect(u.uid);
-          setProfile(data);
-        } catch (error) {
-          console.error('Error fetching layout profile:', error);
-        }
-      } else {
-        setProfile(null);
-      }
+    getUserProfileDirect().then(setProfile).catch((error) => {
+      console.error('Error fetching demo profile:', error);
     });
-    return unsubscribe;
   }, []);
 
   useEffect(() => {
@@ -59,10 +37,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     return subscribeToCart(syncCartCount);
   }, []);
 
-  const handleLogin = () => {
-    setIsAuthModalOpen(true);
-  };
-
   const handleSearch = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
@@ -73,7 +47,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-stone-50 font-sans text-stone-900">
-      <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
       {/* Header */}
       <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-stone-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -99,11 +72,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
             {/* Actions */}
             <div className="flex items-center space-x-4">
-              {firebaseInitError && (
-                <div className="hidden lg:block max-w-xs rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-800">
-                  Auth is temporarily unavailable.
-                </div>
-              )}
+              <div className="hidden lg:block rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700">
+                Demo Mode
+              </div>
 
               <form onSubmit={handleSearch} className="hidden sm:flex items-center bg-stone-100 rounded-full px-3 py-1.5">
                 <Search className="w-4 h-4 text-stone-400" />
@@ -125,26 +96,16 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 )}
               </Link>
 
-              {user ? (
-                <div className="relative group">
-                  <button className="flex items-center space-x-2 p-1 rounded-full hover:bg-stone-100 transition-colors">
-                    <img src={user.photoURL || ''} alt="" className="w-8 h-8 rounded-full border border-stone-200" />
-                  </button>
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-stone-100 py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
-                    <Link to="/profile" className="block px-4 py-2 text-sm text-stone-700 hover:bg-stone-50">Profile</Link>
-                    {profile?.role === 'vendor' && <Link to="/vendor" className="block px-4 py-2 text-sm text-stone-700 hover:bg-stone-50">Vendor Dashboard</Link>}
-                    {profile?.role === 'admin' && <Link to="/admin" className="block px-4 py-2 text-sm text-stone-700 hover:bg-stone-50">Admin Panel</Link>}
-                    <button onClick={logout} className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-stone-50">Logout</button>
-                  </div>
-                </div>
-              ) : (
-                <button 
-                  onClick={handleLogin}
-                  className="bg-orange-500 text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-orange-600 transition-colors"
-                >
-                  Sign In
+              <div className="relative group">
+                <button className="flex items-center space-x-2 p-1 rounded-full hover:bg-stone-100 transition-colors">
+                  <img src={profile?.photoURL || DEMO_DEVOTEE_PROFILE.photoURL || ''} alt="" className="w-8 h-8 rounded-full border border-stone-200" />
                 </button>
-              )}
+                <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-stone-100 py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
+                  <Link to="/profile" className="block px-4 py-2 text-sm text-stone-700 hover:bg-stone-50">Demo Profile</Link>
+                  <Link to="/vendor" className="block px-4 py-2 text-sm text-stone-700 hover:bg-stone-50">Vendor Dashboard</Link>
+                  <Link to="/admin" className="block px-4 py-2 text-sm text-stone-700 hover:bg-stone-50">Admin Panel</Link>
+                </div>
+              </div>
 
               <button className="md:hidden p-2 text-stone-600" onClick={() => setIsMenuOpen(!isMenuOpen)}>
                 {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}

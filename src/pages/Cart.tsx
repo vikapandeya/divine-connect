@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { auth } from '../firebase';
 import {
   ShoppingBag,
   Trash2,
@@ -21,22 +20,21 @@ import {
   updateCartItemQuantity,
 } from '../lib/cart';
 import { formatIndianRupees } from '../lib/utils';
-import { createOrderDirect } from '../lib/firestore-data';
+import { createOrderDirect, DEMO_DEVOTEE_PROFILE } from '../lib/firestore-data';
 
 export default function Cart() {
-  const currentUser = auth?.currentUser;
   const navigate = useNavigate();
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [items, setItems] = useState<CartItem[]>([]);
   const [customerDetails, setCustomerDetails] = useState({
-    fullName: currentUser?.displayName || '',
-    email: currentUser?.email || '',
-    phoneNumber: '',
-    addressLine1: '',
+    fullName: DEMO_DEVOTEE_PROFILE.displayName || '',
+    email: DEMO_DEVOTEE_PROFILE.email || '',
+    phoneNumber: DEMO_DEVOTEE_PROFILE.phoneNumber || '',
+    addressLine1: DEMO_DEVOTEE_PROFILE.addresses[0] || '',
     addressLine2: '',
-    city: '',
-    state: '',
-    pincode: '',
+    city: 'Varanasi',
+    state: 'Uttar Pradesh',
+    pincode: '221005',
     deliveryNotes: '',
   });
   const [paymentMethod, setPaymentMethod] = useState('UPI / Wallet');
@@ -56,11 +54,6 @@ export default function Cart() {
   }, [items]);
 
   const handleCheckout = async () => {
-    if (!currentUser) {
-      alert('Please sign in to checkout.');
-      return;
-    }
-
     const requiredFields = [
       customerDetails.fullName,
       customerDetails.email,
@@ -94,7 +87,7 @@ export default function Cart() {
     setIsCheckingOut(true);
     try {
       await createOrderDirect({
-        userId: currentUser.uid,
+        userId: DEMO_DEVOTEE_PROFILE.uid,
         items: items.map((item) => ({
           productId: item.id,
           name: item.name,

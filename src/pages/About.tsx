@@ -55,7 +55,7 @@ const developers = [
     role: 'Product Builder & Full-Stack Developer',
     image: 'https://github.com/vikapandeya.png',
     github: 'https://github.com/vikapandeya',
-    bio: 'Focused on turning DivineConnect into a polished, trustworthy spiritual platform with strong UX, scalable backend workflows, and clear product thinking.',
+    bio: 'Focused on turning DivineConnect into a polished, trustworthy spiritual platform with strong UX, practical demo flows, and clear product thinking.',
   },
   {
     name: 'Gautam Pince',
@@ -244,7 +244,7 @@ export default function About() {
             </h3>
             <p className="text-stone-600 leading-relaxed">
               A stronger next step would be adding real team photos, partnership
-              logos, FAQs, and a short “why users trust us” checklist backed by
+              logos, FAQs, and a short "why users trust us" checklist backed by
               actual operational details.
             </p>
           </div>

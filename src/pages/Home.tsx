@@ -15,10 +15,9 @@ import {
   Clock3,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { auth } from '../firebase';
 import { addToCart } from '../lib/cart';
 import { formatIndianRupees } from '../lib/utils';
-import { createFeedbackDirect } from '../lib/firestore-data';
+import { createFeedbackDirect, DEMO_DEVOTEE_PROFILE } from '../lib/firestore-data';
 
 const services = [
   {
@@ -60,8 +59,8 @@ const services = [
   {
     id: 'astrology',
     title: 'AI Astrology',
-    description: 'Access personalized Vedic guidance after sign-in and move into remedies, puja suggestions, and next steps.',
-    meta: 'Secure sign-in required',
+    description: 'Access personalized Vedic guidance instantly in demo mode and move into remedies, puja suggestions, and next steps.',
+    meta: 'Instant demo access',
     icon: <Sparkles className="w-8 h-8 text-amber-500" />,
     color: 'bg-amber-50',
     link: '/astrology',
@@ -118,23 +117,20 @@ const ratingStats = [
 ];
 
 export default function Home() {
-  const currentUser = auth?.currentUser;
   const [formState, setFormState] = useState({
-    name: currentUser?.displayName || '',
-    email: currentUser?.email || '',
+    name: DEMO_DEVOTEE_PROFILE.displayName || '',
+    email: DEMO_DEVOTEE_PROFILE.email || '',
     subject: '',
     rating: '5',
     message: '',
   });
   const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
 
-  const feedbackHint = useMemo(() => {
-    if (!currentUser) {
-      return 'Share your experience with puja booking, prasad delivery, darshan access, or the overall platform journey.';
-    }
-
-    return 'Tell us what felt trustworthy, where the flow can improve, or what sacred offering you want us to add next.';
-  }, [currentUser]);
+  const feedbackHint = useMemo(
+    () =>
+      'Tell us what felt trustworthy, where the flow can improve, or what sacred offering you want us to add next.',
+    [],
+  );
 
   const handleFeedbackSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
