@@ -161,7 +161,7 @@ export default function PujaDetail() {
         status: 'confirmed',
         totalAmount: puja?.price || 0,
       });
-      alert('Puja booked successfully. Pandit ji will be available in your selected online or offline slot, and you can view the booking in your profile.');
+      alert('Puja booked successfully. Pandit ji will be available in your selected online or offline slot, and your booking certificate plus invitation card are available in your profile.');
       navigate('/profile?tab=bookings');
     } catch (error) {
       console.error('Booking error:', error);

@@ -19,6 +19,7 @@ import {
   downloadBookingCertificate,
   downloadKundaliCertificate,
   downloadOrderCertificate,
+  downloadPujaInvitationCard,
 } from '../lib/documents';
 import { downloadReceipt, printReceipt } from '../lib/receipts';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -519,6 +520,18 @@ export default function Profile() {
                               Download Certificate
                             </button>
                           </div>
+                          {booking.type === 'puja' ? (
+                            <div>
+                              <button
+                                type="button"
+                                onClick={() => downloadPujaInvitationCard(booking, profile)}
+                                className="inline-flex items-center text-sm font-bold text-stone-700 hover:text-orange-600 transition-colors"
+                              >
+                                <Download className="w-4 h-4 mr-1.5" />
+                                Download Invitation
+                              </button>
+                            </div>
+                          ) : null}
                         </div>
                       </div>
                     ))

@@ -38,6 +38,28 @@ export function downloadBookingCertificate(booking: Booking, profile: UserProfil
   ]);
 }
 
+export function downloadPujaInvitationCard(booking: Booking, profile: UserProfile | null) {
+  const invitationId = buildCertificateId('INVITE', booking.bookingReference || booking.id);
+  const devoteeName = profile?.displayName || profile?.email || 'Devotee';
+  const devoteeAddress = profile?.addresses?.[0] || 'Address will be shared during confirmation';
+
+  downloadPdfDocument(`${invitationId.toLowerCase()}-invitation`, [
+    { text: 'DivineConnect', size: 24, bold: true },
+    { text: 'Sacred Puja Invitation Card', size: 16, bold: true, gapBefore: 12 },
+    { text: 'With blessings and devotion, you are invited to join this puja booking.', gapBefore: 18 },
+    { text: `Invitation ID: ${invitationId}`, bold: true, gapBefore: 18 },
+    { text: `Devotee Name: ${devoteeName}` },
+    { text: `Address: ${devoteeAddress}` },
+    { text: `Puja Name: ${booking.serviceTitle || 'Puja Booking'}`, gapBefore: 12 },
+    { text: `Puja Date: ${booking.date}` },
+    { text: `Puja Time: ${booking.timeSlot}` },
+    { text: `Puja Mode: ${(booking.mode || 'online').toUpperCase()}` },
+    { text: `Booking Reference: ${booking.bookingReference || booking.id}` },
+    { text: 'May this sacred occasion bring peace, blessings, and spiritual strength to the devotee and family.', gapBefore: 20 },
+    { text: 'Branding: DivineConnect | Invitation card | Devotional service record', gapBefore: 18 },
+  ]);
+}
+
 export function downloadOrderCertificate(order: Order) {
   const certificateId = buildCertificateId('ORDER', order.orderNumber || order.id);
   downloadPdfDocument(`${certificateId.toLowerCase()}-certificate`, [
