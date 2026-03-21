@@ -117,7 +117,7 @@ export default function Cart() {
       });
       clearCart();
       alert('Order placed successfully. Your receipt is available in My Orders.');
-      navigate('/profile');
+      navigate('/profile?tab=orders');
     } catch (error) {
       console.error('Checkout error:', error);
       alert('Failed to place order. Please try again.');

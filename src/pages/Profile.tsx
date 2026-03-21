@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { formatIndianRupees } from '../lib/utils';
 import { downloadReceipt, printReceipt } from '../lib/receipts';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { addItemsToCart } from '../lib/cart';
 import {
   DEMO_ADMIN_PROFILE,
@@ -32,12 +32,20 @@ type ProfileTab = 'bookings' | 'orders' | 'readings' | 'profile';
 
 export default function Profile() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const currentUser = DEMO_DEVOTEE_PROFILE;
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [readings, setReadings] = useState<AstrologyReading[]>([]);
   const [activeTab, setActiveTab] = useState<ProfileTab>('bookings');
+
+  useEffect(() => {
+    const requestedTab = searchParams.get('tab');
+    if (requestedTab === 'profile' || requestedTab === 'bookings' || requestedTab === 'orders' || requestedTab === 'readings') {
+      setActiveTab(requestedTab);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const fetchProfileData = async () => {
@@ -85,6 +93,11 @@ export default function Profile() {
     }
 
     navigate(`/services/puja/${booking.serviceId}`);
+  };
+
+  const switchTab = (tab: ProfileTab) => {
+    setActiveTab(tab);
+    setSearchParams({ tab });
   };
 
   const tabTitle =
@@ -155,7 +168,7 @@ export default function Profile() {
 
           <nav className="bg-white rounded-[2rem] border border-stone-200 overflow-hidden">
             <button
-              onClick={() => setActiveTab('profile')}
+              onClick={() => switchTab('profile')}
               className={`w-full flex items-center px-6 py-4 text-sm font-bold transition-colors ${
                 activeTab === 'profile'
                   ? 'bg-orange-50 text-orange-600'
@@ -166,7 +179,7 @@ export default function Profile() {
               My Profile
             </button>
             <button
-              onClick={() => setActiveTab('bookings')}
+              onClick={() => switchTab('bookings')}
               className={`w-full flex items-center px-6 py-4 text-sm font-bold transition-colors ${
                 activeTab === 'bookings'
                   ? 'bg-orange-50 text-orange-600'
@@ -177,7 +190,7 @@ export default function Profile() {
               My Bookings
             </button>
             <button
-              onClick={() => setActiveTab('orders')}
+              onClick={() => switchTab('orders')}
               className={`w-full flex items-center px-6 py-4 text-sm font-bold transition-colors ${
                 activeTab === 'orders'
                   ? 'bg-orange-50 text-orange-600'
@@ -188,7 +201,7 @@ export default function Profile() {
               My Orders
             </button>
             <button
-              onClick={() => setActiveTab('readings')}
+              onClick={() => switchTab('readings')}
               className={`w-full flex items-center px-6 py-4 text-sm font-bold transition-colors ${
                 activeTab === 'readings'
                   ? 'bg-orange-50 text-orange-600'
@@ -266,6 +279,50 @@ export default function Profile() {
                       </p>
                     </div>
                   </div>
+
+                  {orders[0] ? (
+                    <div className="rounded-[2rem] border border-orange-100 bg-orange-50 p-6">
+                      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                        <div>
+                          <p className="text-xs font-bold uppercase tracking-[0.24em] text-orange-500 mb-2">
+                            Latest Receipt
+                          </p>
+                          <h4 className="text-lg font-bold text-stone-900">
+                            Order #{orders[0].orderNumber}
+                          </h4>
+                          <p className="text-sm text-stone-600 mt-1">
+                            {orders[0].items.length} items | Rs. {formatIndianRupees(orders[0].totalAmount)}
+                          </p>
+                        </div>
+                        <div className="flex flex-wrap gap-3">
+                          <button
+                            type="button"
+                            onClick={() => switchTab('orders')}
+                            className="inline-flex items-center px-4 py-3 rounded-2xl border border-orange-200 bg-white text-sm font-bold text-orange-600 hover:bg-orange-100 transition-colors"
+                          >
+                            <Package className="w-4 h-4 mr-2" />
+                            Open Orders
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => downloadReceipt(orders[0])}
+                            className="inline-flex items-center px-4 py-3 rounded-2xl border border-orange-200 bg-white text-sm font-bold text-orange-600 hover:bg-orange-100 transition-colors"
+                          >
+                            <Download className="w-4 h-4 mr-2" />
+                            Download Receipt
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => printReceipt(orders[0])}
+                            className="inline-flex items-center px-4 py-3 rounded-2xl border border-orange-200 bg-white text-sm font-bold text-orange-600 hover:bg-orange-100 transition-colors"
+                          >
+                            <Printer className="w-4 h-4 mr-2" />
+                            Print Receipt
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ) : null}
 
                   <div className="pt-8 border-t border-stone-100">
                     <h4 className="text-lg font-bold text-stone-900 mb-6">Demo Access</h4>
@@ -368,6 +425,9 @@ export default function Profile() {
                             <p className="text-xs text-stone-500 mt-1">
                               {new Date(order.createdAt).toLocaleDateString()}
                             </p>
+                            <p className="text-xs text-stone-500 mt-1">
+                              Receipt issued: {new Date(order.receipt?.issuedAt || order.createdAt).toLocaleString()}
+                            </p>
                           </div>
                           <div className="flex flex-wrap gap-2">
                             <button
@@ -399,6 +459,28 @@ export default function Profile() {
 
                         <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-6 items-end">
                           <div className="space-y-3">
+                            <div className="rounded-2xl border border-stone-100 bg-white p-4">
+                              <p className="text-xs font-bold text-stone-400 uppercase tracking-wider mb-3">
+                                Receipt Details
+                              </p>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-stone-600">
+                                <p>
+                                  Order No: <span className="font-bold text-stone-900">{order.orderNumber}</span>
+                                </p>
+                                <p>
+                                  Payment: <span className="font-bold text-stone-900">{order.receipt?.paymentMethod}</span>
+                                </p>
+                                <p>
+                                  Customer: <span className="font-bold text-stone-900">{order.customerDetails?.fullName}</span>
+                                </p>
+                                <p>
+                                  Contact: <span className="font-bold text-stone-900">{order.customerDetails?.phoneNumber}</span>
+                                </p>
+                                <p className="md:col-span-2">
+                                  Email: <span className="font-bold text-stone-900">{order.customerDetails?.email}</span>
+                                </p>
+                              </div>
+                            </div>
                             <p className="text-sm font-bold text-stone-900">{order.items.length} Items</p>
                             <div className="flex flex-wrap gap-2">
                               {order.items.slice(0, 3).map((item) => (
@@ -432,6 +514,14 @@ export default function Profile() {
                                 Receipt Summary
                               </p>
                               <div className="space-y-1 text-sm text-stone-600">
+                                {order.items.map((item) => (
+                                  <p key={`${order.id}-${item.productId}-line`}>
+                                    {item.name} x {item.quantity}:{' '}
+                                    <span className="font-bold text-stone-900">
+                                      Rs. {formatIndianRupees(item.price * item.quantity)}
+                                    </span>
+                                  </p>
+                                ))}
                                 <p>
                                   Subtotal:{' '}
                                   <span className="font-bold text-stone-900">
