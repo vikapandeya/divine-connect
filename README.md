@@ -1,67 +1,76 @@
 # DivineConnect
 
-DivineConnect is a full-stack spiritual services platform for puja booking, darshan access, sacred products, AI-powered astrology, and guided customer support.
-
-## Features
-
-- Book pujas and spiritual services
-- Browse and buy sacred products
-- Get AI-powered Vedic astrology readings
-- Use AI support chat for bookings, orders, and onboarding help
-- Manage devotee, vendor, and admin flows
+DivineConnect is a full-stack spiritual services platform for puja booking, sacred products, AI-powered astrology, and guided support.
 
 ## Stack
 
 - Frontend: React, TypeScript, Tailwind CSS, Framer Motion
-- Backend: Node.js, Express
-- Database: MySQL
 - Auth: Firebase Authentication
-- AI: Google Gemini via `@google/genai`
+- Database: Cloud Firestore
+- Backend: Firebase Functions
+- AI: Google Gemini through the backend only
+
+## Features
+
+- Puja browsing and booking
+- Spiritual shop and checkout flow
+- Devotee, vendor, and admin dashboards
+- AI Astrology for signed-in users
+- AI Support chat from the contact page
 
 ## Local Development
 
-1. Install dependencies:
+Install frontend dependencies:
 
 ```bash
 npm install
 ```
 
-2. Create `.env` from `.env.example` and fill in:
+Install Functions dependencies:
 
-- `GEMINI_API_KEY`
-- `MYSQL_HOST`
-- `MYSQL_USER`
-- `MYSQL_PASSWORD`
-- `MYSQL_DATABASE`
-- `MYSQL_PORT`
-- `FRONTEND_ORIGIN`
-- `VITE_API_BASE_URL` when frontend and backend are on different origins
+```bash
+cd functions
+npm install
+cd ..
+```
 
-3. Run the frontend:
+Run the frontend:
 
 ```bash
 npm run dev
 ```
 
-4. Run the backend:
+Run Firebase emulators:
 
 ```bash
-npm run dev:server
+npm run firebase:emulators
 ```
 
-## Production
+## Firebase Setup
 
-- `npm run build` builds the production frontend
-- `npm start` runs the production backend and serves `dist/`
-- `npm run build:pages` builds the GitHub Pages version under `docs/`
+1. Use the Firebase project in `.firebaserc`, or update it to your own project.
+2. Enable Firestore, Authentication, and Functions in Firebase.
+3. Set the Gemini backend secret:
 
-## Live Deployment
+```bash
+firebase functions:secrets:set GEMINI_API_KEY
+```
 
-- GitHub Pages frontend deployment is handled by `.github/workflows/deploy.yml`
-- The workflow reads `VITE_API_BASE_URL` from GitHub repository secrets
-- The backend can be deployed with the included `render.yaml`
+4. Deploy:
 
-See `DEPLOYMENT.md` for the full live deployment steps.
+```bash
+npm run firebase:deploy
+```
+
+## API Routing
+
+The frontend defaults to the Firebase Functions endpoint:
+
+```text
+https://asia-south1-gen-lang-client-0754686396.cloudfunctions.net/api
+```
+
+You can override this with `VITE_API_BASE_URL` if needed.
 
 ## Live URL
 

@@ -4,7 +4,7 @@ import { auth } from '../firebase';
 import { Puja } from '../types';
 import { motion } from 'framer-motion';
 import { Clock, IndianRupee, CheckCircle2, Calendar, User, ShieldCheck, ArrowLeft } from 'lucide-react';
-import { apiUrl } from '../lib/api';
+import { apiFetch } from '../lib/api';
 
 export default function PujaDetail() {
   const currentUser = auth?.currentUser;
@@ -20,7 +20,7 @@ export default function PujaDetail() {
     const fetchPuja = async () => {
       if (!id) return;
       try {
-        const response = await fetch(apiUrl(`/api/pujas/${id}`));
+        const response = await apiFetch(`/api/pujas/${id}`);
         if (response.ok) {
           const data = await response.json();
           setPuja(data);
@@ -56,9 +56,8 @@ export default function PujaDetail() {
 
     setIsBooking(true);
     try {
-      const response = await fetch(apiUrl('/api/bookings'), {
+      const response = await apiFetch('/api/bookings', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId: currentUser.uid,
           serviceId: id,

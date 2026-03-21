@@ -1,8 +1,12 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Mail, Lock, User, ShieldCheck, ArrowRight, Chrome } from 'lucide-react';
-import { signInWithGoogle, registerWithEmail, loginWithEmail } from '../firebase';
-import { apiUrl } from '../lib/api';
+import { X, Mail, Lock, User, ArrowRight, Chrome } from 'lucide-react';
+import {
+  signInWithGoogle,
+  registerWithEmail,
+  loginWithEmail,
+  sendResetPasswordEmail,
+} from '../firebase';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -12,8 +16,6 @@ interface AuthModalProps {
 export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const [isLogin, setIsLogin] = useState(true);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
-  const [otpSent, setOtpSent] = useState(false);
-  const [otp, setOtp] = useState('');
   const [role, setRole] = useState<'devotee' | 'vendor'>('devotee');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -22,37 +24,20 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
+  const resetState = () => {
+    setError('');
+    setSuccess('');
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
-    setSuccess('');
+    resetState();
 
     try {
       if (isForgotPassword) {
-        if (!otpSent) {
-          const res = await fetch(apiUrl('/api/auth/forgot-password'), {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email }),
-          });
-          const data = await res.json();
-          if (!res.ok) throw new Error(data.error);
-          setOtpSent(true);
-          setSuccess('OTP sent to your email. Please check your inbox.');
-        } else {
-          const res = await fetch(apiUrl('/api/auth/verify-otp'), {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, otp, newPassword: password }),
-          });
-          const data = await res.json();
-          if (!res.ok) throw new Error(data.error);
-          setSuccess('Password reset successfully. You can now sign in.');
-          setIsForgotPassword(false);
-          setOtpSent(false);
-          setIsLogin(true);
-        }
+        await sendResetPasswordEmail(email);
+        setSuccess('Password reset email sent. Please check your inbox.');
       } else if (isLogin) {
         await loginWithEmail(email, password);
         onClose();
@@ -99,7 +84,11 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   {isForgotPassword ? 'Reset Password' : isLogin ? 'Welcome Back' : 'Join DivineConnect'}
                 </h2>
                 <p className="text-stone-500 text-sm">
-                  {isForgotPassword ? 'Verify your identity to reset' : isLogin ? 'Sign in to your sacred space' : 'Start your spiritual journey'}
+                  {isForgotPassword
+                    ? 'We will send you a secure password reset link'
+                    : isLogin
+                      ? 'Sign in to your sacred space'
+                      : 'Start your spiritual journey'}
                 </p>
               </div>
               <button onClick={onClose} className="p-2 hover:bg-stone-100 rounded-full transition-colors">
@@ -108,7 +97,6 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
             </div>
 
             <div className="p-8">
-              {/* Role Selector */}
               {!isLogin && !isForgotPassword && (
                 <div className="flex bg-stone-100 p-1 rounded-2xl mb-6">
                   <button
@@ -140,6 +128,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                     />
                   </div>
                 )}
+
                 <div className="relative">
                   <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-400" />
                   <input
@@ -148,33 +137,17 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                     placeholder="Email Address"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    disabled={otpSent}
-                    className="w-full pl-12 pr-4 py-3 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all disabled:opacity-50"
+                    className="w-full pl-12 pr-4 py-3 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
                   />
                 </div>
 
-                {isForgotPassword && otpSent && (
-                  <div className="relative">
-                    <ShieldCheck className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-400" />
-                    <input
-                      required
-                      type="text"
-                      placeholder="6-Digit OTP"
-                      value={otp}
-                      onChange={(e) => setOtp(e.target.value)}
-                      maxLength={6}
-                      className="w-full pl-12 pr-4 py-3 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
-                    />
-                  </div>
-                )}
-
-                {(isLogin || !isForgotPassword || (isForgotPassword && otpSent)) && (
+                {!isForgotPassword && (
                   <div className="relative">
                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-400" />
                     <input
                       required
                       type="password"
-                      placeholder={isForgotPassword ? "New Password" : "Password"}
+                      placeholder="Password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       className="w-full pl-12 pr-4 py-3 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
@@ -191,7 +164,13 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   className="w-full bg-stone-900 text-white py-4 rounded-2xl font-bold hover:bg-orange-500 transition-all flex items-center justify-center space-x-2 shadow-lg shadow-stone-900/10"
                 >
                   <span>
-                    {loading ? 'Processing...' : isForgotPassword ? (otpSent ? 'Reset Password' : 'Send OTP') : isLogin ? 'Sign In' : 'Create Account'}
+                    {loading
+                      ? 'Processing...'
+                      : isForgotPassword
+                        ? 'Send Reset Email'
+                        : isLogin
+                          ? 'Sign In'
+                          : 'Create Account'}
                   </span>
                   {!loading && <ArrowRight className="w-5 h-5" />}
                 </button>
@@ -200,7 +179,10 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
               {isLogin && !isForgotPassword && (
                 <div className="mt-4 text-center">
                   <button
-                    onClick={() => setIsForgotPassword(true)}
+                    onClick={() => {
+                      setIsForgotPassword(true);
+                      resetState();
+                    }}
                     className="text-xs text-stone-500 hover:text-orange-600 font-medium"
                   >
                     Forgot your password?
@@ -213,7 +195,6 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   <button
                     onClick={() => {
                       setIsForgotPassword(false);
-                      setOtpSent(false);
                       setSuccess('');
                       setError('');
                     }}
@@ -246,10 +227,13 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
               )}
 
               <p className="mt-8 text-center text-sm text-stone-500">
-                {isForgotPassword ? "" : isLogin ? "Don't have an account?" : "Already have an account?"}{' '}
+                {isForgotPassword ? '' : isLogin ? "Don't have an account?" : 'Already have an account?'}{' '}
                 {!isForgotPassword && (
                   <button
-                    onClick={() => setIsLogin(!isLogin)}
+                    onClick={() => {
+                      setIsLogin(!isLogin);
+                      resetState();
+                    }}
                     className="text-orange-600 font-bold hover:underline"
                   >
                     {isLogin ? 'Sign Up' : 'Sign In'}

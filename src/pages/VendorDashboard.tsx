@@ -3,7 +3,7 @@ import { auth } from '../firebase';
 import { Product, Puja, Booking } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Edit2, Trash2, X, Save, Package, IndianRupee, Star, Calendar, Clock, User, CheckCircle, XCircle } from 'lucide-react';
-import { apiUrl } from '../lib/api';
+import { apiFetch } from '../lib/api';
 
 export default function VendorDashboard() {
   const currentUser = auth?.currentUser;
@@ -39,9 +39,9 @@ export default function VendorDashboard() {
       const vendorId = currentUser.uid;
       
       const [prodRes, pujaRes, bookRes] = await Promise.all([
-        fetch(apiUrl(`/api/products?vendorId=${vendorId}`)),
-        fetch(apiUrl(`/api/pujas?vendorId=${vendorId}`)),
-        fetch(apiUrl(`/api/vendor/bookings/${vendorId}`))
+        apiFetch(`/api/products?vendorId=${vendorId}`),
+        apiFetch(`/api/pujas?vendorId=${vendorId}`),
+        apiFetch(`/api/vendor/bookings/${vendorId}`)
       ]);
 
       if (prodRes.ok) setProducts(await prodRes.json());
@@ -101,12 +101,11 @@ export default function VendorDashboard() {
 
   const handleProductSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const url = editingItem ? apiUrl(`/api/products/${editingItem.id}`) : apiUrl('/api/products');
+    const url = editingItem ? `/api/products/${editingItem.id}` : '/api/products';
     const method = editingItem ? 'PUT' : 'POST';
     try {
-      const response = await fetch(url, {
+      const response = await apiFetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...productForm,
           price: parseFloat(productForm.price),
@@ -126,12 +125,11 @@ export default function VendorDashboard() {
 
   const handlePujaSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const url = editingItem ? apiUrl(`/api/pujas/${editingItem.id}`) : apiUrl('/api/pujas');
+    const url = editingItem ? `/api/pujas/${editingItem.id}` : '/api/pujas';
     const method = editingItem ? 'PUT' : 'POST';
     try {
-      const response = await fetch(url, {
+      const response = await apiFetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...pujaForm,
           price: parseFloat(pujaForm.price),
@@ -149,9 +147,9 @@ export default function VendorDashboard() {
 
   const handleDelete = async (id: string) => {
     if (!window.confirm('Are you sure?')) return;
-    const url = activeTab === 'products' ? apiUrl(`/api/products/${id}`) : apiUrl(`/api/pujas/${id}`);
+    const url = activeTab === 'products' ? `/api/products/${id}` : `/api/pujas/${id}`;
     try {
-      const response = await fetch(url, { method: 'DELETE' });
+      const response = await apiFetch(url, { method: 'DELETE' });
       if (response.ok) fetchData();
     } catch (error) {
       console.error('Error deleting item:', error);
@@ -160,9 +158,8 @@ export default function VendorDashboard() {
 
   const updateBookingStatus = async (id: string, status: string) => {
     try {
-      const response = await fetch(apiUrl(`/api/bookings/${id}/status`), {
+      const response = await apiFetch(`/api/bookings/${id}/status`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status })
       });
       if (response.ok) fetchData();

@@ -6,10 +6,11 @@ import {
   signOut,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  sendPasswordResetEmail,
   updateProfile,
   type Auth,
 } from 'firebase/auth';
-import { getFirestore, doc, getDocFromServer, type Firestore } from 'firebase/firestore';
+import { getFirestore, type Firestore } from 'firebase/firestore';
 import firebaseConfig from '../firebase-applet-config.json';
 import { apiUrl } from './lib/api';
 
@@ -40,15 +41,6 @@ function requireAuth(): Auth {
   return auth;
 }
 
-function requireDb(): Firestore {
-  if (!db) {
-    throw new Error(
-      firebaseInitError?.message || 'Firestore is unavailable. Please verify your Firebase config.',
-    );
-  }
-  return db;
-}
-
 export const signInWithGoogle = async (role: string = 'devotee') => {
   try {
     const authInstance = requireAuth();
@@ -58,11 +50,14 @@ export const signInWithGoogle = async (role: string = 'devotee') => {
 
     const result = await signInWithPopup(authInstance, googleProvider);
     const user = result.user;
-    
-    // Sync user with MySQL backend
+
+    const token = await user.getIdToken();
     await fetch(apiUrl('/api/users'), {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify({
         uid: user.uid,
         displayName: user.displayName,
@@ -83,11 +78,14 @@ export const registerWithEmail = async (email: string, pass: string, name: strin
   const authInstance = requireAuth();
   const result = await createUserWithEmailAndPassword(authInstance, email, pass);
   await updateProfile(result.user, { displayName: name });
-  
-  // Sync with MySQL
+
+  const token = await result.user.getIdToken();
   await fetch(apiUrl('/api/users'), {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
     body: JSON.stringify({
       uid: result.user.uid,
       displayName: name,
@@ -106,21 +104,12 @@ export const loginWithEmail = async (email: string, pass: string) => {
   return result.user;
 };
 
+export const sendResetPasswordEmail = async (email: string) => {
+  const authInstance = requireAuth();
+  await sendPasswordResetEmail(authInstance, email);
+};
+
 export const logout = () => signOut(requireAuth());
-
-// Connection test as required by guidelines
-async function testConnection() {
-  if (!db) return;
-
-  try {
-    await getDocFromServer(doc(requireDb(), 'test', 'connection'));
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('the client is offline')) {
-      console.error("Please check your Firebase configuration.");
-    }
-  }
-}
-testConnection();
 
 export enum OperationType {
   CREATE = 'create',

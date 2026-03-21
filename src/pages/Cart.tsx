@@ -19,7 +19,7 @@ import {
   updateCartItemQuantity,
 } from '../lib/cart';
 import { formatIndianRupees } from '../lib/utils';
-import { apiUrl } from '../lib/api';
+import { apiFetch } from '../lib/api';
 
 export default function Cart() {
   const currentUser = auth?.currentUser;
@@ -51,9 +51,8 @@ export default function Cart() {
 
     setIsCheckingOut(true);
     try {
-      const response = await fetch(apiUrl('/api/orders'), {
+      const response = await apiFetch('/api/orders', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId: currentUser.uid,
           items: items.map((item) => ({

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { auth } from '../firebase';
+import { auth, sendResetPasswordEmail } from '../firebase';
 import { UserProfile, Booking, Order } from '../types';
 import { User, Package, Calendar, Settings, Phone, Mail } from 'lucide-react';
-import { apiUrl } from '../lib/api';
+import { apiFetch } from '../lib/api';
 
 export default function Profile() {
   const currentUser = auth?.currentUser;
@@ -10,8 +10,7 @@ export default function Profile() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [activeTab, setActiveTab] = useState<'bookings' | 'orders' | 'profile'>('bookings');
-  const [newPassword, setNewPassword] = useState('');
-  const [isResetting, setIsResetting] = useState(false);
+  const [isSendingResetEmail, setIsSendingResetEmail] = useState(false);
 
   useEffect(() => {
     if (!currentUser) return;
@@ -19,7 +18,7 @@ export default function Profile() {
     // Fetch Profile
     const fetchProfile = async () => {
       try {
-        const response = await fetch(apiUrl(`/api/users/${currentUser.uid}`));
+        const response = await apiFetch(`/api/users/${currentUser.uid}`);
         if (response.ok) {
           const data = await response.json();
           setProfile(data);
@@ -33,7 +32,7 @@ export default function Profile() {
     // Fetch Bookings
     const fetchBookings = async () => {
       try {
-        const response = await fetch(apiUrl(`/api/bookings/${currentUser.uid}`));
+        const response = await apiFetch(`/api/bookings/${currentUser.uid}`);
         if (response.ok) {
           const data = await response.json();
           setBookings(data);
@@ -47,7 +46,7 @@ export default function Profile() {
     // Fetch Orders
     const fetchOrders = async () => {
       try {
-        const response = await fetch(apiUrl(`/api/orders/${currentUser.uid}`));
+        const response = await apiFetch(`/api/orders/${currentUser.uid}`);
         if (response.ok) {
           const data = await response.json();
           setOrders(data);
@@ -59,24 +58,17 @@ export default function Profile() {
     fetchOrders();
   }, [currentUser]);
 
-  const handleResetPassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newPassword) return;
-    setIsResetting(true);
+  const handleResetPassword = async () => {
+    if (!currentUser?.email) return;
+    setIsSendingResetEmail(true);
     try {
-      const response = await fetch(apiUrl('/api/auth/reset-password'), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ uid: currentUser?.uid, newPassword })
-      });
-      if (response.ok) {
-        alert('Password reset successfully!');
-        setNewPassword('');
-      }
+      await sendResetPasswordEmail(currentUser.email);
+      alert('Password reset email sent. Please check your inbox.');
     } catch (error) {
       console.error('Reset password error:', error);
+      alert('Unable to send reset email right now. Please try again.');
     } finally {
-      setIsResetting(false);
+      setIsSendingResetEmail(false);
     }
   };
 
@@ -191,25 +183,19 @@ export default function Profile() {
 
                   <div className="pt-8 border-t border-stone-100">
                     <h4 className="text-lg font-bold text-stone-900 mb-6">Reset Password</h4>
-                    <form onSubmit={handleResetPassword} className="max-w-md space-y-4">
-                      <div className="space-y-2">
-                        <label className="text-xs font-bold text-stone-400 uppercase tracking-wider">New Password</label>
-                        <input 
-                          type="password" 
-                          value={newPassword}
-                          onChange={(e) => setNewPassword(e.target.value)}
-                          placeholder="Enter new password"
-                          className="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
-                        />
-                      </div>
-                      <button 
-                        type="submit"
-                        disabled={isResetting}
+                    <div className="max-w-md space-y-4">
+                      <p className="text-sm text-stone-600">
+                        For better account security, DivineConnect uses Firebase password reset emails. We will send the reset link to <span className="font-bold text-stone-900">{currentUser.email}</span>.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={handleResetPassword}
+                        disabled={isSendingResetEmail}
                         className="bg-stone-900 text-white px-8 py-3 rounded-2xl font-bold hover:bg-orange-500 transition-colors disabled:opacity-50"
                       >
-                        {isResetting ? 'Updating...' : 'Update Password'}
+                        {isSendingResetEmail ? 'Sending...' : 'Send Reset Email'}
                       </button>
-                    </form>
+                    </div>
                   </div>
                 </div>
               ) : activeTab === 'bookings' ? (

@@ -5,7 +5,7 @@ import { auth } from '../firebase';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import AuthModal from '../components/AuthModal';
 import { Link } from 'react-router-dom';
-import { apiUrl, getApiConnectionHelp } from '../lib/api';
+import { apiFetch, getApiConnectionHelp } from '../lib/api';
 
 export default function Astrology() {
   const [currentUser, setCurrentUser] = useState<FirebaseUser | null>(auth?.currentUser ?? null);
@@ -55,9 +55,8 @@ export default function Astrology() {
     setReading(null);
 
     try {
-      const response = await fetch(apiUrl('/api/astrology/reading'), {
+      const response = await apiFetch('/api/astrology/reading', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId: currentUser.uid,
           ...formData,

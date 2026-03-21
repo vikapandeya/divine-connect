@@ -10,7 +10,7 @@ import {
   Send,
 } from 'lucide-react';
 import { auth } from '../firebase';
-import { apiUrl, getApiConnectionHelp } from '../lib/api';
+import { apiFetch, getApiConnectionHelp } from '../lib/api';
 
 const contactCards = [
   {
@@ -72,9 +72,8 @@ export default function Contact() {
     setChatError('');
 
     try {
-      const response = await fetch(apiUrl('/api/support/chat'), {
+      const response = await apiFetch('/api/support/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId: auth?.currentUser?.uid ?? null,
           messages: nextMessages,

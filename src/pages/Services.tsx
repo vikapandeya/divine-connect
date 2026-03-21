@@ -3,7 +3,7 @@ import { Puja } from '../types';
 import { motion } from 'framer-motion';
 import { Flame, Clock, IndianRupee, CheckCircle2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { apiUrl } from '../lib/api';
+import { apiFetch } from '../lib/api';
 
 export default function Services() {
   const [pujas, setPujas] = useState<Puja[]>([]);
@@ -12,7 +12,7 @@ export default function Services() {
   useEffect(() => {
     const fetchPujas = async () => {
       try {
-        const response = await fetch(apiUrl('/api/pujas'));
+        const response = await apiFetch('/api/pujas');
         if (response.ok) {
           const data = await response.json();
           setPujas(data);

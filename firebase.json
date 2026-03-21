@@ -1,0 +1,30 @@
+{
+  "firestore": {
+    "rules": "firestore.rules"
+  },
+  "functions": {
+    "source": "functions"
+  },
+  "hosting": {
+    "public": "dist",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "/api{,/**}",
+        "function": {
+          "functionId": "api",
+          "region": "asia-south1",
+          "pinTag": true
+        }
+      },
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  }
+}

@@ -1,124 +1,99 @@
-# DivineConnect Deployment
+# DivineConnect Firebase Deployment
 
-DivineConnect now has two AI-backed features that run on the backend:
+DivineConnect now uses:
 
-- `POST /api/astrology/reading`
-- `POST /api/support/chat`
+- Firestore for app data
+- Firebase Authentication for sign-in and password reset
+- Firebase Functions for the secure backend API
+- Gemini from the backend only for AI Astrology and AI Support
 
-Both endpoints require:
+## Collections
 
-- `GEMINI_API_KEY`
-- `MYSQL_HOST`
-- `MYSQL_USER`
-- `MYSQL_PASSWORD`
-- `MYSQL_DATABASE`
-- `MYSQL_PORT`
+The Firebase backend uses these main collections:
 
-## Recommended: Deploy Full Stack on One Node Host
+- `users`
+- `products`
+- `pujas`
+- `bookings`
+- `orders`
+- `astrologyReadings`
+- `supportChatLogs`
 
-This is the simplest way to make AI Astrology and AI Support work in production.
+Default products and pujas are seeded automatically by the backend.
 
-1. Set these environment variables on your Node host:
-   - `GEMINI_API_KEY`
-   - `MYSQL_HOST`
-   - `MYSQL_USER`
-   - `MYSQL_PASSWORD`
-   - `MYSQL_DATABASE`
-   - `MYSQL_PORT`
-   - `PORT`
-   - `FRONTEND_ORIGIN`
-2. Install dependencies:
+## One-Time Setup
+
+1. Make sure the Firebase project in `.firebaserc` is the correct project.
+2. In the Firebase console, enable:
+   - Authentication
+   - Firestore Database
+   - Cloud Functions
+3. Set the Gemini secret:
 
 ```bash
+firebase functions:secrets:set GEMINI_API_KEY
+```
+
+4. Install Functions dependencies:
+
+```bash
+cd functions
 npm install
+cd ..
 ```
 
-3. Build the frontend:
+## Deploy Backend + Firestore Rules
 
 ```bash
-npm run build
+npm run firebase:deploy
 ```
 
-4. Start the backend:
+This deploys:
 
-```bash
-npm start
+- Firestore rules from `firestore.rules`
+- the `api` Firebase Function from `functions/index.js`
+- Firebase Hosting if you choose to use it
+
+## Default Backend URL
+
+The frontend now defaults to this Firebase Functions endpoint:
+
+```text
+https://asia-south1-gen-lang-client-0754686396.cloudfunctions.net/api
 ```
 
-The Express server will serve the built frontend from `dist/` and handle all `/api/*` requests.
+That means your existing frontend can call the Firebase backend without MySQL or Render.
 
-## Recommended Hosted Backend: Render
+## Optional Frontend Override
 
-This repo now includes `render.yaml` so you can deploy the backend as a Render web service directly from the repository.
+If you want to point the frontend somewhere else, set:
 
-1. In Render, create a new Blueprint from this repository.
-2. For the `divineconnect-api` service, set:
-   - `GEMINI_API_KEY`
-   - `MYSQL_HOST`
-   - `MYSQL_USER`
-   - `MYSQL_PASSWORD`
-   - `MYSQL_DATABASE`
-   - `MYSQL_PORT`
-   - `FRONTEND_ORIGIN`
-3. After the first deploy, copy the Render backend URL.
-4. Add that URL as the GitHub repository secret `VITE_API_BASE_URL`.
+```text
+VITE_API_BASE_URL=
+```
 
 Example:
 
 ```text
-https://divineconnect-api.onrender.com
+VITE_API_BASE_URL=https://asia-south1-gen-lang-client-0754686396.cloudfunctions.net/api
 ```
-
-Once that secret is added, the GitHub Pages workflow will rebuild the frontend with the correct API base URL.
 
 ## Local Development
 
-Run the frontend and backend separately:
+Frontend:
 
 ```bash
 npm run dev
 ```
 
+Firebase emulators:
+
 ```bash
-npm run dev:server
+npm run firebase:emulators
 ```
 
-When the frontend runs on a different origin, set `VITE_API_BASE_URL` to the backend URL, for example:
+For local Gemini testing in emulators, create `functions/.secret.local` with:
 
 ```text
-http://localhost:3000
+GEMINI_API_KEY=your_key_here
 ```
-
-## If You Keep GitHub Pages for the Frontend
-
-GitHub Pages cannot run the Node backend. In that setup:
-
-1. Deploy the backend separately on a Node host using the steps above.
-2. Set `FRONTEND_ORIGIN` on the backend to your frontend URL.
-3. Add a repository secret named `VITE_API_BASE_URL` with your backend URL, for example:
-
-```text
-https://your-backend.example.com
-```
-
-4. The GitHub Actions Pages build will inject that URL into the frontend.
-
-## GitHub Pages Automation
-
-The repository workflow in `.github/workflows/deploy.yml` now:
-
-1. Builds the `/docs` version of the site with `VITE_API_BASE_URL`.
-2. Publishes the generated `docs/` output to the `docs` path on the Pages branch.
-
-This keeps the existing live URL style working:
-
-```text
-https://vikapandeya.github.io/divine-connect/docs/
-```
-
-## Notes
-
-- The backend auto-creates the required MySQL tables on startup.
-- Astrology readings are stored in `astrology_readings`.
-- AI support exchanges are stored in `support_chat_logs`.
-- GitHub repository secrets are available to GitHub Actions at build time, but they are not a runtime environment for GitHub Pages.

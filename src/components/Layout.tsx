@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import AuthModal from './AuthModal';
 import { getCartCount, subscribeToCart } from '../lib/cart';
 import logoMark from '../assets/divineconnect-mark.svg';
-import { apiUrl } from '../lib/api';
+import { apiFetch } from '../lib/api';
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -38,7 +38,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       setUser(u);
       if (u) {
         try {
-          const response = await fetch(apiUrl(`/api/users/${u.uid}`));
+          const response = await apiFetch(`/api/users/${u.uid}`);
           if (response.ok) {
             const data = await response.json();
             setProfile(data);
