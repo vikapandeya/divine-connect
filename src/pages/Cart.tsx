@@ -24,9 +24,19 @@ import { apiFetch } from '../lib/api';
 export default function Cart() {
   const currentUser = auth?.currentUser;
   const navigate = useNavigate();
-  const [address, setAddress] = useState('');
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [items, setItems] = useState<CartItem[]>([]);
+  const [customerDetails, setCustomerDetails] = useState({
+    fullName: currentUser?.displayName || '',
+    email: currentUser?.email || '',
+    phoneNumber: '',
+    addressLine1: '',
+    addressLine2: '',
+    city: '',
+    state: '',
+    pincode: '',
+    deliveryNotes: '',
+  });
 
   useEffect(() => {
     const syncCart = () => {
@@ -44,8 +54,19 @@ export default function Cart() {
       alert('Please sign in to checkout.');
       return;
     }
-    if (!address) {
-      alert('Please provide a shipping address.');
+
+    const requiredFields = [
+      customerDetails.fullName,
+      customerDetails.email,
+      customerDetails.phoneNumber,
+      customerDetails.addressLine1,
+      customerDetails.city,
+      customerDetails.state,
+      customerDetails.pincode,
+    ];
+
+    if (requiredFields.some((field) => !field.trim())) {
+      alert('Please fill in full name, email, phone number, address, city, state, and pincode.');
       return;
     }
 
@@ -57,17 +78,26 @@ export default function Cart() {
           userId: currentUser.uid,
           items: items.map((item) => ({
             productId: item.id,
+            name: item.name,
+            category: item.category || 'Offerings',
             quantity: item.quantity,
             price: item.price,
+            image: item.image,
+            templeName: item.templeName,
+            weight: item.weight,
+            size: item.size,
           })),
           totalAmount: total,
           status: 'processing',
-          shippingAddress: address,
+          customerDetails,
+          paymentMethod: 'Secure checkout',
+          shippingFee: 0,
         }),
       });
+
       if (response.ok) {
         clearCart();
-        alert('Order placed successfully!');
+        alert('Order placed successfully. Your receipt is available in My Orders.');
         navigate('/profile');
       } else {
         throw new Error('Failed to place order');
@@ -123,6 +153,11 @@ export default function Cart() {
               />
               <div className="sm:ml-2 flex-grow">
                 <h3 className="font-bold text-stone-900">{item.name}</h3>
+                {(item.templeName || item.weight || item.size) && (
+                  <p className="text-xs text-stone-500 mt-1">
+                    {[item.templeName, item.weight, item.size].filter(Boolean).join(' • ')}
+                  </p>
+                )}
                 <div className="flex items-center text-orange-600 font-bold mt-2">
                   <IndianRupee className="w-3 h-3" />
                   <span>{formatIndianRupees(item.price)}</span>
@@ -132,9 +167,7 @@ export default function Cart() {
                 <div className="flex items-center border border-stone-200 rounded-full px-2 py-1">
                   <button
                     type="button"
-                    onClick={() =>
-                      updateCartItemQuantity(item.id, item.quantity - 1)
-                    }
+                    onClick={() => updateCartItemQuantity(item.id, item.quantity - 1)}
                     className="p-1 text-stone-500 hover:text-orange-500 transition-colors"
                     aria-label={`Decrease quantity for ${item.name}`}
                   >
@@ -145,9 +178,7 @@ export default function Cart() {
                   </span>
                   <button
                     type="button"
-                    onClick={() =>
-                      updateCartItemQuantity(item.id, item.quantity + 1)
-                    }
+                    onClick={() => updateCartItemQuantity(item.id, item.quantity + 1)}
                     className="p-1 text-stone-500 hover:text-orange-500 transition-colors"
                     aria-label={`Increase quantity for ${item.name}`}
                   >
@@ -198,14 +229,120 @@ export default function Cart() {
               <div>
                 <label className="block text-sm font-bold text-stone-700 mb-2 flex items-center">
                   <MapPin className="w-4 h-4 mr-2" />
-                  Shipping Address
+                  Delivery Details
                 </label>
-                <textarea
-                  value={address}
-                  onChange={(event) => setAddress(event.target.value)}
-                  placeholder="Enter your full delivery address..."
-                  className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all resize-none h-24"
-                />
+                <div className="space-y-4">
+                  <input
+                    type="text"
+                    value={customerDetails.fullName}
+                    onChange={(event) =>
+                      setCustomerDetails((previous) => ({
+                        ...previous,
+                        fullName: event.target.value,
+                      }))
+                    }
+                    placeholder="Full name"
+                    className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
+                  />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <input
+                      type="email"
+                      value={customerDetails.email}
+                      onChange={(event) =>
+                        setCustomerDetails((previous) => ({
+                          ...previous,
+                          email: event.target.value,
+                        }))
+                      }
+                      placeholder="Email ID"
+                      className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
+                    />
+                    <input
+                      type="tel"
+                      value={customerDetails.phoneNumber}
+                      onChange={(event) =>
+                        setCustomerDetails((previous) => ({
+                          ...previous,
+                          phoneNumber: event.target.value,
+                        }))
+                      }
+                      placeholder="Contact number"
+                      className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
+                    />
+                  </div>
+                  <textarea
+                    value={customerDetails.addressLine1}
+                    onChange={(event) =>
+                      setCustomerDetails((previous) => ({
+                        ...previous,
+                        addressLine1: event.target.value,
+                      }))
+                    }
+                    placeholder="Address line 1"
+                    className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all resize-none h-20"
+                  />
+                  <input
+                    type="text"
+                    value={customerDetails.addressLine2}
+                    onChange={(event) =>
+                      setCustomerDetails((previous) => ({
+                        ...previous,
+                        addressLine2: event.target.value,
+                      }))
+                    }
+                    placeholder="Address line 2, landmark, apartment"
+                    className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
+                  />
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <input
+                      type="text"
+                      value={customerDetails.city}
+                      onChange={(event) =>
+                        setCustomerDetails((previous) => ({
+                          ...previous,
+                          city: event.target.value,
+                        }))
+                      }
+                      placeholder="City"
+                      className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
+                    />
+                    <input
+                      type="text"
+                      value={customerDetails.state}
+                      onChange={(event) =>
+                        setCustomerDetails((previous) => ({
+                          ...previous,
+                          state: event.target.value,
+                        }))
+                      }
+                      placeholder="State"
+                      className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
+                    />
+                    <input
+                      type="text"
+                      value={customerDetails.pincode}
+                      onChange={(event) =>
+                        setCustomerDetails((previous) => ({
+                          ...previous,
+                          pincode: event.target.value,
+                        }))
+                      }
+                      placeholder="Pincode"
+                      className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
+                    />
+                  </div>
+                  <textarea
+                    value={customerDetails.deliveryNotes}
+                    onChange={(event) =>
+                      setCustomerDetails((previous) => ({
+                        ...previous,
+                        deliveryNotes: event.target.value,
+                      }))
+                    }
+                    placeholder="Delivery notes, preferred timing, or special instructions"
+                    className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all resize-none h-20"
+                  />
+                </div>
               </div>
 
               <button

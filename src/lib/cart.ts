@@ -4,6 +4,10 @@ export interface CartItem {
   price: number;
   image: string;
   quantity: number;
+  category?: string;
+  templeName?: string;
+  weight?: string;
+  size?: string;
 }
 
 const STORAGE_KEY = 'divine-connect-cart';

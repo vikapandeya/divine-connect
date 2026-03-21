@@ -9,6 +9,7 @@ import { apiFetch } from '../lib/api';
 
 const categories = [
   'all',
+  'Prasad',
   'Idols',
   'Incense',
   'Mala',
@@ -17,54 +18,106 @@ const categories = [
   'Puja Essentials',
 ];
 
-const fallbackProducts = [
+const fallbackProducts: Product[] = [
+  {
+    id: 'prasad-1',
+    vendorId: 'system',
+    name: 'Kashi Vishwanath Mahaprasad Box',
+    price: 699,
+    category: 'Prasad',
+    rating: 4.9,
+    image: 'https://picsum.photos/seed/kashi-prasad/400/400',
+    templeName: 'Kashi Vishwanath Mandir',
+    weight: '500 g',
+    size: 'Family Box',
+    dispatchWindow: 'Dispatched within 24 hours',
+    description: 'Fresh temple prasad with mishri, dry fruits, tulsi leaves, and sacred thread.',
+    stock: 20,
+  },
+  {
+    id: 'prasad-2',
+    vendorId: 'system',
+    name: 'Tirupati Srivari Laddu Prasadam',
+    price: 899,
+    category: 'Prasad',
+    rating: 5,
+    image: 'https://picsum.photos/seed/tirupati-prasad/400/400',
+    templeName: 'Tirumala Tirupati Devasthanam',
+    weight: '750 g',
+    size: 'Temple Gift Pack',
+    dispatchWindow: 'Dispatch within 48 hours',
+    description: 'Temple-packed laddu prasadam suitable for family sharing and gifting.',
+    stock: 14,
+  },
   {
     id: '1',
+    vendorId: 'system',
     name: 'Brass Ganesha Idol',
     price: 1299,
     category: 'Idols',
     rating: 4.8,
     image: 'https://picsum.photos/seed/ganesha/400/400',
+    description: 'Handcrafted brass murti for home altar and festive puja spaces.',
+    stock: 18,
   },
   {
     id: '2',
+    vendorId: 'system',
     name: 'Sandalwood Incense',
     price: 250,
     category: 'Incense',
     rating: 4.5,
     image: 'https://picsum.photos/seed/incense/400/400',
+    description: 'Classic devotional fragrance for daily aarti, meditation, and prayer.',
+    stock: 60,
   },
   {
     id: '3',
+    vendorId: 'system',
     name: 'Rudraksha Mala',
     price: 599,
     category: 'Mala',
     rating: 4.9,
     image: 'https://picsum.photos/seed/mala/400/400',
+    size: '108 + 1 beads',
+    description: 'Traditional japa mala selected for chanting, meditation, and gifting.',
+    stock: 33,
   },
   {
     id: '4',
+    vendorId: 'system',
     name: 'Bhagavad Gita',
     price: 450,
     category: 'Books',
-    rating: 5.0,
+    rating: 5,
     image: 'https://picsum.photos/seed/gita/400/400',
+    size: 'Hardbound',
+    description: 'Devotional reading edition for daily study, family satsang, and gifting.',
+    stock: 21,
   },
   {
     id: '5',
+    vendorId: 'system',
     name: 'Shree Yantra',
     price: 899,
     category: 'Yantras',
     rating: 4.7,
     image: 'https://picsum.photos/seed/yantra/400/400',
+    size: '4 x 4 inch',
+    description: 'Copper yantra designed for worship space placement and prosperity rituals.',
+    stock: 11,
   },
   {
     id: '6',
+    vendorId: 'system',
     name: 'Silver Diya',
     price: 1500,
     category: 'Puja Essentials',
     rating: 4.6,
     image: 'https://picsum.photos/seed/diya/400/400',
+    size: 'Set of 2',
+    description: 'Elegant diya set for daily deepam, festivals, and spiritual gifting.',
+    stock: 17,
   },
 ];
 
@@ -144,7 +197,9 @@ export default function Shop() {
     const matchesQuery =
       normalizedQuery.length === 0 ||
       product.name.toLowerCase().includes(normalizedQuery) ||
-      product.category.toLowerCase().includes(normalizedQuery);
+      product.category.toLowerCase().includes(normalizedQuery) ||
+      product.description.toLowerCase().includes(normalizedQuery) ||
+      product.templeName?.toLowerCase().includes(normalizedQuery);
 
     return matchesCategory && matchesQuery;
   });
@@ -154,10 +209,10 @@ export default function Shop() {
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-12 gap-6">
         <div>
           <h1 className="text-4xl font-serif font-bold text-stone-900 mb-2">
-            Spiritual Marketplace
+            Spiritual Offerings
           </h1>
           <p className="text-stone-600">
-            Find everything you need for your spiritual journey.
+            Discover temple prasad, puja essentials, idols, books, and devotional offerings.
           </p>
         </div>
 
@@ -254,9 +309,34 @@ export default function Shop() {
                 <p className="text-[10px] uppercase tracking-wider text-stone-400 font-bold mb-1">
                   {product.category}
                 </p>
-                <h3 className="font-bold text-stone-900 mb-4 line-clamp-1">
+                <h3 className="font-bold text-stone-900 mb-3 line-clamp-1">
                   {product.name}
                 </h3>
+                <p className="text-sm text-stone-500 line-clamp-2 mb-4">
+                  {product.description}
+                </p>
+                {(product.templeName || product.weight || product.size) && (
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {product.templeName && (
+                      <span className="px-2.5 py-1 rounded-full bg-orange-50 text-orange-700 text-[11px] font-bold">
+                        {product.templeName}
+                      </span>
+                    )}
+                    {product.weight && (
+                      <span className="px-2.5 py-1 rounded-full bg-stone-100 text-stone-600 text-[11px] font-bold">
+                        {product.weight}
+                      </span>
+                    )}
+                    {product.size && (
+                      <span className="px-2.5 py-1 rounded-full bg-stone-100 text-stone-600 text-[11px] font-bold">
+                        {product.size}
+                      </span>
+                    )}
+                  </div>
+                )}
+                {product.dispatchWindow && (
+                  <p className="text-xs text-stone-500 mb-4">{product.dispatchWindow}</p>
+                )}
                 <div className="flex justify-between items-center gap-3">
                   <div className="flex items-center text-xl font-serif font-bold text-orange-600">
                     <IndianRupee className="w-4 h-4" />

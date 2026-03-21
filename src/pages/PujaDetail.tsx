@@ -3,8 +3,18 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { auth } from '../firebase';
 import { Puja } from '../types';
 import { motion } from 'framer-motion';
-import { Clock, IndianRupee, CheckCircle2, Calendar, User, ShieldCheck, ArrowLeft } from 'lucide-react';
+import {
+  Clock,
+  IndianRupee,
+  CheckCircle2,
+  Calendar,
+  ShieldCheck,
+  ArrowLeft,
+  Video,
+  MapPin,
+} from 'lucide-react';
 import { apiFetch } from '../lib/api';
+import { formatIndianRupees } from '../lib/utils';
 
 export default function PujaDetail() {
   const currentUser = auth?.currentUser;
@@ -27,9 +37,34 @@ export default function PujaDetail() {
         } else {
           // Fallback mock data for demo
           const mockPujas: Record<string, any> = {
-            '1': { title: 'Ganesh Puja', price: 2100, duration: '1.5 Hours', description: 'Invoke the blessings of Lord Ganesha for new beginnings and removing obstacles. This puja is ideal for starting new ventures, housewarming, or seeking general prosperity.' },
-            '2': { title: 'Satyanarayan Katha', price: 5100, duration: '3 Hours', description: 'A sacred ritual dedicated to Lord Vishnu for peace, prosperity, and happiness. It is traditionally performed on full moon days or special occasions.' },
-            '3': { title: 'Lakshmi Puja', price: 3500, duration: '2 Hours', description: 'Attract wealth and prosperity with this special puja dedicated to Goddess Lakshmi. Perfect for business growth and financial stability.' }
+            '1': {
+              title: 'Ganesh Puja',
+              price: 2100,
+              duration: '1.5 Hours',
+              description: 'Invoke the blessings of Lord Ganesha for new beginnings and removing obstacles. This puja is ideal for starting new ventures, housewarming, or seeking general prosperity.',
+              onlineTimings: ['06:30 AM - 08:00 AM', '07:00 PM - 08:30 PM'],
+              offlineTimings: ['08:00 AM - 10:00 AM', '05:00 PM - 06:30 PM'],
+              templeName: 'DivineConnect Certified Pandit Seva',
+            },
+            '2': {
+              title: 'Satyanarayan Katha',
+              price: 5100,
+              duration: '3 Hours',
+              description: 'A sacred ritual dedicated to Lord Vishnu for peace, prosperity, and happiness. It is traditionally performed on full moon days or special occasions.',
+              onlineTimings: ['09:00 AM - 12:00 PM'],
+              offlineTimings: ['08:30 AM - 11:30 AM', '04:00 PM - 07:00 PM'],
+              templeName: 'Family Home or Temple Mandap Setup',
+              liveDarshanAvailable: true,
+            },
+            '3': {
+              title: 'Lakshmi Puja',
+              price: 3500,
+              duration: '2 Hours',
+              description: 'Attract wealth and prosperity with this special puja dedicated to Goddess Lakshmi. Perfect for business growth and financial stability.',
+              onlineTimings: ['07:30 AM - 09:30 AM', '06:30 PM - 08:30 PM'],
+              offlineTimings: ['10:00 AM - 12:00 PM', '07:00 PM - 09:00 PM'],
+              templeName: 'Festival and Griha Lakshmi Seva',
+            }
           };
           if (mockPujas[id]) {
             setPuja({ id, ...mockPujas[id] } as Puja);
@@ -127,6 +162,12 @@ export default function PujaDetail() {
             <p className="text-stone-600 leading-relaxed text-lg">
               {puja.description}
             </p>
+            {puja.templeName && (
+              <div className="inline-flex items-center mt-5 bg-stone-100 text-stone-700 px-4 py-2 rounded-full text-sm font-bold">
+                <MapPin className="w-4 h-4 mr-2" />
+                {puja.templeName}
+              </div>
+            )}
           </div>
 
           <div className="bg-stone-100 p-8 rounded-3xl space-y-4">
@@ -139,6 +180,24 @@ export default function PujaDetail() {
                 </li>
               ))}
             </ul>
+            {puja.onlineTimings?.length ? (
+              <div className="pt-4 border-t border-stone-200">
+                <p className="text-sm font-bold text-stone-900 mb-2">Online Timings</p>
+                <p className="text-sm text-stone-600">{puja.onlineTimings.join(', ')}</p>
+              </div>
+            ) : null}
+            {puja.offlineTimings?.length ? (
+              <div className="pt-4 border-t border-stone-200">
+                <p className="text-sm font-bold text-stone-900 mb-2">Offline Timings</p>
+                <p className="text-sm text-stone-600">{puja.offlineTimings.join(', ')}</p>
+              </div>
+            ) : null}
+            {puja.liveDarshanAvailable ? (
+              <div className="flex items-center text-sm font-bold text-blue-600 pt-2">
+                <Video className="w-4 h-4 mr-2" />
+                Online live darshan coordination available with this service
+              </div>
+            ) : null}
           </div>
         </motion.div>
 
@@ -148,13 +207,13 @@ export default function PujaDetail() {
           animate={{ opacity: 1, x: 0 }}
           className="bg-white p-8 md:p-12 rounded-[2.5rem] border border-stone-200 shadow-xl shadow-stone-200/50 h-fit sticky top-24"
         >
-          <div className="flex items-center justify-between mb-8">
-            <span className="text-stone-500 font-medium">Service Price</span>
-            <div className="flex items-center text-3xl font-serif font-bold text-orange-600">
-              <IndianRupee className="w-6 h-6" />
-              <span>{puja.price}</span>
+            <div className="flex items-center justify-between mb-8">
+              <span className="text-stone-500 font-medium">Service Price</span>
+              <div className="flex items-center text-3xl font-serif font-bold text-orange-600">
+                <IndianRupee className="w-6 h-6" />
+                <span>{formatIndianRupees(puja.price)}</span>
+              </div>
             </div>
-          </div>
 
           <div className="space-y-6">
             <div>

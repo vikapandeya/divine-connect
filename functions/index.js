@@ -29,6 +29,8 @@ const defaultProducts = [
     stock: 50,
     rating: 4.8,
     image: 'https://picsum.photos/seed/ganesha/400/400',
+    offeringType: 'Murti',
+    dispatchWindow: 'Ships in 2-4 days',
   },
   {
     id: 'prod-sandalwood-incense',
@@ -40,6 +42,8 @@ const defaultProducts = [
     stock: 200,
     rating: 4.5,
     image: 'https://picsum.photos/seed/incense/400/400',
+    offeringType: 'Fragrance',
+    dispatchWindow: 'Ships in 1-2 days',
   },
   {
     id: 'prod-rudraksha-mala',
@@ -51,6 +55,8 @@ const defaultProducts = [
     stock: 100,
     rating: 4.9,
     image: 'https://picsum.photos/seed/mala/400/400',
+    size: '108 + 1 beads',
+    dispatchWindow: 'Ships in 2-3 days',
   },
   {
     id: 'prod-bhagavad-gita',
@@ -62,6 +68,8 @@ const defaultProducts = [
     stock: 75,
     rating: 5,
     image: 'https://picsum.photos/seed/gita/400/400',
+    size: 'Hardbound',
+    dispatchWindow: 'Ships in 2-4 days',
   },
   {
     id: 'prod-copper-shri-yantra',
@@ -73,6 +81,62 @@ const defaultProducts = [
     stock: 30,
     rating: 4.7,
     image: 'https://picsum.photos/seed/yantra/400/400',
+    size: '4 x 4 inch',
+    dispatchWindow: 'Ships in 2-5 days',
+  },
+  {
+    id: 'prod-kashi-vishwanath-prasad',
+    vendorId: 'system',
+    name: 'Kashi Vishwanath Mahaprasad Box',
+    description: 'Temple prasad box with mishri, dry fruits, sacred raksha sutra, and blessed tulsi leaves.',
+    price: 699,
+    category: 'Prasad',
+    stock: 120,
+    rating: 4.9,
+    image: 'https://picsum.photos/seed/kashi-prasad/400/400',
+    templeName: 'Kashi Vishwanath Mandir',
+    weight: '500 g',
+    size: 'Family Box',
+    city: 'Varanasi',
+    offeringType: 'Mahaprasad',
+    dispatchWindow: 'Blessed fresh and dispatched within 24 hours',
+    tags: ['Temple Packed', 'Fresh Offering'],
+  },
+  {
+    id: 'prod-tirupati-laddu',
+    vendorId: 'system',
+    name: 'Tirupati Srivari Laddu Prasadam',
+    description: 'Devotional laddu prasadam packed in sealed boxes with temple-origin details and dispatch notes.',
+    price: 899,
+    category: 'Prasad',
+    stock: 80,
+    rating: 5,
+    image: 'https://picsum.photos/seed/tirupati-prasad/400/400',
+    templeName: 'Tirumala Tirupati Devasthanam',
+    weight: '750 g',
+    size: 'Temple Gift Pack',
+    city: 'Tirupati',
+    offeringType: 'Laddu Prasadam',
+    dispatchWindow: 'Dispatch in 48 hours subject to temple batch schedule',
+    tags: ['Temple Packed', 'Popular'],
+  },
+  {
+    id: 'prod-jagannath-khaja',
+    vendorId: 'system',
+    name: 'Jagannath Puri Khaja Prasad',
+    description: 'Crisp khaja prasadam from Jagannath temple traditions, packed for safe travel and gifting.',
+    price: 549,
+    category: 'Prasad',
+    stock: 60,
+    rating: 4.8,
+    image: 'https://picsum.photos/seed/puri-prasad/400/400',
+    templeName: 'Jagannath Mandir',
+    weight: '400 g',
+    size: 'Travel Pack',
+    city: 'Puri',
+    offeringType: 'Khaja Prasad',
+    dispatchWindow: 'Ships in 1-3 days depending on fresh batch availability',
+    tags: ['Fresh Batch', 'Gift Friendly'],
   },
 ];
 
@@ -85,6 +149,11 @@ const defaultPujas = [
     price: 2100,
     duration: '1.5 Hours',
     samagriIncluded: true,
+    mode: 'hybrid',
+    onlineTimings: ['06:30 AM - 08:00 AM', '07:00 PM - 08:30 PM'],
+    offlineTimings: ['08:00 AM - 10:00 AM', '05:00 PM - 06:30 PM'],
+    templeName: 'DivineConnect Certified Pandit Seva',
+    liveDarshanAvailable: false,
   },
   {
     id: 'puja-satyanarayan',
@@ -94,6 +163,11 @@ const defaultPujas = [
     price: 5100,
     duration: '3 Hours',
     samagriIncluded: true,
+    mode: 'hybrid',
+    onlineTimings: ['09:00 AM - 12:00 PM'],
+    offlineTimings: ['08:30 AM - 11:30 AM', '04:00 PM - 07:00 PM'],
+    templeName: 'Family Home or Temple Mandap Setup',
+    liveDarshanAvailable: true,
   },
   {
     id: 'puja-lakshmi',
@@ -103,6 +177,11 @@ const defaultPujas = [
     price: 3500,
     duration: '2 Hours',
     samagriIncluded: true,
+    mode: 'hybrid',
+    onlineTimings: ['07:30 AM - 09:30 AM', '06:30 PM - 08:30 PM'],
+    offlineTimings: ['10:00 AM - 12:00 PM', '07:00 PM - 09:00 PM'],
+    templeName: 'Festival and Griha Lakshmi Seva',
+    liveDarshanAvailable: false,
   },
 ];
 
@@ -144,6 +223,23 @@ function serializeDoc(documentSnapshot) {
     id: documentSnapshot.id,
     ...serializeValue(documentSnapshot.data() || {}),
   };
+}
+
+function buildShippingAddress(details = {}) {
+  return [
+    details.addressLine1,
+    details.addressLine2,
+    details.city && details.state ? `${details.city}, ${details.state}` : details.city || details.state,
+    details.pincode,
+  ]
+    .filter(Boolean)
+    .join(', ');
+}
+
+function createOrderNumber() {
+  const stamp = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+  const suffix = Math.random().toString(36).slice(2, 8).toUpperCase();
+  return `DC-${stamp}-${suffix}`;
 }
 
 function isAdmin(requester) {
@@ -208,38 +304,42 @@ async function ensureSeedData() {
       const bootstrapRef = db.collection('_system').doc('bootstrap');
       const bootstrapSnapshot = await bootstrapRef.get();
 
-      if (bootstrapSnapshot.exists && bootstrapSnapshot.data().seedVersion === 1) {
+      if (bootstrapSnapshot.exists && bootstrapSnapshot.data().seedVersion === 2) {
         return;
       }
 
       const batch = db.batch();
-      const productsSnapshot = await db.collection('products').limit(1).get();
-      const pujasSnapshot = await db.collection('pujas').limit(1).get();
+      const productDocs = await Promise.all(
+        defaultProducts.map((product) => db.collection('products').doc(product.id).get()),
+      );
+      const pujaDocs = await Promise.all(
+        defaultPujas.map((puja) => db.collection('pujas').doc(puja.id).get()),
+      );
 
-      if (productsSnapshot.empty) {
-        defaultProducts.forEach((product) => {
+      defaultProducts.forEach((product, index) => {
+        if (!productDocs[index].exists) {
           batch.set(db.collection('products').doc(product.id), {
             ...product,
             createdAt: FieldValue.serverTimestamp(),
             updatedAt: FieldValue.serverTimestamp(),
           });
-        });
-      }
+        }
+      });
 
-      if (pujasSnapshot.empty) {
-        defaultPujas.forEach((puja) => {
+      defaultPujas.forEach((puja, index) => {
+        if (!pujaDocs[index].exists) {
           batch.set(db.collection('pujas').doc(puja.id), {
             ...puja,
             createdAt: FieldValue.serverTimestamp(),
             updatedAt: FieldValue.serverTimestamp(),
           });
-        });
-      }
+        }
+      });
 
       batch.set(
         bootstrapRef,
         {
-          seedVersion: 1,
+          seedVersion: 2,
           updatedAt: FieldValue.serverTimestamp(),
         },
         { merge: true },
@@ -405,6 +505,13 @@ app.post('/api/products', async (req, res) => {
       stock: Number(payload.stock),
       rating: Number(payload.rating || 4.5),
       image: payload.image || '',
+      templeName: payload.templeName || '',
+      weight: payload.weight || '',
+      size: payload.size || '',
+      dispatchWindow: payload.dispatchWindow || '',
+      city: payload.city || '',
+      offeringType: payload.offeringType || '',
+      tags: Array.isArray(payload.tags) ? payload.tags.filter(Boolean) : [],
       createdAt: FieldValue.serverTimestamp(),
       updatedAt: FieldValue.serverTimestamp(),
     };
@@ -446,6 +553,13 @@ app.put('/api/products/:id', async (req, res) => {
         stock: Number(payload.stock ?? existingProduct.stock),
         rating: Number(payload.rating ?? existingProduct.rating),
         image: payload.image ?? existingProduct.image,
+        templeName: payload.templeName ?? existingProduct.templeName ?? '',
+        weight: payload.weight ?? existingProduct.weight ?? '',
+        size: payload.size ?? existingProduct.size ?? '',
+        dispatchWindow: payload.dispatchWindow ?? existingProduct.dispatchWindow ?? '',
+        city: payload.city ?? existingProduct.city ?? '',
+        offeringType: payload.offeringType ?? existingProduct.offeringType ?? '',
+        tags: Array.isArray(payload.tags) ? payload.tags.filter(Boolean) : existingProduct.tags ?? [],
         updatedAt: FieldValue.serverTimestamp(),
       },
       { merge: true },
@@ -539,6 +653,11 @@ app.post('/api/pujas', async (req, res) => {
       price: Number(payload.price),
       duration: payload.duration || '',
       samagriIncluded: payload.samagriIncluded !== false,
+      mode: payload.mode || 'hybrid',
+      onlineTimings: Array.isArray(payload.onlineTimings) ? payload.onlineTimings.filter(Boolean) : [],
+      offlineTimings: Array.isArray(payload.offlineTimings) ? payload.offlineTimings.filter(Boolean) : [],
+      templeName: payload.templeName || '',
+      liveDarshanAvailable: payload.liveDarshanAvailable === true,
       createdAt: FieldValue.serverTimestamp(),
       updatedAt: FieldValue.serverTimestamp(),
     };
@@ -581,6 +700,18 @@ app.put('/api/pujas/:id', async (req, res) => {
           typeof payload.samagriIncluded === 'boolean'
             ? payload.samagriIncluded
             : existingPuja.samagriIncluded,
+        mode: payload.mode ?? existingPuja.mode ?? 'hybrid',
+        onlineTimings: Array.isArray(payload.onlineTimings)
+          ? payload.onlineTimings.filter(Boolean)
+          : existingPuja.onlineTimings ?? [],
+        offlineTimings: Array.isArray(payload.offlineTimings)
+          ? payload.offlineTimings.filter(Boolean)
+          : existingPuja.offlineTimings ?? [],
+        templeName: payload.templeName ?? existingPuja.templeName ?? '',
+        liveDarshanAvailable:
+          typeof payload.liveDarshanAvailable === 'boolean'
+            ? payload.liveDarshanAvailable
+            : existingPuja.liveDarshanAvailable ?? false,
         updatedAt: FieldValue.serverTimestamp(),
       },
       { merge: true },
@@ -760,19 +891,58 @@ app.post('/api/orders', async (req, res) => {
     const payload = req.body || {};
     assert(payload.userId === requester.uid, 'You can only create orders for your own account.', 403);
     assert(Array.isArray(payload.items) && payload.items.length > 0, 'At least one order item is required.');
-    assert(typeof payload.shippingAddress === 'string' && payload.shippingAddress.trim(), 'Shipping address is required.');
+    assert(payload.customerDetails && typeof payload.customerDetails === 'object', 'Customer details are required.');
+    assert(typeof payload.customerDetails.fullName === 'string' && payload.customerDetails.fullName.trim(), 'Full name is required.');
+    assert(typeof payload.customerDetails.email === 'string' && payload.customerDetails.email.trim(), 'Email is required.');
+    assert(typeof payload.customerDetails.phoneNumber === 'string' && payload.customerDetails.phoneNumber.trim(), 'Phone number is required.');
+    assert(typeof payload.customerDetails.addressLine1 === 'string' && payload.customerDetails.addressLine1.trim(), 'Address line 1 is required.');
+    assert(typeof payload.customerDetails.city === 'string' && payload.customerDetails.city.trim(), 'City is required.');
+    assert(typeof payload.customerDetails.state === 'string' && payload.customerDetails.state.trim(), 'State is required.');
+    assert(typeof payload.customerDetails.pincode === 'string' && payload.customerDetails.pincode.trim(), 'Pincode is required.');
 
     const orderRef = db.collection('orders').doc();
+    const orderNumber = createOrderNumber();
+    const customerDetails = {
+      fullName: payload.customerDetails.fullName.trim(),
+      email: payload.customerDetails.email.trim(),
+      phoneNumber: payload.customerDetails.phoneNumber.trim(),
+      addressLine1: payload.customerDetails.addressLine1.trim(),
+      addressLine2: payload.customerDetails.addressLine2?.trim() || '',
+      city: payload.customerDetails.city.trim(),
+      state: payload.customerDetails.state.trim(),
+      pincode: payload.customerDetails.pincode.trim(),
+      deliveryNotes: payload.customerDetails.deliveryNotes?.trim() || '',
+    };
+    const normalizedItems = payload.items.map((item) => ({
+      productId: item.productId,
+      name: item.name || 'Sacred Offering',
+      category: item.category || 'Offerings',
+      quantity: Number(item.quantity || 1),
+      price: Number(item.price || 0),
+      image: item.image || '',
+      templeName: item.templeName || '',
+      weight: item.weight || '',
+      size: item.size || '',
+    }));
+    const totalAmount = Number(payload.totalAmount || 0);
+    const receipt = {
+      orderNumber,
+      issuedAt: new Date().toISOString(),
+      paymentMethod: payload.paymentMethod || 'Secure checkout',
+      subtotal: totalAmount,
+      shippingFee: Number(payload.shippingFee || 0),
+      totalAmount,
+    };
+
     await orderRef.set({
       userId: payload.userId,
-      items: payload.items.map((item) => ({
-        productId: item.productId,
-        quantity: Number(item.quantity || 1),
-        price: Number(item.price || 0),
-      })),
-      totalAmount: Number(payload.totalAmount || 0),
+      orderNumber,
+      items: normalizedItems,
+      totalAmount,
       status: payload.status || 'processing',
-      shippingAddress: payload.shippingAddress.trim(),
+      shippingAddress: buildShippingAddress(customerDetails),
+      customerDetails,
+      receipt,
       createdAt: FieldValue.serverTimestamp(),
       updatedAt: FieldValue.serverTimestamp(),
     });
@@ -781,6 +951,63 @@ app.post('/api/orders', async (req, res) => {
     res.json({ success: true, order: serializeDoc(createdSnapshot) });
   } catch (error) {
     res.status(error.statusCode || 500).json({ error: error.message || 'Failed to create order.' });
+  }
+});
+
+app.get('/api/orders/:uid/:orderId/receipt', async (req, res) => {
+  const requester = await requireAuth(req, res);
+  if (!requester) {
+    return;
+  }
+
+  if (requester.uid !== req.params.uid && !isAdmin(requester)) {
+    return res.status(403).json({ error: 'You are not allowed to view this receipt.' });
+  }
+
+  const orderSnapshot = await db.collection('orders').doc(req.params.orderId).get();
+  if (!orderSnapshot.exists) {
+    return res.status(404).json({ error: 'Order not found.' });
+  }
+
+  const order = serializeDoc(orderSnapshot);
+  if (order.userId !== req.params.uid && !isAdmin(requester)) {
+    return res.status(403).json({ error: 'You are not allowed to view this receipt.' });
+  }
+
+  res.json({
+    orderNumber: order.orderNumber,
+    status: order.status,
+    customerDetails: order.customerDetails,
+    items: order.items,
+    receipt: order.receipt,
+  });
+});
+
+app.post('/api/feedback', async (req, res) => {
+  try {
+    const requester = await getRequester(req);
+    const payload = req.body || {};
+
+    assert(typeof payload.name === 'string' && payload.name.trim(), 'Name is required.');
+    assert(typeof payload.email === 'string' && payload.email.trim(), 'Email is required.');
+    assert(Number.isFinite(payload.rating), 'Rating is required.');
+    assert(typeof payload.message === 'string' && payload.message.trim(), 'Feedback message is required.');
+
+    await db.collection('feedbackSubmissions').add({
+      userId: requester?.uid || null,
+      name: payload.name.trim(),
+      email: payload.email.trim(),
+      rating: Number(payload.rating),
+      subject: payload.subject?.trim() || '',
+      message: payload.message.trim(),
+      createdAt: FieldValue.serverTimestamp(),
+    });
+
+    res.json({ success: true });
+  } catch (error) {
+    res.status(error.statusCode || 500).json({
+      error: error.message || 'Failed to submit feedback.',
+    });
   }
 });
 

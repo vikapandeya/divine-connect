@@ -344,7 +344,16 @@ export default function VendorDashboard() {
                       </div>
                       <div className="space-y-2">
                         <label className="text-xs font-bold text-stone-400 uppercase">Category</label>
-                        <input required type="text" value={productForm.category} onChange={e => setProductForm({...productForm, category: e.target.value})} className="w-full px-4 py-3 bg-stone-50 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500" />
+                        <select required value={productForm.category} onChange={e => setProductForm({...productForm, category: e.target.value})} className="w-full px-4 py-3 bg-stone-50 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500">
+                          <option value="">Select category</option>
+                          <option value="Prasad">Prasad</option>
+                          <option value="Idols">Idols</option>
+                          <option value="Incense">Incense</option>
+                          <option value="Mala">Mala</option>
+                          <option value="Books">Books</option>
+                          <option value="Yantras">Yantras</option>
+                          <option value="Puja Essentials">Puja Essentials</option>
+                        </select>
                       </div>
                       <div className="space-y-2">
                         <label className="text-xs font-bold text-stone-400 uppercase">Price (₹)</label>

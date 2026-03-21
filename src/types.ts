@@ -30,6 +30,13 @@ export interface Product {
   image: string;
   stock: number;
   rating: number;
+  templeName?: string;
+  weight?: string;
+  size?: string;
+  dispatchWindow?: string;
+  city?: string;
+  offeringType?: string;
+  tags?: string[];
 }
 
 export interface Puja {
@@ -40,6 +47,11 @@ export interface Puja {
   price: number;
   duration: string;
   samagriIncluded: boolean;
+  mode?: 'online' | 'offline' | 'hybrid';
+  onlineTimings?: string[];
+  offlineTimings?: string[];
+  templeName?: string;
+  liveDarshanAvailable?: boolean;
 }
 
 export interface Booking {
@@ -54,12 +66,48 @@ export interface Booking {
   totalAmount: number;
 }
 
+export interface OrderItem {
+  productId: string;
+  name: string;
+  category: string;
+  quantity: number;
+  price: number;
+  image?: string;
+  templeName?: string;
+  weight?: string;
+  size?: string;
+}
+
+export interface CustomerDetails {
+  fullName: string;
+  email: string;
+  phoneNumber: string;
+  addressLine1: string;
+  addressLine2?: string;
+  city: string;
+  state: string;
+  pincode: string;
+  deliveryNotes?: string;
+}
+
+export interface OrderReceipt {
+  orderNumber: string;
+  issuedAt: string;
+  paymentMethod: string;
+  subtotal: number;
+  shippingFee: number;
+  totalAmount: number;
+}
+
 export interface Order {
   id: string;
   userId: string;
-  items: any[];
+  orderNumber: string;
+  items: OrderItem[];
   totalAmount: number;
   status: 'processing' | 'shipped' | 'delivered' | 'cancelled';
   shippingAddress: string;
+  customerDetails: CustomerDetails;
+  receipt: OrderReceipt;
   createdAt: string;
 }

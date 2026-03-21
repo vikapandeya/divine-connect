@@ -309,6 +309,7 @@ export default function AdminDashboard() {
                       <option value="Mala">Mala</option>
                       <option value="Books">Books</option>
                       <option value="Yantras">Yantras</option>
+                      <option value="Prasad">Prasad</option>
                       <option value="Puja Essentials">Puja Essentials</option>
                     </select>
                   </div>
