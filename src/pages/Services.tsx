@@ -62,15 +62,35 @@ export default function Services() {
   ];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <div className="mb-12">
-        <h1 className="text-4xl font-serif font-bold text-stone-900 mb-4">Sacred Puja Services</h1>
-        <p className="text-stone-600 max-w-2xl">
-          Connect with experienced pandits for authentic Vedic rituals performed with devotion and precision.
-        </p>
-      </div>
+    <div className="pb-20">
+      <section className="relative h-[40vh] flex items-center overflow-hidden mb-12">
+        <div className="absolute inset-0 z-0">
+          <img
+            src="https://picsum.photos/seed/puja-hero/1920/1080?blur=2"
+            alt="Sacred Services"
+            className="w-full h-full object-cover"
+            referrerPolicy="no-referrer"
+          />
+          <div className="absolute inset-0 bg-stone-950/60 backdrop-blur-[2px]" />
+        </div>
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <h1 className="text-4xl md:text-6xl font-serif font-bold text-white mb-4">
+              Sacred Puja Services
+            </h1>
+            <p className="text-lg text-stone-200 max-w-2xl mx-auto">
+              Connect with experienced pandits for authentic Vedic rituals performed with devotion and precision.
+            </p>
+          </motion.div>
+        </div>
+      </section>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {displayPujas.map((puja, index) => (
           <motion.div
             key={puja.id}
@@ -124,5 +144,6 @@ export default function Services() {
         ))}
       </div>
     </div>
-  );
+  </div>
+);
 }

@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { auth } from '../firebase';
+import { useAuth } from '../hooks/useAuth';
 import { Product, Puja, Booking } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Edit2, Trash2, X, Save, Package, IndianRupee, Star, Calendar, Clock, User, CheckCircle, XCircle } from 'lucide-react';
 
 export default function VendorDashboard() {
+  const { user: currentUser, loading: authLoading } = useAuth();
   const [activeTab, setActiveTab] = useState<'products' | 'pujas' | 'bookings'>('products');
   const [products, setProducts] = useState<Product[]>([]);
   const [pujas, setPujas] = useState<Puja[]>([]);
@@ -31,10 +32,10 @@ export default function VendorDashboard() {
   });
 
   const fetchData = async () => {
-    if (!auth.currentUser) return;
+    if (!currentUser) return;
     setLoading(true);
     try {
-      const vendorId = auth.currentUser.uid;
+      const vendorId = currentUser.uid;
       
       const [prodRes, pujaRes, bookRes] = await Promise.all([
         fetch(`/api/products?vendorId=${vendorId}`),
@@ -53,8 +54,26 @@ export default function VendorDashboard() {
   };
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    if (currentUser) {
+      fetchData();
+    }
+  }, [currentUser]);
+
+  if (authLoading) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"></div>
+      </div>
+    );
+  }
+
+  if (!currentUser) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <p className="text-stone-500">Please sign in to access the vendor dashboard.</p>
+      </div>
+    );
+  }
 
   const handleOpenModal = (item?: any) => {
     if (activeTab === 'products') {
@@ -102,7 +121,7 @@ export default function VendorDashboard() {
           price: parseFloat(productForm.price),
           stock: parseInt(productForm.stock),
           rating: editingItem?.rating || 4.5,
-          vendorId: auth.currentUser?.uid
+          vendorId: currentUser?.uid
         })
       });
       if (response.ok) {
@@ -125,7 +144,7 @@ export default function VendorDashboard() {
         body: JSON.stringify({
           ...pujaForm,
           price: parseFloat(pujaForm.price),
-          vendorId: auth.currentUser?.uid
+          vendorId: currentUser?.uid
         })
       });
       if (response.ok) {
@@ -224,7 +243,7 @@ export default function VendorDashboard() {
                     <tr key={p.id} className="hover:bg-stone-50">
                       <td className="px-6 py-4">
                         <div className="flex items-center space-x-3">
-                          <img src={p.image} className="w-10 h-10 rounded-lg object-cover" referrerPolicy="no-referrer" />
+                          <img src={p.image || null} className="w-10 h-10 rounded-lg object-cover" referrerPolicy="no-referrer" />
                           <span className="font-bold text-stone-900">{p.name}</span>
                         </div>
                       </td>

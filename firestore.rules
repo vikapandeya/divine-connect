@@ -48,15 +48,38 @@ service cloud.firestore {
       return request.resource.data.keys().hasOnly(fields);
     }
 
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    function validString(field, minLen, maxLen) {
+      return request.resource.data[field] is string &&
+             request.resource.data[field].size() >= minLen &&
+             request.resource.data[field].size() <= maxLen;
+    }
+
     // ===============================================================
     // Domain Validators
     // ===============================================================
     function isValidUser(data) {
-      return data.uid is string && data.email is string && data.role in ['devotee', 'vendor', 'admin'];
+      return hasRequiredFields(['uid', 'email', 'role']) &&
+             data.uid is string && data.email is string && 
+             data.role in ['devotee', 'vendor', 'admin'] &&
+             validString('displayName', 1, 100);
     }
 
     function isValidProduct(data) {
-      return data.vendorId is string && data.name is string && data.price is number && data.stock is int;
+      return hasRequiredFields(['vendorId', 'name', 'price', 'stock']) &&
+             data.vendorId is string && data.name is string && 
+             data.price is number && data.stock is int &&
+             data.price >= 0 && data.stock >= 0 &&
+             validString('name', 1, 200);
+    }
+
+    function isValidBooking(data) {
+      return hasRequiredFields(['userId', 'serviceId', 'vendorId', 'type', 'date', 'status']) &&
+             data.userId is string && data.vendorId is string &&
+             data.status in ['pending', 'confirmed', 'completed', 'cancelled'];
     }
 
     // ===============================================================
@@ -66,38 +89,54 @@ service cloud.firestore {
     match /users/{userId} {
       allow read: if isAuthenticated();
       allow create: if isOwner(userId) && isValidUser(request.resource.data) && request.resource.data.role != 'admin';
-      allow update: if (isOwner(userId) && request.resource.data.role == resource.data.role) || isAdmin();
+      allow update: if isAuthenticated() && 
+                    ((isOwner(userId) && request.resource.data.role == resource.data.role) || isAdmin()) &&
+                    isValidUser(request.resource.data);
     }
 
     match /vendors/{vendorId} {
       allow read: if true;
       allow create: if isVendor() && request.auth.uid == request.resource.data.uid;
-      allow update: if (isAuthenticated() && request.auth.uid == resource.data.uid) || isAdmin();
+      allow update: if isAuthenticated() && 
+                    ((request.auth.uid == resource.data.uid) || isAdmin());
     }
 
     match /products/{productId} {
       allow read: if true;
       allow create: if isVendor() && isValidProduct(request.resource.data) && request.resource.data.vendorId == request.auth.uid;
-      allow update: if (isVendor() && resource.data.vendorId == request.auth.uid) || isAdmin();
-      allow delete: if (isVendor() && resource.data.vendorId == request.auth.uid) || isAdmin();
+      allow update: if isAuthenticated() && 
+                    ((isVendor() && resource.data.vendorId == request.auth.uid) || isAdmin()) &&
+                    isValidProduct(request.resource.data);
+      allow delete: if isAuthenticated() && 
+                    ((isVendor() && resource.data.vendorId == request.auth.uid) || isAdmin());
     }
 
     match /pujas/{pujaId} {
       allow read: if true;
-      allow create: if isVendor();
-      allow update: if (isVendor() && resource.data.vendorId == request.auth.uid) || isAdmin();
+      allow create: if isVendor() && request.resource.data.vendorId == request.auth.uid;
+      allow update: if isAuthenticated() && 
+                    ((isVendor() && resource.data.vendorId == request.auth.uid) || isAdmin());
+      allow delete: if isAuthenticated() && 
+                    ((isVendor() && resource.data.vendorId == request.auth.uid) || isAdmin());
     }
 
     match /bookings/{bookingId} {
       allow read: if isAuthenticated() && (request.auth.uid == resource.data.userId || request.auth.uid == resource.data.vendorId || isAdmin());
-      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
-      allow update: if isAuthenticated() && (request.auth.uid == resource.data.userId || request.auth.uid == resource.data.vendorId || isAdmin());
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid && isValidBooking(request.resource.data);
+      allow update: if isAuthenticated() && 
+                    (request.auth.uid == resource.data.userId || request.auth.uid == resource.data.vendorId || isAdmin()) &&
+                    isValidBooking(request.resource.data);
     }
 
     match /orders/{orderId} {
       allow read: if isAuthenticated() && (request.auth.uid == resource.data.userId || isAdmin());
       allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
       allow update: if isAdmin();
+    }
+
+    match /feedback/{feedbackId} {
+      allow read: if true;
+      allow create: if true;
     }
   }
 }

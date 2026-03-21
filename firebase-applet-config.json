@@ -1,10 +1,10 @@
 {
-  "projectId": "gen-lang-client-0754686396",
-  "appId": "1:835498664485:web:cc1980f6aa9781203055cc",
-  "apiKey": "AIzaSyDM9_gj7X7FAmlvxCti-AqK-5Rg7Fp1ZFg",
-  "authDomain": "gen-lang-client-0754686396.firebaseapp.com",
-  "firestoreDatabaseId": "ai-studio-eb168d7a-d0e9-4236-bed6-03f1c0820478",
-  "storageBucket": "gen-lang-client-0754686396.firebasestorage.app",
-  "messagingSenderId": "835498664485",
+  "projectId": "divine-connect-30e07",
+  "appId": "1:614417968625:web:2e5c785bdd5980eeaa6850",
+  "apiKey": "AIzaSyCa_XyZFA1EeIyWpg2t5xCH3yoY1uHfRi4",
+  "authDomain": "divine-connect-30e07.firebaseapp.com",
+  "firestoreDatabaseId": "(default)",
+  "storageBucket": "divine-connect-30e07.firebasestorage.app",
+  "messagingSenderId": "614417968625",
   "measurementId": ""
 }

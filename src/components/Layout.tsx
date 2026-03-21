@@ -1,27 +1,36 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { auth, signInWithGoogle, logout } from '../firebase';
-import { onAuthStateChanged, User } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '../firebase';
+import { auth, firebaseInitError, logout } from '../firebase';
+import { useAuth } from '../hooks/useAuth';
 import { UserProfile } from '../types';
-import { Search, ShoppingCart, User as UserIcon, Menu, X, Flame, Hand, Utensils, BookOpen } from 'lucide-react';
+import { Search, ShoppingCart, Menu, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import AuthModal from './AuthModal';
+import { getCartCount, subscribeToCart } from '../lib/cart';
+import logoMark from '../assets/divineconnect-mark.svg';
 
 export default function Layout({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const { user } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [cartCount, setCartCount] = useState(0);
+  const [searchTerm, setSearchTerm] = useState('');
   const navigate = useNavigate();
 
+  const navLinks = [
+    { to: '/services', label: 'Services' },
+    { to: '/shop', label: 'Shop' },
+    { to: '/astrology', label: 'AI Astrology' },
+    { to: '/about', label: 'About' },
+    { to: '/contact', label: 'Contact' },
+  ];
+
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (u) => {
-      setUser(u);
-      if (u) {
+    const fetchProfile = async () => {
+      if (user) {
         try {
-          const response = await fetch(`/api/users/${u.uid}`);
+          const response = await fetch(`/api/users/${user.uid}`);
           if (response.ok) {
             const data = await response.json();
             setProfile(data);
@@ -32,12 +41,29 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       } else {
         setProfile(null);
       }
-    });
-    return unsubscribe;
+    };
+    fetchProfile();
+  }, [user]);
+
+  useEffect(() => {
+    const syncCartCount = () => {
+      setCartCount(getCartCount());
+    };
+
+    syncCartCount();
+    return subscribeToCart(syncCartCount);
   }, []);
 
   const handleLogin = () => {
     setIsAuthModalOpen(true);
+  };
+
+  const handleSearch = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const query = searchTerm.trim();
+    navigate(query ? `/shop?q=${encodeURIComponent(query)}` : '/shop');
+    setIsMenuOpen(false);
   };
 
   return (
@@ -49,41 +75,55 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
             <Link to="/" className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center">
-                <span className="text-white font-serif font-bold text-xl">D</span>
-              </div>
+              <img src={logoMark} alt="DivineConnect logo" className="w-8 h-8" />
               <span className="text-xl font-serif font-bold tracking-tight text-stone-900">DivineConnect</span>
             </Link>
 
             {/* Desktop Nav */}
             <nav className="hidden md:flex items-center space-x-8">
-              <Link to="/services" className="text-sm font-medium text-stone-600 hover:text-orange-500 transition-colors">Services</Link>
-              <Link to="/shop" className="text-sm font-medium text-stone-600 hover:text-orange-500 transition-colors">Shop</Link>
-              <Link to="/astrology" className="text-sm font-medium text-stone-600 hover:text-orange-500 transition-colors">AI Astrology</Link>
-              <Link to="/about" className="text-sm font-medium text-stone-600 hover:text-orange-500 transition-colors">About</Link>
-              <Link to="/contact" className="text-sm font-medium text-stone-600 hover:text-orange-500 transition-colors">Contact</Link>
+              {navLinks.map((link) => (
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  className="text-sm font-medium text-stone-600 hover:text-orange-500 transition-colors"
+                >
+                  {link.label}
+                </Link>
+              ))}
             </nav>
 
             {/* Actions */}
             <div className="flex items-center space-x-4">
-              <div className="hidden sm:flex items-center bg-stone-100 rounded-full px-3 py-1.5">
+              {firebaseInitError && (
+                <div className="hidden lg:block max-w-xs rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-800">
+                  Auth is temporarily unavailable.
+                </div>
+              )}
+
+              <form onSubmit={handleSearch} className="hidden sm:flex items-center bg-stone-100 rounded-full px-3 py-1.5">
                 <Search className="w-4 h-4 text-stone-400" />
                 <input 
                   type="text" 
                   placeholder="Search..." 
+                  value={searchTerm}
+                  onChange={(event) => setSearchTerm(event.target.value)}
                   className="bg-transparent border-none focus:ring-0 text-sm w-32 lg:w-48 ml-2"
                 />
-              </div>
+              </form>
               
-              <Link to="/cart" className="relative p-2 text-stone-600 hover:text-orange-500 transition-colors">
+              <Link to="/cart" className="hidden md:flex relative p-2 text-stone-600 hover:text-orange-500 transition-colors">
                 <ShoppingCart className="w-6 h-6" />
-                <span className="absolute top-0 right-0 bg-orange-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">0</span>
+                {cartCount > 0 && (
+                  <span className="absolute top-0 right-0 bg-orange-500 text-white text-[10px] font-bold rounded-full min-w-4 h-4 px-1 flex items-center justify-center">
+                    {cartCount}
+                  </span>
+                )}
               </Link>
 
               {user ? (
                 <div className="relative group">
                   <button className="flex items-center space-x-2 p-1 rounded-full hover:bg-stone-100 transition-colors">
-                    <img src={user.photoURL || ''} alt="" className="w-8 h-8 rounded-full border border-stone-200" />
+                    <img src={user.photoURL || null} alt="" className="w-8 h-8 rounded-full border border-stone-200" />
                   </button>
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-stone-100 py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
                     <Link to="/profile" className="block px-4 py-2 text-sm text-stone-700 hover:bg-stone-50">Profile</Link>
@@ -118,10 +158,43 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               className="md:hidden bg-white border-t border-stone-100 overflow-hidden"
             >
               <div className="px-4 pt-2 pb-6 space-y-1">
-                <Link to="/services" className="block px-3 py-2 text-base font-medium text-stone-600 hover:text-orange-500">Services</Link>
-                <Link to="/shop" className="block px-3 py-2 text-base font-medium text-stone-600 hover:text-orange-500">Shop</Link>
-                <Link to="/about" className="block px-3 py-2 text-base font-medium text-stone-600 hover:text-orange-500">About</Link>
-                <Link to="/contact" className="block px-3 py-2 text-base font-medium text-stone-600 hover:text-orange-500">Contact</Link>
+                <form onSubmit={handleSearch} className="px-3 py-2">
+                  <div className="flex items-center bg-stone-100 rounded-full px-3 py-2">
+                    <Search className="w-4 h-4 text-stone-400" />
+                    <input
+                      type="text"
+                      placeholder="Search..."
+                      value={searchTerm}
+                      onChange={(event) => setSearchTerm(event.target.value)}
+                      className="w-full bg-transparent border-none focus:ring-0 text-sm ml-2"
+                    />
+                  </div>
+                </form>
+                {navLinks.map((link) => (
+                  <Link
+                    key={link.to}
+                    to={link.to}
+                    onClick={() => setIsMenuOpen(false)}
+                    className="block px-3 py-2 text-base font-medium text-stone-600 hover:text-orange-500"
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+                <Link
+                  to="/cart"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="flex items-center justify-between px-3 py-2 text-base font-medium text-stone-600 hover:text-orange-500"
+                >
+                  <div className="flex items-center gap-2">
+                    <ShoppingCart className="w-5 h-5" />
+                    <span>Cart</span>
+                  </div>
+                  {cartCount > 0 && (
+                    <span className="bg-orange-500 text-white text-[10px] font-bold rounded-full min-w-5 h-5 px-1 flex items-center justify-center">
+                      {cartCount}
+                    </span>
+                  )}
+                </Link>
               </div>
             </motion.div>
           )}
@@ -139,9 +212,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div className="col-span-1 md:col-span-2">
               <div className="flex items-center space-x-2 mb-4">
-                <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center">
-                  <span className="text-white font-serif font-bold text-xl">D</span>
-                </div>
+                <img src={logoMark} alt="DivineConnect logo" className="w-8 h-8" />
                 <span className="text-xl font-serif font-bold tracking-tight text-white">DivineConnect</span>
               </div>
               <p className="max-w-xs text-sm leading-relaxed">
@@ -160,7 +231,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <div>
               <h4 className="text-white font-medium mb-4">Connect</h4>
               <ul className="space-y-2 text-sm">
-                <li><a href="https://github.com/GautamPince" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors">Developer GitHub</a></li>
+                <li><Link to="/contact" className="hover:text-orange-500 transition-colors">Contact Us</Link></li>
                 <li>support@divineconnect.com</li>
                 <li>+91 1800-DIVINE-00</li>
                 <li>Varanasi, Uttar Pradesh, India</li>

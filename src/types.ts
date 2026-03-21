@@ -3,9 +3,9 @@ export interface UserProfile {
   displayName: string | null;
   email: string | null;
   photoURL: string | null;
+  address: string | null;
   role: 'devotee' | 'vendor' | 'admin';
   phoneNumber?: string;
-  addresses: string[];
   createdAt: string;
 }
 
@@ -30,6 +30,8 @@ export interface Product {
   image: string;
   stock: number;
   rating: number;
+  templeName?: string;
+  weightOptions?: { label: string; price: number }[];
 }
 
 export interface Puja {
@@ -37,9 +39,10 @@ export interface Puja {
   vendorId: string;
   title: string;
   description: string;
-  price: number;
+  onlinePrice: number;
+  offlinePrice: number;
   duration: string;
-  samagriIncluded: boolean;
+  samagriList: string;
 }
 
 export interface Booking {
@@ -48,10 +51,13 @@ export interface Booking {
   serviceId: string;
   vendorId: string;
   type: 'puja' | 'darshan';
+  isOnline: boolean;
+  bringSamagri: boolean;
   date: string;
   timeSlot: string;
   status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
   totalAmount: number;
+  samagriList?: string;
 }
 
 export interface Order {

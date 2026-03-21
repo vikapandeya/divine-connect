@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../hooks/useAuth';
 import { Product } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Edit2, Trash2, X, Save, Package, IndianRupee, Star, Tag, Database, Users, Store, Calendar } from 'lucide-react';
 
 export default function AdminDashboard() {
+  const { user: currentUser, loading: authLoading } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -51,9 +53,27 @@ export default function AdminDashboard() {
   };
 
   useEffect(() => {
-    fetchProducts();
-    fetchStats();
-  }, []);
+    if (currentUser && currentUser.role === 'admin') {
+      fetchProducts();
+      fetchStats();
+    }
+  }, [currentUser]);
+
+  if (authLoading) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"></div>
+      </div>
+    );
+  }
+
+  if (!currentUser || currentUser.role !== 'admin') {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <p className="text-stone-500">Access denied. Admin privileges required.</p>
+      </div>
+    );
+  }
 
   const handleOpenModal = (product?: Product) => {
     if (product) {
@@ -212,7 +232,7 @@ export default function AdminDashboard() {
                   <tr key={product.id} className="hover:bg-stone-50 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center space-x-4">
-                        <img src={product.image} alt={product.name} className="w-10 h-10 rounded-lg object-cover" referrerPolicy="no-referrer" />
+                        <img src={product.image || null} alt={product.name} className="w-10 h-10 rounded-lg object-cover" referrerPolicy="no-referrer" />
                         <span className="font-bold text-stone-900">{product.name}</span>
                       </div>
                     </td>

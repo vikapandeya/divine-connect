@@ -6,12 +6,15 @@ import { motion } from 'framer-motion';
 import { Clock, IndianRupee, CheckCircle2, Calendar, User, ShieldCheck, ArrowLeft } from 'lucide-react';
 
 export default function PujaDetail() {
+  const currentUser = auth?.currentUser;
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [puja, setPuja] = useState<Puja | null>(null);
   const [loading, setLoading] = useState(true);
   const [bookingDate, setBookingDate] = useState('');
   const [bookingTime, setBookingTime] = useState('');
+  const [isOnline, setIsOnline] = useState(false);
+  const [bringSamagri, setBringSamagri] = useState(false);
   const [isBooking, setIsBooking] = useState(false);
 
   useEffect(() => {
@@ -25,9 +28,9 @@ export default function PujaDetail() {
         } else {
           // Fallback mock data for demo
           const mockPujas: Record<string, any> = {
-            '1': { title: 'Ganesh Puja', price: 2100, duration: '1.5 Hours', description: 'Invoke the blessings of Lord Ganesha for new beginnings and removing obstacles. This puja is ideal for starting new ventures, housewarming, or seeking general prosperity.' },
-            '2': { title: 'Satyanarayan Katha', price: 5100, duration: '3 Hours', description: 'A sacred ritual dedicated to Lord Vishnu for peace, prosperity, and happiness. It is traditionally performed on full moon days or special occasions.' },
-            '3': { title: 'Lakshmi Puja', price: 3500, duration: '2 Hours', description: 'Attract wealth and prosperity with this special puja dedicated to Goddess Lakshmi. Perfect for business growth and financial stability.' }
+            '1': { title: 'Ganesh Puja', onlinePrice: 1100, offlinePrice: 2100, duration: '1.5 Hours', description: 'Invoke the blessings of Lord Ganesha for new beginnings and removing obstacles.', samagriList: 'Ganesha Idol, Turmeric, Kumkum, Sandalwood Paste, Incense Sticks, Lamp, Flowers, Fruits, Betel Leaves, Betel Nuts, Coconut, Rice, Sweets (Modak).' },
+            '2': { title: 'Satyanarayan Katha', onlinePrice: 2500, offlinePrice: 5100, duration: '3 Hours', description: 'A sacred ritual dedicated to Lord Vishnu for peace, prosperity, and happiness.', samagriList: 'Satyanarayan Photo, Panchamrit, Banana Leaves, Flowers, Fruits, Tulsi Leaves, Kalash, Mango Leaves, Wheat, Ghee for Havan.' },
+            '3': { title: 'Lakshmi Puja', onlinePrice: 1800, offlinePrice: 3500, duration: '2 Hours', description: 'Attract wealth and prosperity with this special puja dedicated to Goddess Lakshmi.', samagriList: 'Lakshmi Idol/Photo, Lotus Flowers, Red Cloth, Rice, Turmeric, Kumkum, Sandalwood, Incense, Lamp, Ghee, Fruits, Sweets.' }
           };
           if (mockPujas[id]) {
             setPuja({ id, ...mockPujas[id] } as Puja);
@@ -43,7 +46,7 @@ export default function PujaDetail() {
   }, [id]);
 
   const handleBooking = async () => {
-    if (!auth.currentUser) {
+    if (!currentUser) {
       alert('Please sign in to book a puja.');
       return;
     }
@@ -58,14 +61,17 @@ export default function PujaDetail() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: auth.currentUser.uid,
+          userId: currentUser.uid,
           serviceId: id,
           vendorId: puja?.vendorId || 'system',
           type: 'puja',
           date: bookingDate,
           timeSlot: bookingTime,
           status: 'pending',
-          totalAmount: puja?.price || 0
+          totalAmount: isOnline ? puja?.onlinePrice : puja?.offlinePrice,
+          isOnline,
+          bringSamagri: !isOnline && bringSamagri,
+          samagriList: puja?.samagriList
         })
       });
       if (response.ok) {
@@ -84,6 +90,8 @@ export default function PujaDetail() {
 
   if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   if (!puja) return <div className="min-h-screen flex items-center justify-center">Puja not found.</div>;
+
+  const currentPrice = isOnline ? puja.onlinePrice : puja.offlinePrice;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -129,15 +137,21 @@ export default function PujaDetail() {
           </div>
 
           <div className="bg-stone-100 p-8 rounded-3xl space-y-4">
-            <h3 className="font-bold text-stone-900">What's Included:</h3>
-            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {['Vedic Mantras', 'Puja Samagri', 'Pandit Dakshina', 'Prasad Distribution', 'Online Consultation', 'Digital Certificate'].map((item) => (
-                <li key={item} className="flex items-center text-stone-600 text-sm">
-                  <CheckCircle2 className="w-4 h-4 mr-2 text-emerald-500" />
-                  {item}
-                </li>
-              ))}
-            </ul>
+            <h3 className="font-bold text-stone-900">Required Samagri:</h3>
+            <p className="text-sm text-stone-600 leading-relaxed">
+              {puja.samagriList}
+            </p>
+            <div className="pt-4 border-t border-stone-200">
+              <h4 className="font-bold text-stone-900 mb-2">What's Included in Service:</h4>
+              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {['Vedic Mantras', 'Pandit Dakshina', 'Prasad Distribution', 'Online Consultation', 'Digital Certificate'].map((item) => (
+                  <li key={item} className="flex items-center text-stone-600 text-sm">
+                    <CheckCircle2 className="w-4 h-4 mr-2 text-emerald-500" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         </motion.div>
 
@@ -151,11 +165,59 @@ export default function PujaDetail() {
             <span className="text-stone-500 font-medium">Service Price</span>
             <div className="flex items-center text-3xl font-serif font-bold text-orange-600">
               <IndianRupee className="w-6 h-6" />
-              <span>{puja.price}</span>
+              <span>{currentPrice}</span>
             </div>
           </div>
 
           <div className="space-y-6">
+            {/* Online/Offline Toggle */}
+            <div className="bg-stone-50 p-4 rounded-2xl border border-stone-100">
+              <label className="block text-sm font-bold text-stone-700 mb-3">Service Mode</label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => setIsOnline(true)}
+                  className={`py-2 rounded-xl text-sm font-bold transition-all ${isOnline ? 'bg-orange-500 text-white shadow-md' : 'bg-white text-stone-600 border border-stone-200'}`}
+                >
+                  Online (Video Call)
+                </button>
+                <button
+                  onClick={() => setIsOnline(false)}
+                  className={`py-2 rounded-xl text-sm font-bold transition-all ${!isOnline ? 'bg-orange-500 text-white shadow-md' : 'bg-white text-stone-600 border border-stone-200'}`}
+                >
+                  Offline (At Home)
+                </button>
+              </div>
+              <p className="text-[10px] text-stone-400 mt-2">
+                {isOnline ? 'Pandit Ji will perform the puja via high-quality video call.' : 'Pandit Ji will visit your location for the puja.'}
+              </p>
+            </div>
+
+            {/* Samagri Option for Offline */}
+            {!isOnline && (
+              <div className="bg-stone-50 p-4 rounded-2xl border border-stone-100">
+                <label className="block text-sm font-bold text-stone-700 mb-3">Samagri Arrangement</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => setBringSamagri(true)}
+                    className={`py-2 rounded-xl text-sm font-bold transition-all ${bringSamagri ? 'bg-stone-800 text-white' : 'bg-white text-stone-600 border border-stone-200'}`}
+                  >
+                    Pandit Ji Brings
+                  </button>
+                  <button
+                    onClick={() => setBringSamagri(false)}
+                    className={`py-2 rounded-xl text-sm font-bold transition-all ${!bringSamagri ? 'bg-stone-800 text-white' : 'bg-white text-stone-600 border border-stone-200'}`}
+                  >
+                    I will Arrange
+                  </button>
+                </div>
+                {!bringSamagri && (
+                  <p className="text-[10px] text-orange-600 mt-2 font-medium">
+                    A detailed samagri list will be provided in your receipt.
+                  </p>
+                )}
+              </div>
+            )}
+
             <div>
               <label className="block text-sm font-bold text-stone-700 mb-2 flex items-center">
                 <Calendar className="w-4 h-4 mr-2" />

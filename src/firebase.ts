@@ -1,76 +1,120 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from 'firebase/auth';
-import { getFirestore, doc, getDoc, setDoc, collection, query, where, onSnapshot, addDoc, updateDoc, deleteDoc, getDocFromServer } from 'firebase/firestore';
+import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged as firebaseOnAuthStateChanged } from 'firebase/auth';
 import firebaseConfig from '../firebase-applet-config.json';
 
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
-export const auth = getAuth(app);
-export const googleProvider = new GoogleAuthProvider();
+const firebaseAuth = getAuth(app);
+const googleProvider = new GoogleAuthProvider();
+
+export let firebaseInitError: Error | null = null;
+
+export interface User {
+  uid: string;
+  email: string;
+  displayName: string;
+  photoURL?: string;
+  role: 'devotee' | 'vendor' | 'admin';
+}
+
+// Auth state management
+type AuthCallback = (user: User | null) => void;
+const listeners = new Set<AuthCallback>();
+
+export const auth = {
+  currentUser: null as User | null,
+  onAuthStateChanged: (callback: AuthCallback) => {
+    listeners.add(callback);
+    
+    // Check local storage first for immediate UI response
+    const savedUser = localStorage.getItem('user');
+    if (savedUser) {
+      const user = JSON.parse(savedUser);
+      auth.currentUser = user;
+      callback(user);
+    } else {
+      callback(null);
+    }
+
+    return () => {
+      listeners.delete(callback);
+    };
+  }
+};
+
+const notifyListeners = (user: User | null) => {
+  auth.currentUser = user;
+  listeners.forEach(callback => callback(user));
+};
 
 export const signInWithGoogle = async (role: string = 'devotee') => {
   try {
-    const result = await signInWithPopup(auth, googleProvider);
-    const user = result.user;
+    const result = await signInWithPopup(firebaseAuth, googleProvider);
+    const firebaseUser = result.user;
     
-    // Sync user with MySQL backend
-    await fetch('/api/users', {
+    // Sync with MySQL backend
+    const response = await fetch('/api/auth/google-sync', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        uid: user.uid,
-        displayName: user.displayName,
-        email: user.email,
-        photoURL: user.photoURL,
+        email: firebaseUser.email,
+        displayName: firebaseUser.displayName,
+        photoURL: firebaseUser.photoURL,
+        uid: firebaseUser.uid,
         role
       })
     });
-
+    
+    const data = await response.json();
+    if (!data.success) throw new Error(data.error || 'Google Sync failed');
+    
+    const user = data.user;
+    localStorage.setItem('user', JSON.stringify(user));
+    notifyListeners(user);
     return user;
   } catch (error) {
-    console.error('Error signing in with Google:', error);
+    console.error('Google Sign-In Error:', error);
     throw error;
   }
 };
 
 export const registerWithEmail = async (email: string, pass: string, name: string, role: string = 'devotee') => {
-  const result = await createUserWithEmailAndPassword(auth, email, pass);
-  await updateProfile(result.user, { displayName: name });
-  
-  // Sync with MySQL
-  await fetch('/api/users', {
+  const response = await fetch('/api/auth/register', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      uid: result.user.uid,
-      displayName: name,
-      email: email,
-      photoURL: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`,
-      role
-    })
+    body: JSON.stringify({ email, password: pass, displayName: name, role })
   });
   
-  return result.user;
+  const data = await response.json();
+  if (!data.success) throw new Error(data.error || 'Registration failed');
+  
+  const user: User = { uid: data.uid, email, displayName: name, role: role as any };
+  localStorage.setItem('user', JSON.stringify(user));
+  notifyListeners(user);
+  return user;
 };
 
 export const loginWithEmail = async (email: string, pass: string) => {
-  const result = await signInWithEmailAndPassword(auth, email, pass);
-  return result.user;
+  const response = await fetch('/api/auth/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password: pass })
+  });
+  
+  const data = await response.json();
+  if (!data.success) throw new Error(data.message || 'Login failed');
+  
+  const user = data.user;
+  localStorage.setItem('user', JSON.stringify(user));
+  notifyListeners(user);
+  return user;
 };
 
-export const logout = () => signOut(auth);
-
-// Connection test as required by guidelines
-async function testConnection() {
-  try {
-    await getDocFromServer(doc(db, 'test', 'connection'));
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('the client is offline')) {
-      console.error("Please check your Firebase configuration.");
-    }
-  }
-}
-testConnection();
+export const logout = async () => {
+  localStorage.removeItem('user');
+  notifyListeners(null);
+  window.location.href = '/';
+};
 
 export enum OperationType {
   CREATE = 'create',
@@ -81,25 +125,7 @@ export enum OperationType {
   WRITE = 'write',
 }
 
-export function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
-  const errInfo = {
-    error: error instanceof Error ? error.message : String(error),
-    authInfo: {
-      userId: auth.currentUser?.uid,
-      email: auth.currentUser?.email,
-      emailVerified: auth.currentUser?.emailVerified,
-      isAnonymous: auth.currentUser?.isAnonymous,
-      tenantId: auth.currentUser?.tenantId,
-      providerInfo: auth.currentUser?.providerData.map(provider => ({
-        providerId: provider.providerId,
-        displayName: provider.displayName,
-        email: provider.email,
-        photoUrl: provider.photoURL
-      })) || []
-    },
-    operationType,
-    path
-  };
-  console.error('Firestore Error: ', JSON.stringify(errInfo));
-  throw new Error(JSON.stringify(errInfo));
+export function handleFirestoreError(error: unknown, _operationType: OperationType, _path: string | null) {
+  console.error('Database Error: ', error);
+  throw error;
 }
