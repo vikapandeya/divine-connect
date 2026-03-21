@@ -50,13 +50,19 @@ npm run firebase:emulators
 
 1. Use the Firebase project in `.firebaserc`, or update it to your own project.
 2. Enable Firestore, Authentication, and Functions in Firebase.
-3. Set the Gemini backend secret:
+3. Inside Firebase Authentication, enable these providers:
+   - `Email/Password`
+   - `Google`
+4. In Firebase Authentication > Settings > Authorized domains, add:
+   - `vikapandeya.github.io`
+   - `localhost`
+5. Set the Gemini backend secret:
 
 ```bash
 firebase functions:secrets:set GEMINI_API_KEY
 ```
 
-4. Deploy:
+6. Deploy:
 
 ```bash
 npm run firebase:deploy

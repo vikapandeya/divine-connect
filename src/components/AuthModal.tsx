@@ -53,11 +53,16 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   };
 
   const handleGoogleSignIn = async () => {
+    setLoading(true);
+    resetState();
+
     try {
       await signInWithGoogle(role);
       onClose();
-    } catch (err) {
-      setError('Google sign-in failed');
+    } catch (err: any) {
+      setError(err.message || 'Google sign-in failed');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -217,11 +222,13 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   </div>
 
                   <button
+                    type="button"
                     onClick={handleGoogleSignIn}
+                    disabled={loading}
                     className="w-full flex items-center justify-center space-x-3 px-4 py-3 border border-stone-200 rounded-2xl hover:bg-stone-50 transition-all font-bold text-stone-700"
                   >
                     <Chrome className="w-5 h-5 text-blue-500" />
-                    <span>Google Account</span>
+                    <span>{loading ? 'Processing...' : 'Google Account'}</span>
                   </button>
                 </>
               )}

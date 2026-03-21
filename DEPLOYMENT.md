@@ -28,13 +28,19 @@ Default products and pujas are seeded automatically by the backend.
    - Authentication
    - Firestore Database
    - Cloud Functions
-3. Set the Gemini secret:
+3. In Firebase Authentication, enable sign-in providers:
+   - `Email/Password`
+   - `Google`
+4. In Firebase Authentication > Settings > Authorized domains, add:
+   - `vikapandeya.github.io`
+   - `localhost`
+5. Set the Gemini secret:
 
 ```bash
 firebase functions:secrets:set GEMINI_API_KEY
 ```
 
-4. Install Functions dependencies:
+6. Install Functions dependencies:
 
 ```bash
 cd functions
