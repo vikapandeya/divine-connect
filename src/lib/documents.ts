@@ -678,37 +678,51 @@ function buildInvitationPage(
 }
 
 export function downloadBookingCertificate(booking: Booking, profile: UserProfile | null) {
+  const bookingPrefix =
+    booking.type === 'puja' ? 'PUJA' : booking.type === 'darshan' ? 'DARSHAN' : 'YATRA';
+  const certificateTitle =
+    booking.type === 'puja'
+      ? 'Sacred Service Certificate'
+      : booking.type === 'darshan'
+        ? 'Darshan Participation Certificate'
+        : 'Pilgrimage Package Certificate';
+  const certificateSubtitle =
+    booking.type === 'puja'
+      ? 'Verified booking record'
+      : booking.type === 'darshan'
+        ? 'Verified darshan record'
+        : 'Verified yatra reservation';
+  const certificateSummary =
+    booking.type === 'yatra'
+      ? 'This digital certificate confirms that the selected pilgrimage package has been successfully reserved through DivineConnect and saved in your travel history.'
+      : 'This digital certificate confirms that the requested sacred service has been successfully reserved through DivineConnect and recorded in your activity history.';
   const certificateId = buildCertificateId(
-    booking.type === 'puja' ? 'PUJA' : 'DARSHAN',
+    bookingPrefix,
     booking.bookingReference || booking.id,
   );
   const devoteeName = profile?.displayName || profile?.email || 'Devotee';
 
   buildCertificatePage({
     filename: `${certificateId.toLowerCase()}-certificate`,
-    title:
-      booking.type === 'puja'
-        ? 'Sacred Service Certificate'
-        : 'Darshan Participation Certificate',
-    subtitle: booking.type === 'puja' ? 'Verified booking record' : 'Verified darshan record',
+    title: certificateTitle,
+    subtitle: certificateSubtitle,
     documentId: certificateId,
     recipientLabel: 'Issued To',
     recipient: devoteeName,
-    summary:
-      'This digital certificate confirms that the requested sacred service has been successfully reserved through DivineConnect and recorded in your activity history.',
+    summary: certificateSummary,
     cards: [
       {
         title: 'Service Overview',
         rows: [
           { label: 'Service', value: booking.serviceTitle || `${formatStatus(booking.type)} booking` },
-          { label: 'Mode', value: formatStatus(booking.mode || 'online') },
+          { label: booking.type === 'yatra' ? 'Travel Format' : 'Mode', value: formatStatus(booking.mode || 'online') },
         ],
       },
       {
         title: 'Schedule',
         rows: [
-          { label: 'Booking Date', value: booking.date },
-          { label: 'Time Slot', value: booking.timeSlot },
+          { label: booking.type === 'yatra' ? 'Departure Date' : 'Booking Date', value: booking.date },
+          { label: booking.type === 'yatra' ? 'Package Duration' : 'Time Slot', value: booking.timeSlot },
         ],
       },
       {

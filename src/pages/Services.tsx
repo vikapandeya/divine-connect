@@ -114,6 +114,12 @@ export default function Services() {
               Book Darshan
             </Link>
             <Link
+              to="/services/yatra"
+              className="inline-flex items-center rounded-full border border-white/15 bg-white/5 px-6 py-3 font-bold text-white hover:bg-white/10"
+            >
+              Explore Yatra
+            </Link>
+            <Link
               to="/astrology"
               className="inline-flex items-center rounded-full border border-white/15 bg-white/5 px-6 py-3 font-bold text-white hover:bg-white/10"
             >
@@ -141,7 +147,7 @@ export default function Services() {
         }
       />
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
         <div className="rounded-[2rem] border border-stone-200 bg-white p-6 shadow-sm shadow-stone-200/50">
           <div className="w-12 h-12 rounded-2xl bg-orange-50 flex items-center justify-center mb-4">
             <Flame className="w-6 h-6 text-orange-500" />
@@ -169,6 +175,20 @@ export default function Services() {
           </p>
           <Link to="/services/darshan" className="inline-flex items-center mt-4 text-sm font-bold text-orange-500">
             Book Darshan Support
+          </Link>
+        </div>
+        <div className="rounded-[2rem] border border-stone-200 bg-white p-6 shadow-sm shadow-stone-200/50">
+          <div className="w-12 h-12 rounded-2xl bg-rose-50 flex items-center justify-center mb-4">
+            <MapPin className="w-6 h-6 text-rose-500" />
+          </div>
+          <h2 className="text-xl font-bold text-stone-900 mb-2">
+            Yatra Booking Packages
+          </h2>
+          <p className="text-sm text-stone-600">
+            Reserve full packages for Char Dham, Jyotirlinga circuits, and key tirth sthals with stays, meals, and transfers.
+          </p>
+          <Link to="/services/yatra" className="inline-flex items-center mt-4 text-sm font-bold text-orange-500">
+            Open Yatra Packages
           </Link>
         </div>
         <div className="rounded-[2rem] border border-stone-200 bg-white p-6 shadow-sm shadow-stone-200/50">
@@ -219,6 +239,29 @@ export default function Services() {
               </div>
             ))}
           </div>
+        </div>
+      </div>
+
+      <div className="rounded-[2.5rem] border border-stone-200 bg-white p-8 shadow-sm">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+          <div className="max-w-3xl">
+            <p className="text-xs font-bold uppercase tracking-[0.24em] text-orange-600">
+              Pilgrimage Feature
+            </p>
+            <h2 className="mt-4 text-3xl font-serif font-bold text-stone-900">
+              Full-package yatra booking is now part of the services experience
+            </h2>
+            <p className="mt-4 text-sm leading-relaxed text-stone-600">
+              Devotees can now compare full pilgrimage packages for dham circuits,
+              Jyotirlinga routes, and tirth-sthal journeys with structured inclusions and booking-ready totals.
+            </p>
+          </div>
+          <Link
+            to="/services/yatra"
+            className="inline-flex items-center justify-center rounded-full bg-stone-900 px-7 py-4 text-sm font-bold text-white hover:bg-orange-500"
+          >
+            Book Yatra Packages
+          </Link>
         </div>
       </div>
 

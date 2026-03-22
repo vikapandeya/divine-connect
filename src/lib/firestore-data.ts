@@ -1,4 +1,12 @@
-import type { AstrologyReading, Booking, Order, Product, Puja, UserProfile } from '../types';
+import type {
+  AstrologyReading,
+  Booking,
+  Order,
+  Product,
+  Puja,
+  UserProfile,
+  YatraPackage,
+} from '../types';
 
 const STORAGE_KEYS = {
   products: 'divine-connect-demo-products',
@@ -234,6 +242,104 @@ const defaultPujas: Puja[] = [
   },
 ];
 
+const defaultYatraPackages: YatraPackage[] = [
+  {
+    id: 'yatra-char-dham-divya',
+    title: 'Char Dham Divya Yatra',
+    description:
+      'A full Himalayan pilgrimage package covering Yamunotri, Gangotri, Kedarnath, and Badrinath with guided spiritual support, stays, meals, and transfers.',
+    duration: '11 Nights / 12 Days',
+    packageType: 'char-dham',
+    startingPrice: 48500,
+    destinations: ['Haridwar', 'Barkot', 'Yamunotri', 'Gangotri', 'Guptkashi', 'Kedarnath', 'Badrinath', 'Rishikesh'],
+    departureCities: ['Delhi', 'Haridwar', 'Dehradun'],
+    transport: 'AC coach, local jeep support, and trek coordination',
+    stay: 'Temple-town hotels, dharamshalas, and deluxe guest houses',
+    meals: 'Breakfast and dinner included daily',
+    bestSeason: 'May to June, September to October',
+    inclusions: ['Accommodation', 'Transfers', 'Yatra coordinator', 'Darshan guidance', 'Basic medical support'],
+    routePlan: ['Arrival in Haridwar', 'Yamunotri darshan', 'Gangotri darshan', 'Kedarnath trek and stay', 'Badrinath darshan', 'Return via Rishikesh'],
+    badge: 'Most Requested',
+    image: 'https://picsum.photos/seed/char-dham/1200/800',
+  },
+  {
+    id: 'yatra-do-dham-family',
+    title: 'Do Dham Family Package',
+    description:
+      'A calmer full-package yatra for Kedarnath and Badrinath designed for families wanting shorter pilgrimage duration with strong support.',
+    duration: '7 Nights / 8 Days',
+    packageType: 'dham-circuit',
+    startingPrice: 31900,
+    destinations: ['Haridwar', 'Guptkashi', 'Kedarnath', 'Joshimath', 'Badrinath'],
+    departureCities: ['Delhi', 'Haridwar', 'Dehradun'],
+    transport: 'AC transfers with mountain route handling',
+    stay: 'Comfort stays with family-friendly room options',
+    meals: 'Breakfast and dinner included daily',
+    bestSeason: 'May to June, September to October',
+    inclusions: ['Hotel stay', 'Ground transfers', 'Helpline support', 'Darshan assistance'],
+    routePlan: ['Haridwar arrival', 'Guptkashi halt', 'Kedarnath darshan', 'Joshimath stay', 'Badrinath darshan', 'Departure'],
+    badge: 'Family Friendly',
+    image: 'https://picsum.photos/seed/do-dham/1200/800',
+  },
+  {
+    id: 'yatra-jyotirlinga-west',
+    title: 'Jyotirlinga West Circuit',
+    description:
+      'Full package pilgrimage covering Somnath, Nageshwar, and Mahakaleshwar with transport, stay planning, and devotional route guidance.',
+    duration: '6 Nights / 7 Days',
+    packageType: 'jyotirlinga',
+    startingPrice: 28800,
+    destinations: ['Ahmedabad', 'Somnath', 'Dwarka', 'Nageshwar', 'Ujjain'],
+    departureCities: ['Ahmedabad', 'Mumbai', 'Delhi'],
+    transport: 'Flight add-on ready with AC road transfers',
+    stay: 'Standard and premium temple-city hotels',
+    meals: 'Daily breakfast with selected dinners',
+    bestSeason: 'October to March',
+    inclusions: ['Hotel stay', 'Sightseeing transfers', 'Temple queue planning', 'Yatra support desk'],
+    routePlan: ['Ahmedabad arrival', 'Somnath darshan', 'Dwarka and Nageshwar', 'Transfer to Ujjain', 'Mahakaleshwar darshan', 'Departure'],
+    badge: 'Jyotirlinga Circuit',
+    image: 'https://picsum.photos/seed/jyotirlinga-west/1200/800',
+  },
+  {
+    id: 'yatra-kashi-ayodhya-prayagraj',
+    title: 'Kashi Ayodhya Prayagraj Tirth Yatra',
+    description:
+      'A sacred north India pilgrimage package for Kashi Vishwanath, Ram Janmabhoomi, and Triveni Sangam with guided darshan and ritual-friendly pacing.',
+    duration: '4 Nights / 5 Days',
+    packageType: 'tirth-sthal',
+    startingPrice: 18200,
+    destinations: ['Varanasi', 'Prayagraj', 'Ayodhya'],
+    departureCities: ['Varanasi', 'Lucknow', 'Delhi'],
+    transport: 'Sedan, tempo traveller, and group coach options',
+    stay: 'Temple-near hotels and curated dharamshala options',
+    meals: 'Breakfast included with optional satvik lunch packs',
+    bestSeason: 'October to March, festival calendars',
+    inclusions: ['Hotel stay', 'Local transfers', 'Aarti guidance', 'Sangam coordination', 'Temple support'],
+    routePlan: ['Kashi Vishwanath darshan', 'Ganga aarti evening', 'Prayagraj sangam ritual support', 'Ayodhya temple circuit', 'Return transfer'],
+    badge: 'Popular Tirth Circuit',
+    image: 'https://picsum.photos/seed/kashi-ayodhya/1200/800',
+  },
+  {
+    id: 'yatra-pancha-jyotirlinga',
+    title: 'Pancha Jyotirlinga Maha Package',
+    description:
+      'A longer premium route covering five major Jyotirlinga destinations with itinerary management, accommodation, and guided temple windows.',
+    duration: '9 Nights / 10 Days',
+    packageType: 'jyotirlinga',
+    startingPrice: 52900,
+    destinations: ['Ujjain', 'Omkareshwar', 'Somnath', 'Dwarka', 'Bhimashankar', 'Trimbakeshwar'],
+    departureCities: ['Delhi', 'Mumbai', 'Ahmedabad'],
+    transport: 'Air-plus-road hybrid pilgrimage routing',
+    stay: 'Premium hotels and pilgrimage support properties',
+    meals: 'Breakfast and dinner with selected packed meal days',
+    bestSeason: 'October to March',
+    inclusions: ['Premium stay', 'Transfers', 'Support executive', 'Temple coverage', 'Daily itinerary guidance'],
+    routePlan: ['Ujjain and Omkareshwar', 'Somnath', 'Dwarka and Nageshwar zone', 'Maharashtra Jyotirlinga stops', 'Departure'],
+    badge: 'Premium Package',
+    image: 'https://picsum.photos/seed/pancha-jyotirlinga/1200/800',
+  },
+];
+
 function isBrowser() {
   return typeof window !== 'undefined';
 }
@@ -466,6 +572,20 @@ export async function listPujasDirect(
 
 export async function getPujaDirect(id: string) {
   return clone(readPujas().find((puja) => puja.id === id) || null);
+}
+
+export async function listYatraPackagesDirect(
+  filters: { packageType?: YatraPackage['packageType'] } = {},
+) {
+  return clone(defaultYatraPackages)
+    .filter((yatraPackage) =>
+      filters.packageType ? yatraPackage.packageType === filters.packageType : true,
+    )
+    .sort((left, right) => left.startingPrice - right.startingPrice);
+}
+
+export async function getYatraPackageDirect(id: string) {
+  return clone(defaultYatraPackages.find((yatraPackage) => yatraPackage.id === id) || null);
 }
 
 export async function savePujaDirect(payload: Omit<Puja, 'id'> & { id?: string }) {

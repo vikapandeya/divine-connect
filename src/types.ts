@@ -62,13 +62,32 @@ export interface Puja {
   updatedAt?: string;
 }
 
+export interface YatraPackage {
+  id: string;
+  title: string;
+  description: string;
+  duration: string;
+  packageType: 'tirth-sthal' | 'char-dham' | 'jyotirlinga' | 'dham-circuit';
+  startingPrice: number;
+  destinations: string[];
+  departureCities: string[];
+  transport: string;
+  stay: string;
+  meals: string;
+  bestSeason: string;
+  inclusions: string[];
+  routePlan: string[];
+  badge?: string;
+  image: string;
+}
+
 export interface Booking {
   id: string;
   userId: string;
   serviceId: string;
   serviceTitle?: string;
   vendorId: string;
-  type: 'puja' | 'darshan';
+  type: 'puja' | 'darshan' | 'yatra';
   mode?: 'online' | 'offline';
   date: string;
   timeSlot: string;

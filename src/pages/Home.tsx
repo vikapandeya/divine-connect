@@ -51,6 +51,15 @@ const services = [
     link: '/services/darshan',
   },
   {
+    id: 'yatra',
+    title: 'Yatra Packages',
+    description: 'Book full pilgrimage packages for Char Dham, Jyotirlinga circuits, and sacred tirth routes with stay, meals, and transfers.',
+    meta: 'Complete dham and tirth circuits',
+    icon: <MapPin className="w-8 h-8 text-rose-500" />,
+    color: 'bg-rose-50',
+    link: '/services/yatra',
+  },
+  {
     id: 'prasad',
     title: 'Temple Prasad',
     description: 'Order authentic prasad from different mandirs with temple, weight, dispatch, and pack size details. All items are available for delivery.',
@@ -284,6 +293,29 @@ export default function Home() {
       </section>
 
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="mb-12 rounded-[3rem] border border-stone-200 bg-[linear-gradient(135deg,#1c1917_0%,#292524_48%,#4c1d95_100%)] px-8 py-10 text-white shadow-xl shadow-stone-900/10">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+            <div className="max-w-3xl">
+              <p className="text-xs font-bold uppercase tracking-[0.28em] text-orange-300">
+                New Feature
+              </p>
+              <h2 className="mt-4 text-3xl font-serif font-bold">
+                Full yatra booking for Char Dham, Jyotirlinga, and major tirth circuits
+              </h2>
+              <p className="mt-4 text-sm leading-relaxed text-stone-200">
+                DivineConnect now includes package-based pilgrimage planning with route overview,
+                temple-city stays, transport support, and certificate-ready booking history.
+              </p>
+            </div>
+            <Link
+              to="/services/yatra"
+              className="inline-flex items-center justify-center rounded-full bg-white px-7 py-4 text-sm font-bold text-stone-900 hover:bg-orange-50"
+            >
+              Explore Yatra Packages
+            </Link>
+          </div>
+        </div>
+
         <div className="text-center mb-12">
           <h2 className="text-3xl font-serif font-bold text-stone-900 mb-4">
             Sacred Services
@@ -294,7 +326,7 @@ export default function Home() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-6">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6">
           {services.map((service, index) => (
             <motion.div
               key={service.id}

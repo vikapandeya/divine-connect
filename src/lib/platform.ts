@@ -420,9 +420,24 @@ export function buildUserNotifications(bookings: Booking[], orders: Order[]): Pl
   const bookingAlerts = bookings.slice(0, 2).map((booking, index) => ({
     id: `user-booking-${booking.id}`,
     audience: 'user' as const,
-    title: booking.status === 'confirmed' ? 'Puja slot confirmed' : 'Booking update available',
-    message: `${booking.serviceTitle || 'Sacred service'} is ${booking.status} for ${booking.date} at ${booking.timeSlot}.`,
-    tone: booking.type === 'darshan' ? 'blue' as const : 'orange' as const,
+    title:
+      booking.status === 'confirmed'
+        ? booking.type === 'yatra'
+          ? 'Yatra package confirmed'
+          : booking.type === 'darshan'
+            ? 'Darshan slot confirmed'
+            : 'Puja slot confirmed'
+        : 'Booking update available',
+    message:
+      booking.type === 'yatra'
+        ? `${booking.serviceTitle || 'Yatra package'} is ${booking.status} for departure on ${booking.date} with ${booking.timeSlot}.`
+        : `${booking.serviceTitle || 'Sacred service'} is ${booking.status} for ${booking.date} at ${booking.timeSlot}.`,
+    tone:
+      booking.type === 'darshan'
+        ? 'blue' as const
+        : booking.type === 'yatra'
+          ? 'violet' as const
+          : 'orange' as const,
     createdAt: booking.updatedAt || booking.createdAt || new Date().toISOString(),
     isUnread: index === 0,
   }));
@@ -455,7 +470,10 @@ export function buildVendorNotifications(
     id: `vendor-booking-${booking.id}`,
     audience: 'vendor' as const,
     title: 'New service reservation',
-    message: `${booking.serviceTitle || 'Sacred service'} is booked for ${booking.date} at ${booking.timeSlot}.`,
+    message:
+      booking.type === 'yatra'
+        ? `${booking.serviceTitle || 'Yatra package'} is booked for departure on ${booking.date} with ${booking.timeSlot}.`
+        : `${booking.serviceTitle || 'Sacred service'} is booked for ${booking.date} at ${booking.timeSlot}.`,
     tone: 'orange' as const,
     createdAt: booking.updatedAt || booking.createdAt || new Date().toISOString(),
     isUnread: index === 0,

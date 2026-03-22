@@ -109,6 +109,11 @@ export default function Profile() {
       return;
     }
 
+    if (booking.type === 'yatra') {
+      navigate(`/services/yatra?package=${booking.serviceId}`);
+      return;
+    }
+
     navigate(`/services/puja/${booking.serviceId}`);
   };
 
@@ -124,6 +129,10 @@ export default function Profile() {
 
     if (booking.type === 'darshan') {
       return 'Darshan Support';
+    }
+
+    if (booking.type === 'yatra') {
+      return 'Yatra Package';
     }
 
     return 'Puja Booking';

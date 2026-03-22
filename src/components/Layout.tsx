@@ -49,14 +49,14 @@ const quickActions = [
     to: '/services',
   },
   {
+    title: 'Yatra Packages',
+    description: 'Book full dham, jyotirlinga, and tirth circuits.',
+    to: '/services/yatra',
+  },
+  {
     title: 'Temple Prasad',
     description: 'Explore mandir-backed offerings and delivery-ready packs.',
     to: '/shop?category=prasad',
-  },
-  {
-    title: 'My Profile',
-    description: 'Track bookings, invoices, certificates, and readings.',
-    to: '/profile',
   },
 ];
 
@@ -473,6 +473,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               </h4>
               <ul className="mt-5 space-y-3 text-sm">
                 <li><Link to="/services" className="hover:text-white">Puja Booking</Link></li>
+                <li><Link to="/services/yatra" className="hover:text-white">Yatra Packages</Link></li>
                 <li><Link to="/services/darshan" className="hover:text-white">Darshan Support</Link></li>
                 <li><Link to="/services/prasad" className="hover:text-white">Temple Prasad</Link></li>
                 <li><Link to="/shop" className="hover:text-white">Spiritual Shop</Link></li>

@@ -18,6 +18,7 @@ const About = lazy(() => import('./pages/About'));
 const Contact = lazy(() => import('./pages/Contact'));
 const DarshanBooking = lazy(() => import('./pages/DarshanBooking'));
 const PrasadDelivery = lazy(() => import('./pages/PrasadDelivery'));
+const YatraBooking = lazy(() => import('./pages/YatraBooking'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 function PageLoader() {
@@ -58,6 +59,7 @@ export default function App() {
               <Route path="/services/puja" element={<Services />} />
               <Route path="/services/puja/:id" element={<PujaDetail />} />
               <Route path="/services/darshan" element={<DarshanBooking />} />
+              <Route path="/services/yatra" element={<YatraBooking />} />
               <Route path="/services/prasad" element={<PrasadDelivery />} />
               <Route path="/shop" element={<Shop />} />
               <Route path="/about" element={<About />} />
