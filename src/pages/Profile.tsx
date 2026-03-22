@@ -14,6 +14,7 @@ import {
   ArrowRight,
   Receipt,
 } from 'lucide-react';
+import PageHero from '../components/PageHero';
 import { formatIndianRupees } from '../lib/utils';
 import {
   downloadBookingCertificate,
@@ -149,7 +150,38 @@ export default function Profile() {
   ];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div className="mx-auto max-w-7xl space-y-10 px-4 py-12 sm:px-6 lg:px-8">
+      <PageHero
+        tone="stone"
+        eyebrow="My DivineConnect"
+        title="A clearer account space for bookings, orders, certificates, and spiritual history."
+        description="This profile area is organized to reduce switching friction between service records, invoices, astrology outputs, and personal account details."
+        stats={[
+          { label: 'Bookings', value: `${bookings.length}` },
+          { label: 'Orders', value: `${orders.length}` },
+          { label: 'Readings', value: `${readings.length}` },
+          {
+            label: 'Latest Order',
+            value: latestOrder ? `Rs. ${formatIndianRupees(latestOrder.totalAmount)}` : 'No orders',
+          },
+        ]}
+        aside={
+          <div className="rounded-[2rem] border border-stone-200 bg-white p-6 shadow-sm">
+            <p className="text-xs font-bold uppercase tracking-[0.24em] text-orange-600">
+              Account Workspace
+            </p>
+            <div className="mt-5 space-y-3 text-sm text-stone-600">
+              <div className="rounded-2xl bg-stone-50 px-4 py-3">
+                Faster switching between bookings, orders, readings, and profile settings.
+              </div>
+              <div className="rounded-2xl bg-stone-50 px-4 py-3">
+                Certificates, invoices, and reorder actions stay close to the related record.
+              </div>
+            </div>
+          </div>
+        }
+      />
+
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         <div className="lg:col-span-1 space-y-6">
           <div className="bg-white p-8 rounded-[2rem] border border-stone-200 text-center">

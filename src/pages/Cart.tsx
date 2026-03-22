@@ -11,6 +11,7 @@ import {
   ShieldCheck,
   Truck,
 } from 'lucide-react';
+import PageHero from '../components/PageHero';
 import {
   CartItem,
   clearCart,
@@ -150,10 +151,30 @@ export default function Cart() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <h1 className="text-4xl font-serif font-bold text-stone-900 mb-12">
-        Shopping Cart
-      </h1>
+    <div className="mx-auto max-w-7xl space-y-10 px-4 py-12 sm:px-6 lg:px-8">
+      <PageHero
+        tone="stone"
+        eyebrow="Checkout Flow"
+        title="Review your cart with clearer order context and calmer checkout spacing."
+        description="This screen is tuned to make product review, quantity changes, delivery details, and payment selection feel more readable before placing an order."
+        stats={[
+          { label: 'Items in Cart', value: `${items.length}` },
+          { label: 'Estimated Delivery', value: estimatedDeliveryLabel },
+          { label: 'Grand Total', value: `Rs. ${formatIndianRupees(total)}` },
+        ]}
+        aside={
+          <div className="rounded-[2rem] border border-stone-200 bg-white p-6 shadow-sm">
+            <div className="space-y-3 text-sm text-stone-600">
+              <div className="rounded-2xl bg-stone-50 px-4 py-3">
+                Product edits stay visible while the order summary remains anchored.
+              </div>
+              <div className="rounded-2xl bg-stone-50 px-4 py-3">
+                Delivery and payment details are grouped into a single checkout rhythm.
+              </div>
+            </div>
+          </div>
+        }
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
         <div className="lg:col-span-2 space-y-6">
