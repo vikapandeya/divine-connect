@@ -141,7 +141,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const profileImage = profile?.photoURL || DEMO_DEVOTEE_PROFILE.photoURL || '';
 
   return (
-    <div className="min-h-screen bg-transparent text-stone-900">
+    <div className="min-h-screen overflow-x-clip bg-transparent text-stone-900">
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[70] focus:rounded-full focus:bg-stone-900 focus:px-4 focus:py-2 focus:text-sm focus:font-bold focus:text-white"
@@ -151,15 +151,15 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
       <header className="sticky top-0 z-50">
         <div className="border-b border-stone-200/70 bg-stone-950 text-stone-200">
-          <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-2 text-[11px] sm:px-6 lg:px-8">
-            <div className="flex items-center gap-2 uppercase tracking-[0.24em] text-orange-300">
+          <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-2 text-[11px] sm:px-6 lg:px-8">
+            <div className="flex shrink-0 items-center gap-2 uppercase tracking-[0.24em] text-orange-300">
               <Sparkles className="h-3.5 w-3.5" />
               <span>{copy.platformDemo}</span>
             </div>
-            <p className="hidden text-stone-300 xl:block">
+            <p className="hidden min-w-0 flex-1 truncate text-center text-stone-300 xl:block">
               {copy.headline}
             </p>
-            <Link to="/contact" className="font-bold text-white hover:text-orange-300">
+            <Link to="/contact" className="ml-auto shrink-0 font-bold text-white hover:text-orange-300">
               {copy.needHelp}
             </Link>
           </div>
@@ -167,13 +167,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
         <div className="border-b border-stone-200/80 bg-white/88 backdrop-blur-xl shadow-[0_12px_40px_rgba(28,25,23,0.06)]">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="flex h-20 items-center justify-between gap-4 xl:gap-6">
-              <Link to="/" className="flex shrink-0 items-center gap-3 pr-2 xl:pr-4">
+            <div className="flex h-20 items-center gap-3 xl:gap-4">
+              <Link to="/" className="flex min-w-0 shrink-0 items-center gap-3 pr-1 xl:pr-3">
                 <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-orange-50 ring-1 ring-orange-100">
                   <img src={logoMark} alt="DivineConnect logo" className="h-8 w-8" />
                 </div>
-                <div>
-                  <p className="text-xl font-serif font-bold tracking-tight text-stone-900">
+                <div className="min-w-0">
+                  <p className="truncate text-xl font-serif font-bold tracking-tight text-stone-900">
                     DivineConnect
                   </p>
                   <p className="hidden text-xs text-stone-500 2xl:block">
@@ -182,7 +182,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 </div>
               </Link>
 
-              <nav className="hidden flex-1 items-center justify-center gap-1 xl:flex">
+              <nav className="hidden min-w-0 flex-1 items-center justify-center gap-1 xl:flex">
                 {navLinks.map((link) => (
                   <NavLink
                     key={link.to}
@@ -190,7 +190,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                     end={link.end}
                     className={({ isActive }) =>
                       cn(
-                        'rounded-full px-4 py-2 text-sm font-semibold transition-all',
+                        'whitespace-nowrap rounded-full px-3 py-2 text-sm font-semibold transition-all 2xl:px-4',
                         isActive
                           ? 'bg-stone-900 text-white shadow-lg shadow-stone-900/10'
                           : 'text-stone-600 hover:bg-orange-50 hover:text-orange-600',
@@ -202,10 +202,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 ))}
               </nav>
 
-              <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+              <div className="ml-auto flex min-w-0 shrink-0 items-center gap-2 sm:gap-3">
                 <form
                   onSubmit={handleSearch}
-                  className="hidden items-center rounded-full border border-stone-200 bg-stone-50 px-3 py-2 shadow-inner shadow-white/80 xl:flex"
+                  className="hidden min-w-0 items-center rounded-full border border-stone-200 bg-stone-50 px-3 py-2 shadow-inner shadow-white/80 xl:flex xl:w-44 2xl:w-60"
                 >
                   <Search className="h-4 w-4 text-stone-400" />
                   <input
@@ -213,7 +213,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                     placeholder={copy.searchPlaceholder}
                     value={searchTerm}
                     onChange={(event) => setSearchTerm(event.target.value)}
-                    className="ml-2 w-40 bg-transparent text-sm outline-none 2xl:w-52"
+                    className="ml-2 min-w-0 flex-1 bg-transparent text-sm outline-none"
                   />
                 </form>
 
