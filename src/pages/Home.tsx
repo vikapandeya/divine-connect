@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   Flame,
@@ -13,11 +13,23 @@ import {
   MessageSquareHeart,
   ShieldCheck,
   Clock3,
+  MapPin,
+  Newspaper,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { addToCart } from '../lib/cart';
 import { formatIndianRupees } from '../lib/utils';
 import { createFeedbackDirect, DEMO_DEVOTEE_PROFILE } from '../lib/firestore-data';
+import {
+  getDailyHoroscope,
+  getDailyPanchang,
+  getLocale,
+  getLocaleCopy,
+  getSpiritualArticles,
+  getTempleSpotlights,
+  subscribeToLocale,
+  type AppLocale,
+} from '../lib/platform';
 
 const services = [
   {
@@ -117,6 +129,7 @@ const ratingStats = [
 ];
 
 export default function Home() {
+  const [locale, setLocale] = useState<AppLocale>(getLocale());
   const [formState, setFormState] = useState({
     name: DEMO_DEVOTEE_PROFILE.displayName || '',
     email: DEMO_DEVOTEE_PROFILE.email || '',
@@ -131,6 +144,13 @@ export default function Home() {
       'Tell us what felt trustworthy, where the flow can improve, or what sacred offering you want us to add next.',
     [],
   );
+  const copy = getLocaleCopy(locale);
+  const panchang = getDailyPanchang(locale);
+  const horoscopes = getDailyHoroscope(locale);
+  const temples = getTempleSpotlights();
+  const articles = getSpiritualArticles();
+
+  useEffect(() => subscribeToLocale(() => setLocale(getLocale())), []);
 
   const handleFeedbackSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -193,16 +213,73 @@ export default function Home() {
                 to="/services/puja"
                 className="bg-orange-500 text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/20 text-center"
               >
-                Book a Puja
+                {copy.bookPuja}
               </Link>
               <Link
                 to="/shop?category=prasad"
                 className="bg-white/10 backdrop-blur-md border border-white/20 text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-white/20 transition-all text-center"
               >
-                Explore Prasad
+                {copy.templePrasad}
               </Link>
             </div>
           </motion.div>
+        </div>
+      </section>
+
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1.05fr_0.95fr]">
+          <div className="rounded-[2.75rem] border border-orange-200 bg-[linear-gradient(135deg,#fff7ed_0%,#ffffff_55%,#f8fafc_100%)] p-8 shadow-sm">
+            <p className="text-xs font-bold uppercase tracking-[0.24em] text-orange-600">
+              {copy.panchangTitle}
+            </p>
+            <h2 className="mt-4 text-3xl font-serif font-bold text-stone-900">
+              {panchang.dateLabel}
+            </h2>
+            <p className="mt-3 max-w-2xl text-sm leading-relaxed text-stone-600">
+              {copy.panchangDescription}
+            </p>
+            <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-3">
+              {[
+                { label: 'Tithi', value: panchang.tithi },
+                { label: 'Nakshatra', value: panchang.nakshatra },
+                { label: 'Muhurat', value: panchang.muhurat },
+              ].map((item) => (
+                <div key={item.label} className="rounded-[1.75rem] border border-orange-100 bg-white p-5">
+                  <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-stone-400">
+                    {item.label}
+                  </p>
+                  <p className="mt-3 text-base font-bold text-stone-900">{item.value}</p>
+                </div>
+              ))}
+            </div>
+            <div className="mt-6 rounded-[1.75rem] border border-orange-100 bg-white px-5 py-4">
+              <p className="text-sm font-bold text-stone-900">Devotional Focus</p>
+              <p className="mt-2 text-sm leading-relaxed text-stone-600">{panchang.focus}</p>
+            </div>
+          </div>
+
+          <div className="rounded-[2.75rem] border border-stone-200 bg-white p-8 shadow-sm">
+            <p className="text-xs font-bold uppercase tracking-[0.24em] text-blue-600">
+              Daily Horoscope
+            </p>
+            <h2 className="mt-4 text-3xl font-serif font-bold text-stone-900">
+              Return every day for auspicious guidance
+            </h2>
+            <div className="mt-8 space-y-4">
+              {horoscopes.map((item) => (
+                <div key={item.sign} className="rounded-[1.75rem] border border-stone-200 bg-stone-50 px-5 py-4">
+                  <div className="flex items-center justify-between gap-4">
+                    <p className="text-lg font-bold text-stone-900">{item.sign}</p>
+                    <span className="rounded-full bg-blue-100 px-3 py-1 text-[11px] font-bold text-blue-700">
+                      Remedy Ready
+                    </span>
+                  </div>
+                  <p className="mt-2 text-sm text-stone-600">{item.guidance}</p>
+                  <p className="mt-2 text-sm font-medium text-stone-900">{item.remedy}</p>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 
@@ -248,6 +325,57 @@ export default function Home() {
                 Explore <ArrowRight className="w-4 h-4 ml-1" />
               </Link>
             </motion.div>
+          ))}
+        </div>
+      </section>
+
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-end justify-between gap-6 mb-10">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.24em] text-orange-600">
+              Temple Integration
+            </p>
+            <h2 className="mt-3 text-3xl font-serif font-bold text-stone-900">
+              Famous temples with direct spiritual service context
+            </h2>
+            <p className="mt-3 max-w-2xl text-stone-600">
+              These hardcoded temple cards show how the marketplace can connect darshan,
+              live puja, and prasad journeys around historical spiritual destinations.
+            </p>
+          </div>
+          <Link to="/services/darshan" className="hidden sm:inline-flex rounded-full border border-stone-200 bg-white px-5 py-3 text-sm font-bold text-stone-900 hover:border-orange-200 hover:text-orange-600">
+            Explore Temple Support
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          {temples.map((temple) => (
+            <div key={temple.id} className="rounded-[2rem] border border-stone-200 bg-white p-6 shadow-sm">
+              <div className="flex items-center justify-between gap-4">
+                <p className="text-sm font-bold text-orange-600">{temple.city}, {temple.state}</p>
+                <span className="rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-bold text-emerald-700">
+                  Temple Linked
+                </span>
+              </div>
+              <h3 className="mt-3 text-2xl font-serif font-bold text-stone-900">{temple.name}</h3>
+              <p className="mt-3 text-sm leading-relaxed text-stone-600">{temple.specialty}</p>
+              <div className="mt-5 flex flex-wrap gap-2">
+                {temple.services.map((service) => (
+                  <span key={service} className="rounded-full bg-stone-100 px-3 py-1 text-[11px] font-bold text-stone-600">
+                    {service}
+                  </span>
+                ))}
+              </div>
+              <div className="mt-6 flex items-center justify-between text-sm text-stone-500">
+                <span className="inline-flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-orange-500" />
+                  {temple.annualVisitors}
+                </span>
+                <Link to="/services" className="font-bold text-orange-600 hover:text-orange-500">
+                  View Services
+                </Link>
+              </div>
+            </div>
           ))}
         </div>
       </section>
@@ -452,6 +580,47 @@ export default function Home() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-end justify-between gap-6 mb-10">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.24em] text-orange-600">
+              {copy.blogTitle}
+            </p>
+            <h2 className="mt-3 text-3xl font-serif font-bold text-stone-900">
+              Spiritual knowledge content that keeps devotees returning daily
+            </h2>
+            <p className="mt-3 max-w-2xl text-stone-600">
+              {copy.blogDescription}
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          {articles.map((article) => (
+            <article key={article.id} className="rounded-[2rem] border border-stone-200 bg-white p-6 shadow-sm">
+              <div className="flex items-center justify-between gap-3">
+                <span className="rounded-full bg-orange-50 px-3 py-1 text-[11px] font-bold text-orange-700">
+                  {article.category}
+                </span>
+                <Newspaper className="h-4 w-4 text-stone-400" />
+              </div>
+              <h3 className="mt-5 text-2xl font-serif font-bold text-stone-900">
+                {article.title}
+              </h3>
+              <p className="mt-3 text-sm leading-relaxed text-stone-600">
+                {article.excerpt}
+              </p>
+              <div className="mt-6 flex items-center justify-between text-sm">
+                <span className="font-bold text-stone-900">{article.readTime}</span>
+                <Link to="/about" className="font-bold text-orange-600 hover:text-orange-500">
+                  Read article
+                </Link>
+              </div>
+            </article>
+          ))}
         </div>
       </section>
     </div>

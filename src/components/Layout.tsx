@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
+  Bell,
   ChevronDown,
   Menu,
   Search,
@@ -13,8 +14,24 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { UserProfile } from '../types';
 import { getCartCount, subscribeToCart } from '../lib/cart';
 import logoMark from '../assets/divineconnect-mark.svg';
-import { DEMO_DEVOTEE_PROFILE, getUserProfileDirect } from '../lib/firestore-data';
+import {
+  DEMO_DEVOTEE_PROFILE,
+  getUserProfileDirect,
+  listBookingsByUserDirect,
+  listOrdersByUserDirect,
+} from '../lib/firestore-data';
 import { cn } from '../lib/utils';
+import {
+  buildUserNotifications,
+  getLanguageOptions,
+  getLocale,
+  getLocaleCopy,
+  getPwaReadinessSummary,
+  setLocale,
+  subscribeToLocale,
+  type AppLocale,
+  type PlatformNotification,
+} from '../lib/platform';
 
 const navLinks = [
   { to: '/', label: 'Home', end: true },
@@ -52,6 +69,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
+  const [locale, setLocaleState] = useState<AppLocale>(getLocale());
+  const [notifications, setNotifications] = useState<PlatformNotification[]>([]);
+  const copy = getLocaleCopy(locale);
+  const unreadNotifications = notifications.filter((notification) => notification.isUnread).length;
+  const pwaSummary = getPwaReadinessSummary();
 
   useEffect(() => {
     getUserProfileDirect()
@@ -68,6 +90,24 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
     syncCartCount();
     return subscribeToCart(syncCartCount);
+  }, []);
+
+  useEffect(() => subscribeToLocale(() => setLocaleState(getLocale())), []);
+
+  useEffect(() => {
+    const loadNotifications = async () => {
+      try {
+        const [bookings, orders] = await Promise.all([
+          listBookingsByUserDirect(DEMO_DEVOTEE_PROFILE.uid),
+          listOrdersByUserDirect(DEMO_DEVOTEE_PROFILE.uid),
+        ]);
+        setNotifications(buildUserNotifications(bookings, orders).slice(0, 4));
+      } catch (error) {
+        console.error('Error loading header notifications:', error);
+      }
+    };
+
+    loadNotifications();
   }, []);
 
   useEffect(() => {
@@ -108,13 +148,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-2 text-[11px] sm:px-6 lg:px-8">
             <div className="flex items-center gap-2 uppercase tracking-[0.24em] text-orange-300">
               <Sparkles className="h-3.5 w-3.5" />
-              <span>Spiritual platform demo</span>
+              <span>{copy.platformDemo}</span>
             </div>
             <p className="hidden text-stone-300 xl:block">
-              Puja booking, darshan support, prasad delivery, and astrology in one guided experience.
+              {copy.headline}
             </p>
             <Link to="/contact" className="font-bold text-white hover:text-orange-300">
-              Need help?
+              {copy.needHelp}
             </Link>
           </div>
         </div>
@@ -164,7 +204,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   <Search className="h-4 w-4 text-stone-400" />
                   <input
                     type="text"
-                    placeholder="Search offerings"
+                    placeholder={copy.searchPlaceholder}
                     value={searchTerm}
                     onChange={(event) => setSearchTerm(event.target.value)}
                     className="ml-2 w-40 bg-transparent text-sm outline-none 2xl:w-52"
@@ -172,8 +212,43 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 </form>
 
                 <div className="hidden rounded-full border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700 2xl:block">
-                  Demo Mode Active
+                  {copy.demoMode}
                 </div>
+
+                <div className="hidden items-center gap-1 rounded-full border border-stone-200 bg-stone-50 p-1 lg:flex">
+                  {getLanguageOptions().map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => setLocale(option.value)}
+                      className={cn(
+                        'rounded-full px-3 py-1.5 text-[11px] font-bold transition-colors',
+                        locale === option.value
+                          ? 'bg-stone-900 text-white'
+                          : 'text-stone-500 hover:text-stone-900',
+                      )}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="hidden rounded-full border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-bold text-blue-700 2xl:block">
+                  {pwaSummary.installable ? 'PWA Ready' : 'Web Only'}
+                </div>
+
+                <Link
+                  to="/profile?tab=orders"
+                  aria-label="Open notifications"
+                  className="relative inline-flex h-11 w-11 items-center justify-center rounded-full border border-stone-200 bg-white text-stone-700 shadow-sm hover:border-orange-200 hover:text-orange-600"
+                >
+                  <Bell className="h-5 w-5" />
+                  {unreadNotifications > 0 ? (
+                    <span className="absolute -right-1 -top-1 flex min-h-5 min-w-5 items-center justify-center rounded-full bg-blue-500 px-1 text-[10px] font-bold text-white">
+                      {unreadNotifications}
+                    </span>
+                  ) : null}
+                </Link>
 
                 <Link
                   to="/cart"
@@ -230,6 +305,23 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                           </p>
                           <p className="mt-1 text-xs text-stone-500">{profile?.email}</p>
                         </div>
+                        {notifications.length ? (
+                          <div className="mt-3 rounded-[1.5rem] border border-stone-200 bg-white p-3">
+                            <p className="px-1 text-[11px] font-bold uppercase tracking-[0.24em] text-blue-600">
+                              Realtime Alerts
+                            </p>
+                            <div className="mt-3 space-y-2">
+                              {notifications.slice(0, 2).map((notification) => (
+                                <div key={notification.id} className="rounded-2xl bg-stone-50 px-3 py-3">
+                                  <p className="text-xs font-bold text-stone-900">{notification.title}</p>
+                                  <p className="mt-1 text-[11px] leading-relaxed text-stone-500">
+                                    {notification.message}
+                                  </p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ) : null}
                         <div className="mt-3 space-y-1">
                           {[
                             { to: '/profile', label: 'Demo Profile', hint: 'Bookings, invoices, certificates' },
@@ -280,12 +372,30 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   <Search className="h-4 w-4 text-stone-400" />
                   <input
                     type="text"
-                    placeholder="Search products or offerings"
+                    placeholder={copy.searchPlaceholder}
                     value={searchTerm}
                     onChange={(event) => setSearchTerm(event.target.value)}
                     className="ml-2 w-full bg-transparent text-sm outline-none"
                   />
                 </form>
+
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {getLanguageOptions().map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => setLocale(option.value)}
+                      className={cn(
+                        'rounded-full border px-4 py-2 text-xs font-bold',
+                        locale === option.value
+                          ? 'border-stone-900 bg-stone-900 text-white'
+                          : 'border-stone-200 bg-white text-stone-600',
+                      )}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
 
                 <div className="mt-4 grid gap-2">
                   {navLinks.map((link) => (

@@ -10,6 +10,8 @@ import {
   Plus,
   ShieldCheck,
   Truck,
+  Mail,
+  Wallet,
 } from 'lucide-react';
 import PageHero from '../components/PageHero';
 import {
@@ -53,6 +55,12 @@ export default function Cart() {
   const estimatedDeliveryLabel = useMemo(() => {
     return items.some((item) => item.category === 'Prasad') ? '3 to 5 days' : '2 to 4 days';
   }, [items]);
+  const gatewayOptions = [
+    { label: 'Razorpay Demo', value: 'Razorpay Demo Gateway', detail: 'UPI, cards, net banking', icon: Wallet },
+    { label: 'Stripe Demo', value: 'Stripe Demo Gateway', detail: 'International cards and wallets', icon: ShieldCheck },
+    { label: 'UPI / Wallet', value: 'UPI / Wallet', detail: 'Fast domestic payments', icon: Wallet },
+    { label: 'Cash on Delivery', value: 'Cash on Delivery', detail: 'Pay on arrival for eligible products', icon: Truck },
+  ];
 
   const handleCheckout = async () => {
     const requiredFields = [
@@ -117,7 +125,7 @@ export default function Cart() {
         shippingFee: 0,
       });
       clearCart();
-      alert('Order placed successfully. Your PDF invoice and order certificate are available in My Orders.');
+      alert('Order placed successfully. Your PDF invoice, product certificate, automated receipt email, and order notifications are available in this hardcoded demo.');
       navigate('/profile?tab=orders');
     } catch (error) {
       console.error('Checkout error:', error);
@@ -385,21 +393,37 @@ export default function Cart() {
                   />
                   <div className="space-y-3 rounded-2xl border border-stone-100 bg-stone-50 p-4">
                     <p className="text-sm font-bold text-stone-900">Payment Method</p>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      {['UPI / Wallet', 'Card', 'Cash on Delivery'].map((method) => (
+                    <div className="grid grid-cols-1 gap-3">
+                      {gatewayOptions.map((method) => {
+                        const Icon = method.icon;
+                        return (
                         <button
-                          key={method}
+                          key={method.value}
                           type="button"
-                          onClick={() => setPaymentMethod(method)}
-                          className={`rounded-xl border px-4 py-3 text-sm font-bold transition-colors ${
-                            paymentMethod === method
+                          onClick={() => setPaymentMethod(method.value)}
+                          className={`rounded-2xl border px-4 py-4 text-left transition-colors ${
+                            paymentMethod === method.value
                               ? 'border-orange-500 bg-orange-50 text-orange-600'
                               : 'border-stone-200 bg-white text-stone-600'
                           }`}
                         >
-                          {method}
+                          <div className="flex items-center justify-between gap-3">
+                            <div className="flex items-center gap-3">
+                              <div className={`rounded-xl p-2 ${paymentMethod === method.value ? 'bg-white text-orange-600' : 'bg-stone-100 text-stone-500'}`}>
+                                <Icon className="h-4 w-4" />
+                              </div>
+                              <div>
+                                <p className="text-sm font-bold">{method.label}</p>
+                                <p className="mt-1 text-xs font-medium text-stone-500">{method.detail}</p>
+                              </div>
+                            </div>
+                            <span className="rounded-full bg-stone-100 px-3 py-1 text-[11px] font-bold text-stone-500">
+                              Hardcoded
+                            </span>
+                          </div>
                         </button>
-                      ))}
+                        );
+                      })}
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-stone-500">
                       <div className="flex items-start gap-2 rounded-xl bg-white p-3 border border-stone-200">
@@ -409,6 +433,10 @@ export default function Cart() {
                       <div className="flex items-start gap-2 rounded-xl bg-white p-3 border border-stone-200">
                         <Truck className="w-4 h-4 mt-0.5 text-blue-500" />
                         <span>Your order summary now includes an estimated delivery window for temple offerings.</span>
+                      </div>
+                      <div className="flex items-start gap-2 rounded-xl bg-white p-3 border border-stone-200 sm:col-span-2">
+                        <Mail className="w-4 h-4 mt-0.5 text-orange-500" />
+                        <span>Automated PDF invoice delivery is hardcoded into this demo flow, so every successful payment appears as an email-ready receipt in the profile experience.</span>
                       </div>
                     </div>
                   </div>

@@ -1,17 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { Product } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Edit2, Trash2, X, Save, Package, Star, Users, Store, Calendar } from 'lucide-react';
+import { Plus, Edit2, Trash2, X, Save, Package, Star, Users, Store, Calendar, Bell, Smartphone, ShieldCheck, Wallet } from 'lucide-react';
 import { formatIndianRupees } from '../lib/utils';
 import {
   deleteProductDirect,
   getAdminStatsDirect,
+  listAllBookingsDirect,
+  listAllOrdersDirect,
   listProductsDirect,
   saveProductDirect,
 } from '../lib/firestore-data';
+import { buildAdminNotifications, getPwaReadinessSummary } from '../lib/platform';
 
 export default function AdminDashboard() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [orders, setOrders] = useState<any[]>([]);
+  const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -49,7 +54,14 @@ export default function AdminDashboard() {
 
   const fetchProducts = async () => {
     try {
-      setProducts(await listProductsDirect({ includeInactive: true }));
+      const [productsData, ordersData, bookingsData] = await Promise.all([
+        listProductsDirect({ includeInactive: true }),
+        listAllOrdersDirect(),
+        listAllBookingsDirect(),
+      ]);
+      setProducts(productsData);
+      setOrders(ordersData);
+      setBookings(bookingsData);
     } catch (error) {
       console.error('Error fetching products:', error);
     } finally {
@@ -61,6 +73,11 @@ export default function AdminDashboard() {
     fetchProducts();
     fetchStats();
   }, []);
+
+  const adminNotifications = buildAdminNotifications(products, bookings, orders);
+  const pwaSummary = getPwaReadinessSummary();
+  const lowStockCount = products.filter((product) => product.stock < 5).length;
+  const payoutQueueValue = orders.reduce((sum, order) => sum + order.totalAmount * 0.9, 0);
 
   const handleOpenModal = (product?: Product) => {
     if (product) {
@@ -161,6 +178,76 @@ export default function AdminDashboard() {
           <Plus className="w-5 h-5" />
           <span className="font-bold">Add Product</span>
         </button>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1.05fr_0.95fr] mb-12">
+        <div className="rounded-[2.5rem] border border-stone-200 bg-white p-7 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="rounded-2xl bg-stone-100 p-3 text-stone-700">
+              <Wallet className="w-6 h-6" />
+            </div>
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.24em] text-stone-500">
+                Platform operations
+              </p>
+              <h2 className="text-2xl font-serif font-bold text-stone-900">
+                Hardcoded admin control center
+              </h2>
+            </div>
+          </div>
+          <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-4">
+            {[
+              { label: 'Payout Queue', value: `Rs. ${formatIndianRupees(Math.round(payoutQueueValue))}` },
+              { label: 'Low Stock Alerts', value: `${lowStockCount}` },
+              { label: 'Receipt Automation', value: 'Active' },
+              { label: 'Realtime Channels', value: 'FCM / WebSocket Demo' },
+            ].map((item) => (
+              <div key={item.label} className="rounded-[1.5rem] border border-stone-200 bg-stone-50 px-4 py-5">
+                <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-stone-400">{item.label}</p>
+                <p className="mt-3 text-lg font-bold text-stone-900">{item.value}</p>
+              </div>
+            ))}
+          </div>
+          <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
+            <div className="rounded-[1.5rem] border border-emerald-100 bg-emerald-50 px-4 py-4">
+              <div className="flex items-center gap-2 text-sm font-bold text-emerald-700">
+                <ShieldCheck className="w-4 h-4" />
+                Verified vendor badge flow
+              </div>
+              <p className="mt-2 text-sm text-stone-600">Vendor trust states are modeled with hardcoded KYC completion and approval badges.</p>
+            </div>
+            <div className="rounded-[1.5rem] border border-blue-100 bg-blue-50 px-4 py-4">
+              <div className="flex items-center gap-2 text-sm font-bold text-blue-700">
+                <Smartphone className="w-4 h-4" />
+                PWA readiness
+              </div>
+              <p className="mt-2 text-sm text-stone-600">
+                Installable: {pwaSummary.installable ? 'Yes' : 'No'} | Offline shell: {pwaSummary.offlineShell ? 'Enabled' : 'Disabled'}
+              </p>
+            </div>
+            <div className="rounded-[1.5rem] border border-orange-100 bg-orange-50 px-4 py-4">
+              <div className="flex items-center gap-2 text-sm font-bold text-orange-700">
+                <Bell className="w-4 h-4" />
+                Notification status
+              </div>
+              <p className="mt-2 text-sm text-stone-600">Vendor and devotee notifications are simulated from live demo orders and bookings.</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-[2.5rem] border border-stone-200 bg-white p-7 shadow-sm">
+          <p className="text-xs font-bold uppercase tracking-[0.24em] text-blue-600">
+            Admin alerts
+          </p>
+          <div className="mt-5 space-y-3">
+            {adminNotifications.map((notification) => (
+              <div key={notification.id} className="rounded-[1.5rem] border border-stone-200 bg-stone-50 px-4 py-4">
+                <p className="text-sm font-bold text-stone-900">{notification.title}</p>
+                <p className="mt-2 text-sm text-stone-600">{notification.message}</p>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* Stats Section */}

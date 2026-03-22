@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Calendar, Clock, MapPin, Video, ShieldCheck, ArrowRight } from 'lucide-react';
+import { Calendar, Clock, MapPin, Video, ShieldCheck, ArrowRight, Radio } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import PageHero from '../components/PageHero';
 import { createBookingDirect, DEMO_DEVOTEE_PROFILE } from '../lib/firestore-data';
+import { getLiveSessionInfo } from '../lib/platform';
 
 const temples = [
   {
@@ -43,6 +44,7 @@ export default function DarshanBooking() {
     () => temples.find((temple) => temple.id === formData.templeId) || temples[0],
     [formData.templeId],
   );
+  const liveSession = getLiveSessionInfo(`${selectedTemple.name} darshan`);
 
   const availableSlots = formData.mode === 'online' ? onlineSlots : offlineSlots;
 
@@ -211,6 +213,20 @@ export default function DarshanBooking() {
                 </button>
               </div>
             </div>
+
+            {formData.mode === 'online' ? (
+              <div className="rounded-2xl border border-blue-100 bg-blue-50 p-4">
+                <div className="flex items-center gap-2 text-sm font-bold text-blue-700">
+                  <Radio className="w-4 h-4" />
+                  Live darshan room
+                </div>
+                <div className="mt-3 space-y-2 text-sm text-stone-600">
+                  <p>Provider: <span className="font-bold text-stone-900">{liveSession.provider}</span></p>
+                  <p>Room Code: <span className="font-bold text-stone-900">{liveSession.roomCode}</span></p>
+                  <p>{liveSession.joinWindow}</p>
+                </div>
+              </div>
+            ) : null}
 
             <div>
               <label className="block text-sm font-bold text-stone-700 mb-2 flex items-center">

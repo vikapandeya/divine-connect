@@ -137,7 +137,7 @@ const defaultProducts: Product[] = [
     price: 450,
     category: 'Mala',
     image: 'https://picsum.photos/seed/mala/400/400',
-    stock: 100,
+    stock: 4,
     rating: 4.9,
     size: '108 + 1 beads',
     dispatchWindow: 'Ships in 2 to 3 days',
@@ -153,7 +153,7 @@ const defaultProducts: Product[] = [
     price: 599,
     category: 'Books',
     image: 'https://picsum.photos/seed/gita/400/400',
-    stock: 75,
+    stock: 3,
     rating: 5,
     size: 'Hardbound',
     dispatchWindow: 'Ships in 2 to 4 days',
@@ -287,6 +287,21 @@ function ensureDemoData() {
   if (!window.localStorage.getItem(STORAGE_KEYS.feedback)) {
     writeStorage(STORAGE_KEYS.feedback, []);
   }
+
+  const storedProducts = readStorage<Product[]>(STORAGE_KEYS.products, defaultProducts);
+  const migratedProducts = storedProducts.map((product) => {
+    if (product.id === 'prod-rudraksha-mala' && product.stock === 100) {
+      return { ...product, stock: 4 };
+    }
+
+    if (product.id === 'prod-bhagavad-gita' && product.stock === 75) {
+      return { ...product, stock: 3 };
+    }
+
+    return product;
+  });
+
+  writeStorage(STORAGE_KEYS.products, migratedProducts);
 }
 
 function nextId(prefix: string) {
@@ -534,6 +549,27 @@ export async function listOrdersByUserDirect(uid: string) {
   return readOrders()
     .filter((order) => order.userId === uid)
     .sort((left, right) => String(right.createdAt).localeCompare(String(left.createdAt)));
+}
+
+export async function listOrdersByVendorDirect(uid: string) {
+  const products = readProducts().filter((product) => product.vendorId === uid);
+  const productIds = new Set(products.map((product) => product.id));
+
+  return readOrders()
+    .filter((order) => order.items.some((item) => productIds.has(item.productId)))
+    .sort((left, right) => String(right.createdAt).localeCompare(String(left.createdAt)));
+}
+
+export async function listAllOrdersDirect() {
+  return readOrders().sort((left, right) =>
+    String(right.createdAt).localeCompare(String(left.createdAt)),
+  );
+}
+
+export async function listAllBookingsDirect() {
+  return readBookings().sort((left, right) =>
+    String(right.createdAt).localeCompare(String(left.createdAt)),
+  );
 }
 
 export async function createOrderDirect(

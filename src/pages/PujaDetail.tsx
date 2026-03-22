@@ -11,9 +11,11 @@ import {
   ArrowLeft,
   Video,
   MapPin,
+  Radio,
 } from 'lucide-react';
 import { formatIndianRupees } from '../lib/utils';
 import { createBookingDirect, DEMO_DEVOTEE_PROFILE, getPujaDirect } from '../lib/firestore-data';
+import { getLiveSessionInfo } from '../lib/platform';
 
 const fallbackPujas: Record<string, Puja> = {
   'puja-ganesh': {
@@ -129,6 +131,7 @@ export default function PujaDetail() {
       : puja?.offlineTimings?.length
         ? puja.offlineTimings
         : puja?.onlineTimings || [];
+  const liveSession = getLiveSessionInfo(puja?.title || 'sacred-puja');
 
   useEffect(() => {
     if (availableSlots.length === 0) {
@@ -270,6 +273,19 @@ export default function PujaDetail() {
                 Online live darshan coordination available with this service
               </div>
             ) : null}
+            {bookingMode === 'online' ? (
+              <div className="rounded-2xl border border-blue-100 bg-blue-50 p-4">
+                <div className="flex items-center gap-2 text-sm font-bold text-blue-700">
+                  <Radio className="w-4 h-4" />
+                  Live Puja Streaming
+                </div>
+                <div className="mt-3 space-y-2 text-sm text-stone-600">
+                  <p>Provider: <span className="font-bold text-stone-900">{liveSession.provider}</span></p>
+                  <p>Room Code: <span className="font-bold text-stone-900">{liveSession.roomCode}</span></p>
+                  <p>{liveSession.joinWindow}</p>
+                </div>
+              </div>
+            ) : null}
             <div className="flex items-center text-sm font-bold text-emerald-700 pt-2">
               <ShieldCheck className="w-4 h-4 mr-2" />
               Pandit ji is available both online and offline and will be there as per your booked slot.
@@ -366,6 +382,17 @@ export default function PujaDetail() {
               >
                 {isBooking ? 'Processing...' : 'Confirm Booking'}
               </button>
+              {bookingMode === 'online' ? (
+                <div className="mt-4 rounded-2xl border border-blue-100 bg-blue-50 p-4 text-left">
+                  <p className="text-xs font-bold uppercase tracking-[0.22em] text-blue-700">
+                    Live participation
+                  </p>
+                  <p className="mt-2 text-sm text-stone-600">
+                    After booking, the demo profile shows a join-ready streaming room with host, room code,
+                    and notification updates for your puja slot.
+                  </p>
+                </div>
+              ) : null}
               <p className="text-center text-xs text-stone-400 mt-4">
                 Secure booking powered by DivineConnect. Pandit ji is available online and offline. No hidden charges.
               </p>

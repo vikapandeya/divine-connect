@@ -13,6 +13,8 @@ import {
   RotateCcw,
   ArrowRight,
   Receipt,
+  Heart,
+  Bell,
 } from 'lucide-react';
 import PageHero from '../components/PageHero';
 import { formatIndianRupees } from '../lib/utils';
@@ -35,6 +37,7 @@ import {
   listBookingsByUserDirect,
   listOrdersByUserDirect,
 } from '../lib/firestore-data';
+import { buildUserNotifications, getWishlistIds, subscribeToWishlist, type PlatformNotification } from '../lib/platform';
 
 type ProfileTab = 'bookings' | 'orders' | 'readings' | 'profile';
 
@@ -47,6 +50,8 @@ export default function Profile() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [readings, setReadings] = useState<AstrologyReading[]>([]);
   const [activeTab, setActiveTab] = useState<ProfileTab>('bookings');
+  const [wishlistIds, setWishlistIds] = useState<string[]>(getWishlistIds());
+  const [notifications, setNotifications] = useState<PlatformNotification[]>([]);
   const latestOrder = orders[0] || null;
 
   useEffect(() => {
@@ -70,6 +75,7 @@ export default function Profile() {
         setBookings(bookingsData);
         setOrders(ordersData);
         setReadings(readingsData);
+        setNotifications(buildUserNotifications(bookingsData, ordersData).slice(0, 4));
       } catch (error) {
         console.error('Error fetching profile data:', error);
       }
@@ -77,6 +83,8 @@ export default function Profile() {
 
     fetchProfileData();
   }, [currentUser]);
+
+  useEffect(() => subscribeToWishlist(() => setWishlistIds(getWishlistIds())), []);
 
   const handleReorder = (order: Order) => {
     addItemsToCart(
@@ -160,6 +168,7 @@ export default function Profile() {
           { label: 'Bookings', value: `${bookings.length}` },
           { label: 'Orders', value: `${orders.length}` },
           { label: 'Readings', value: `${readings.length}` },
+          { label: 'Wishlist', value: `${wishlistIds.length}` },
           {
             label: 'Latest Order',
             value: latestOrder ? `Rs. ${formatIndianRupees(latestOrder.totalAmount)}` : 'No orders',
@@ -176,6 +185,9 @@ export default function Profile() {
               </div>
               <div className="rounded-2xl bg-stone-50 px-4 py-3">
                 Certificates, invoices, and reorder actions stay close to the related record.
+              </div>
+              <div className="rounded-2xl bg-stone-50 px-4 py-3">
+                Hardcoded notifications, wishlist saves, and email-ready receipts are surfaced here as production-style demo states.
               </div>
             </div>
           </div>
@@ -228,6 +240,23 @@ export default function Profile() {
                   <p className="text-xl font-bold text-stone-900">{card.value}</p>
                 </button>
               ))}
+            </div>
+
+            <div className="mt-6 grid grid-cols-2 gap-3 text-left">
+              <div className="rounded-2xl border border-stone-100 bg-stone-50 p-4">
+                <div className="flex items-center gap-2 text-sm font-bold text-stone-900">
+                  <Heart className="w-4 h-4 text-rose-500" />
+                  Wishlist
+                </div>
+                <p className="mt-2 text-sm text-stone-600">{wishlistIds.length} saved items ready for later checkout.</p>
+              </div>
+              <div className="rounded-2xl border border-stone-100 bg-stone-50 p-4">
+                <div className="flex items-center gap-2 text-sm font-bold text-stone-900">
+                  <Bell className="w-4 h-4 text-blue-500" />
+                  Alerts
+                </div>
+                <p className="mt-2 text-sm text-stone-600">{notifications.filter((item) => item.isUnread).length} unread activity updates.</p>
+              </div>
             </div>
           </div>
 
@@ -360,6 +389,23 @@ export default function Profile() {
                         Print Invoice
                       </button>
                     </div>
+                  </div>
+                </div>
+              ) : null}
+
+              {notifications.length && activeTab !== 'orders' ? (
+                <div className="mb-8 rounded-[2rem] border border-blue-100 bg-blue-50 p-6">
+                  <div className="flex items-center gap-2 text-sm font-bold uppercase tracking-[0.22em] text-blue-700">
+                    <Bell className="w-4 h-4" />
+                    Realtime Notifications
+                  </div>
+                  <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
+                    {notifications.slice(0, 4).map((notification) => (
+                      <div key={notification.id} className="rounded-2xl border border-blue-100 bg-white px-4 py-4">
+                        <p className="text-sm font-bold text-stone-900">{notification.title}</p>
+                        <p className="mt-2 text-sm text-stone-600">{notification.message}</p>
+                      </div>
+                    ))}
                   </div>
                 </div>
               ) : null}

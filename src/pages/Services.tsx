@@ -14,9 +14,11 @@ import { Link } from 'react-router-dom';
 import PageHero from '../components/PageHero';
 import { formatIndianRupees } from '../lib/utils';
 import { listPujasDirect } from '../lib/firestore-data';
+import { getTempleSpotlights } from '../lib/platform';
 
 export default function Services() {
   const [pujas, setPujas] = useState<Puja[]>([]);
+  const templeSpotlights = getTempleSpotlights();
 
   useEffect(() => {
     const fetchPujas = async () => {
@@ -162,6 +164,9 @@ export default function Services() {
             Reserve live darshan coordination for special temple moments, family prayers,
             and remote participation.
           </p>
+          <p className="mt-3 text-xs font-bold uppercase tracking-[0.22em] text-blue-600">
+            Jitsi / Zoom ready demo slots
+          </p>
           <Link to="/services/darshan" className="inline-flex items-center mt-4 text-sm font-bold text-orange-500">
             Book Darshan Support
           </Link>
@@ -178,6 +183,42 @@ export default function Services() {
           <Link to="/astrology" className="inline-flex items-center mt-4 text-sm font-bold text-orange-500">
             Open AI Astrology
           </Link>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[0.95fr_1.05fr]">
+        <div className="rounded-[2.25rem] border border-stone-200 bg-white p-7 shadow-sm">
+          <p className="text-xs font-bold uppercase tracking-[0.24em] text-orange-600">
+            Live Puja Streaming
+          </p>
+          <h2 className="mt-4 text-2xl font-serif font-bold text-stone-900">
+            Hardcoded livestream readiness for online ritual participation
+          </h2>
+          <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
+            {[
+              'Auto-generated meeting room code after booking',
+              'Join window opens 15 minutes before sankalp',
+              'Host panel supports Jitsi or Zoom SDK style integration',
+            ].map((item) => (
+              <div key={item} className="rounded-[1.5rem] border border-stone-200 bg-stone-50 px-4 py-4 text-sm text-stone-600">
+                {item}
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="rounded-[2.25rem] border border-stone-200 bg-white p-7 shadow-sm">
+          <p className="text-xs font-bold uppercase tracking-[0.24em] text-blue-600">
+            Famous Temples
+          </p>
+          <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-3">
+            {templeSpotlights.map((temple) => (
+              <div key={temple.id} className="rounded-[1.5rem] border border-stone-200 p-4">
+                <p className="text-sm font-bold text-stone-900">{temple.name}</p>
+                <p className="mt-1 text-xs text-stone-500">{temple.city}, {temple.state}</p>
+                <p className="mt-3 text-sm text-stone-600">{temple.services.join(' • ')}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 

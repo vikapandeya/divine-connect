@@ -1,19 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { Product, Puja } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Edit2, Trash2, X, Save, CheckCircle, XCircle } from 'lucide-react';
+import { Plus, Edit2, Trash2, X, Save, CheckCircle, XCircle, Bell, Wallet, AlertTriangle, ShieldCheck } from 'lucide-react';
 import { formatIndianRupees } from '../lib/utils';
 import {
   deleteProductDirect,
   deletePujaDirect,
   DEMO_VENDOR_PROFILE,
   listBookingsByVendorDirect,
+  listOrdersByVendorDirect,
   listProductsDirect,
   listPujasDirect,
   saveProductDirect,
   savePujaDirect,
   updateBookingStatusDirect,
 } from '../lib/firestore-data';
+import { buildVendorFinanceSnapshot, buildVendorNotifications } from '../lib/platform';
 
 export default function VendorDashboard() {
   const currentUser = DEMO_VENDOR_PROFILE;
@@ -21,6 +23,7 @@ export default function VendorDashboard() {
   const [products, setProducts] = useState<Product[]>([]);
   const [pujas, setPujas] = useState<Puja[]>([]);
   const [bookings, setBookings] = useState<any[]>([]);
+  const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
@@ -60,15 +63,17 @@ export default function VendorDashboard() {
     try {
       const vendorId = currentUser.uid;
       
-      const [productsData, pujasData, bookingsData] = await Promise.all([
+      const [productsData, pujasData, bookingsData, ordersData] = await Promise.all([
         listProductsDirect({ vendorId, includeInactive: true }),
         listPujasDirect({ vendorId, includeInactive: true }),
         listBookingsByVendorDirect(vendorId),
+        listOrdersByVendorDirect(vendorId),
       ]);
 
       setProducts(productsData);
       setPujas(pujasData);
       setBookings(bookingsData);
+      setOrders(ordersData);
     } catch (error) {
       console.error('Error fetching vendor data:', error);
     } finally {
@@ -79,6 +84,10 @@ export default function VendorDashboard() {
   useEffect(() => {
     fetchData();
   }, [currentUser]);
+
+  const financeSnapshot = buildVendorFinanceSnapshot(orders, bookings, 0.1);
+  const vendorNotifications = buildVendorNotifications(bookings, orders, products).slice(0, 4);
+  const lowStockProducts = products.filter((product) => product.stock < 5);
 
   const handleOpenModal = (item?: any) => {
     if (activeTab === 'products') {
@@ -253,6 +262,92 @@ export default function VendorDashboard() {
           >
             Bookings
           </button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1.1fr_0.9fr] mb-10">
+        <div className="rounded-[2.5rem] border border-stone-200 bg-white p-7 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="rounded-2xl bg-emerald-50 p-3 text-emerald-600">
+              <Wallet className="w-6 h-6" />
+            </div>
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.24em] text-emerald-600">
+                Wallet and payouts
+              </p>
+              <h2 className="text-2xl font-serif font-bold text-stone-900">
+                Hardcoded vendor finance model
+              </h2>
+            </div>
+          </div>
+          <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-4">
+            {[
+              { label: 'Gross Sales', value: `Rs. ${formatIndianRupees(financeSnapshot.grossSales)}` },
+              { label: 'Platform Commission', value: `Rs. ${formatIndianRupees(financeSnapshot.platformCommission)}` },
+              { label: 'Withdrawable Balance', value: `Rs. ${formatIndianRupees(financeSnapshot.withdrawableBalance)}` },
+              { label: 'Pending Clearance', value: `Rs. ${formatIndianRupees(financeSnapshot.pendingClearance)}` },
+            ].map((stat) => (
+              <div key={stat.label} className="rounded-[1.5rem] border border-stone-200 bg-stone-50 px-4 py-5">
+                <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-stone-400">{stat.label}</p>
+                <p className="mt-3 text-lg font-bold text-stone-900">{stat.value}</p>
+              </div>
+            ))}
+          </div>
+          <div className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-[1.5rem] border border-orange-100 bg-orange-50 px-5 py-4">
+            <div>
+              <p className="text-sm font-bold text-stone-900">Commission logic</p>
+              <p className="mt-1 text-sm text-stone-600">
+                DivineConnect keeps a hardcoded {Math.round(financeSnapshot.commissionRate * 100)}% platform fee before vendor payout settlement.
+              </p>
+            </div>
+            <button type="button" className="rounded-full bg-stone-900 px-5 py-3 text-sm font-bold text-white hover:bg-orange-500">
+              Request Payout
+            </button>
+          </div>
+        </div>
+
+        <div className="rounded-[2.5rem] border border-stone-200 bg-white p-7 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="rounded-2xl bg-blue-50 p-3 text-blue-600">
+              <Bell className="w-6 h-6" />
+            </div>
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.24em] text-blue-600">
+                Realtime operations
+              </p>
+              <h2 className="text-2xl font-serif font-bold text-stone-900">
+                Alerts, KYC, and stock safety
+              </h2>
+            </div>
+          </div>
+          <div className="mt-6 space-y-3">
+            <div className="rounded-[1.5rem] border border-emerald-100 bg-emerald-50 px-4 py-4">
+              <div className="flex items-center gap-2 text-sm font-bold text-emerald-700">
+                <ShieldCheck className="w-4 h-4" />
+                Verified Vendor Badge Active
+              </div>
+              <p className="mt-2 text-sm text-stone-600">
+                KYC and service verification are represented as hardcoded trust states in this demo dashboard.
+              </p>
+            </div>
+            {lowStockProducts.length ? (
+              <div className="rounded-[1.5rem] border border-amber-100 bg-amber-50 px-4 py-4">
+                <div className="flex items-center gap-2 text-sm font-bold text-amber-700">
+                  <AlertTriangle className="w-4 h-4" />
+                  Inventory alert
+                </div>
+                <p className="mt-2 text-sm text-stone-600">
+                  {lowStockProducts.map((product) => `${product.name} (${product.stock})`).join(', ')}
+                </p>
+              </div>
+            ) : null}
+            {vendorNotifications.map((notification) => (
+              <div key={notification.id} className="rounded-[1.5rem] border border-stone-200 bg-stone-50 px-4 py-4">
+                <p className="text-sm font-bold text-stone-900">{notification.title}</p>
+                <p className="mt-2 text-sm text-stone-600">{notification.message}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
