@@ -17,6 +17,7 @@ import {
   Newspaper,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import InlineNotice from '../components/InlineNotice';
 import { addToCart } from '../lib/cart';
 import { formatIndianRupees } from '../lib/utils';
 import { createFeedbackDirect, DEMO_DEVOTEE_PROFILE } from '../lib/firestore-data';
@@ -147,6 +148,11 @@ export default function Home() {
     message: '',
   });
   const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
+  const [feedbackNotice, setFeedbackNotice] = useState<{
+    tone: 'success' | 'error' | 'info';
+    title: string;
+    message: string;
+  } | null>(null);
 
   const feedbackHint = useMemo(
     () =>
@@ -164,6 +170,7 @@ export default function Home() {
   const handleFeedbackSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsSubmittingFeedback(true);
+    setFeedbackNotice(null);
 
     try {
       await createFeedbackDirect({
@@ -174,7 +181,11 @@ export default function Home() {
         message: formState.message,
       });
 
-      alert('Thank you. Your feedback has been shared with the DivineConnect team.');
+      setFeedbackNotice({
+        tone: 'success',
+        title: 'Feedback shared',
+        message: 'Thank you. Your feedback has been shared with the DivineConnect team.',
+      });
       setFormState((previous) => ({
         ...previous,
         subject: '',
@@ -183,7 +194,11 @@ export default function Home() {
       }));
     } catch (error) {
       console.error('Feedback error:', error);
-      alert('Unable to submit feedback right now. Please try again in a moment.');
+      setFeedbackNotice({
+        tone: 'error',
+        title: 'Feedback not submitted',
+        message: 'Unable to submit feedback right now. Please try again in a moment.',
+      });
     } finally {
       setIsSubmittingFeedback(false);
     }
@@ -479,6 +494,14 @@ export default function Home() {
               </div>
             </div>
             <form className="space-y-5" onSubmit={handleFeedbackSubmit}>
+              {feedbackNotice ? (
+                <InlineNotice
+                  tone={feedbackNotice.tone}
+                  title={feedbackNotice.title}
+                  message={feedbackNotice.message}
+                  onClose={() => setFeedbackNotice(null)}
+                />
+              ) : null}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <input
                   required

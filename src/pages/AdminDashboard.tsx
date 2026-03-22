@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Product } from '../types';
+import { Booking, Order, Product } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Edit2, Trash2, X, Save, Package, Star, Users, Store, Calendar, Bell, Smartphone, ShieldCheck, Wallet } from 'lucide-react';
+import InlineNotice from '../components/InlineNotice';
 import { formatIndianRupees } from '../lib/utils';
 import {
   deleteProductDirect,
@@ -15,11 +16,16 @@ import { buildAdminNotifications, getPwaReadinessSummary } from '../lib/platform
 
 export default function AdminDashboard() {
   const [products, setProducts] = useState<Product[]>([]);
-  const [orders, setOrders] = useState<any[]>([]);
-  const [bookings, setBookings] = useState<any[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [notice, setNotice] = useState<{
+    tone: 'success' | 'error' | 'info';
+    title: string;
+    message: string;
+  } | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -80,6 +86,7 @@ export default function AdminDashboard() {
   const payoutQueueValue = orders.reduce((sum, order) => sum + order.totalAmount * 0.9, 0);
 
   const handleOpenModal = (product?: Product) => {
+    setNotice(null);
     if (product) {
       setEditingProduct(product);
       setFormData({
@@ -122,6 +129,7 @@ export default function AdminDashboard() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setNotice(null);
 
     try {
       await saveProductDirect({
@@ -142,12 +150,23 @@ export default function AdminDashboard() {
         offeringType: formData.offeringType,
         isActive: formData.isActive,
       });
-      alert(editingProduct ? 'Product updated!' : 'Product added!');
+      setNotice({
+        tone: 'success',
+        title: editingProduct ? 'Product updated' : 'Product added',
+        message: editingProduct
+          ? 'The catalog item has been updated successfully.'
+          : 'The new catalog item is now available in the admin inventory list.',
+      });
       setIsModalOpen(false);
       fetchProducts();
       fetchStats();
     } catch (error) {
       console.error('Error saving product:', error);
+      setNotice({
+        tone: 'error',
+        title: 'Product could not be saved',
+        message: error instanceof Error ? error.message : 'Please review the form and try again.',
+      });
     }
   };
 
@@ -156,11 +175,20 @@ export default function AdminDashboard() {
 
     try {
       await deleteProductDirect(id);
-      alert('Product deleted!');
+      setNotice({
+        tone: 'success',
+        title: 'Product deleted',
+        message: 'The selected catalog item has been removed from the admin inventory.',
+      });
       fetchProducts();
       fetchStats();
     } catch (error) {
       console.error('Error deleting product:', error);
+      setNotice({
+        tone: 'error',
+        title: 'Delete failed',
+        message: error instanceof Error ? error.message : 'The product could not be deleted.',
+      });
     }
   };
 
@@ -249,6 +277,16 @@ export default function AdminDashboard() {
           </div>
         </div>
       </div>
+
+      {notice ? (
+        <InlineNotice
+          tone={notice.tone}
+          title={notice.title}
+          message={notice.message}
+          onClose={() => setNotice(null)}
+          className="mb-8"
+        />
+      ) : null}
 
       {/* Stats Section */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">

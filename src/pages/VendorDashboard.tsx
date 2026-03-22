@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Product, Puja } from '../types';
+import { Booking, Order, Product, Puja } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Edit2, Trash2, X, Save, CheckCircle, XCircle, Bell, Wallet, AlertTriangle, ShieldCheck } from 'lucide-react';
+import InlineNotice from '../components/InlineNotice';
 import { formatIndianRupees } from '../lib/utils';
 import {
   deleteProductDirect,
@@ -17,16 +18,25 @@ import {
 } from '../lib/firestore-data';
 import { buildVendorFinanceSnapshot, buildVendorNotifications } from '../lib/platform';
 
+type VendorBookingRow = Booking & {
+  customerName: string;
+};
+
 export default function VendorDashboard() {
   const currentUser = DEMO_VENDOR_PROFILE;
   const [activeTab, setActiveTab] = useState<'products' | 'pujas' | 'bookings'>('products');
   const [products, setProducts] = useState<Product[]>([]);
   const [pujas, setPujas] = useState<Puja[]>([]);
-  const [bookings, setBookings] = useState<any[]>([]);
-  const [orders, setOrders] = useState<any[]>([]);
+  const [bookings, setBookings] = useState<VendorBookingRow[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState<any>(null);
+  const [editingItem, setEditingItem] = useState<Product | Puja | null>(null);
+  const [notice, setNotice] = useState<{
+    tone: 'success' | 'error' | 'info';
+    title: string;
+    message: string;
+  } | null>(null);
 
   // Form states
   const [productForm, setProductForm] = useState({
@@ -89,24 +99,26 @@ export default function VendorDashboard() {
   const vendorNotifications = buildVendorNotifications(bookings, orders, products).slice(0, 4);
   const lowStockProducts = products.filter((product) => product.stock < 5);
 
-  const handleOpenModal = (item?: any) => {
+  const handleOpenModal = (item?: Product | Puja) => {
+    setNotice(null);
     if (activeTab === 'products') {
-      if (item) {
-        setEditingItem(item);
+      const productItem = item && 'name' in item ? item : null;
+      if (productItem) {
+        setEditingItem(productItem);
         setProductForm({
-          name: item.name,
-          description: item.description,
-          price: item.price.toString(),
-          category: item.category,
-          stock: item.stock.toString(),
-          image: item.image,
-          templeName: item.templeName || '',
-          weight: item.weight || '',
-          size: item.size || '',
-          dispatchWindow: item.dispatchWindow || '',
-          city: item.city || '',
-          offeringType: item.offeringType || '',
-          isActive: item.isActive !== false,
+          name: productItem.name,
+          description: productItem.description,
+          price: productItem.price.toString(),
+          category: productItem.category,
+          stock: productItem.stock.toString(),
+          image: productItem.image,
+          templeName: productItem.templeName || '',
+          weight: productItem.weight || '',
+          size: productItem.size || '',
+          dispatchWindow: productItem.dispatchWindow || '',
+          city: productItem.city || '',
+          offeringType: productItem.offeringType || '',
+          isActive: productItem.isActive !== false,
         });
       } else {
         setEditingItem(null);
@@ -127,19 +139,20 @@ export default function VendorDashboard() {
         });
       }
     } else if (activeTab === 'pujas') {
-      if (item) {
-        setEditingItem(item);
+      const pujaItem = item && 'title' in item ? item : null;
+      if (pujaItem) {
+        setEditingItem(pujaItem);
         setPujaForm({
-          title: item.title,
-          description: item.description,
-          price: item.price.toString(),
-          duration: item.duration,
-          templeName: item.templeName || '',
-          mode: item.mode || 'hybrid',
-          onlineTimings: (item.onlineTimings || []).join(', '),
-          offlineTimings: (item.offlineTimings || []).join(', '),
-          liveDarshanAvailable: item.liveDarshanAvailable === true,
-          isActive: item.isActive !== false,
+          title: pujaItem.title,
+          description: pujaItem.description,
+          price: pujaItem.price.toString(),
+          duration: pujaItem.duration,
+          templeName: pujaItem.templeName || '',
+          mode: pujaItem.mode || 'hybrid',
+          onlineTimings: (pujaItem.onlineTimings || []).join(', '),
+          offlineTimings: (pujaItem.offlineTimings || []).join(', '),
+          liveDarshanAvailable: pujaItem.liveDarshanAvailable === true,
+          isActive: pujaItem.isActive !== false,
         });
       } else {
         setEditingItem(null);
@@ -162,16 +175,18 @@ export default function VendorDashboard() {
 
   const handleProductSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setNotice(null);
+    const editingProduct = editingItem && 'name' in editingItem ? editingItem : null;
     try {
       await saveProductDirect({
-        id: editingItem?.id,
-        vendorId: currentUser?.uid || editingItem?.vendorId || 'system',
+        id: editingProduct?.id,
+        vendorId: currentUser?.uid || editingProduct?.vendorId || 'system',
         name: productForm.name,
         description: productForm.description,
         price: parseFloat(productForm.price),
         category: productForm.category,
         stock: parseInt(productForm.stock, 10),
-        rating: editingItem?.rating || 4.5,
+        rating: editingProduct?.rating || 4.5,
         image: productForm.image,
         templeName: productForm.templeName,
         weight: productForm.weight,
@@ -182,23 +197,35 @@ export default function VendorDashboard() {
         isActive: productForm.isActive,
       });
       setIsModalOpen(false);
+      setNotice({
+        tone: 'success',
+        title: editingItem ? 'Product updated' : 'Product added',
+        message: 'Your shop inventory has been refreshed successfully.',
+      });
       fetchData();
     } catch (error) {
       console.error('Error saving product:', error);
+      setNotice({
+        tone: 'error',
+        title: 'Product could not be saved',
+        message: error instanceof Error ? error.message : 'Please review the form and try again.',
+      });
     }
   };
 
   const handlePujaSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setNotice(null);
+    const editingPuja = editingItem && 'title' in editingItem ? editingItem : null;
     try {
       await savePujaDirect({
-        id: editingItem?.id,
-        vendorId: currentUser?.uid || editingItem?.vendorId || 'system',
+        id: editingPuja?.id,
+        vendorId: currentUser?.uid || editingPuja?.vendorId || 'system',
         title: pujaForm.title,
         description: pujaForm.description,
         price: parseFloat(pujaForm.price),
         duration: pujaForm.duration,
-        samagriIncluded: editingItem?.samagriIncluded ?? true,
+        samagriIncluded: editingPuja?.samagriIncluded ?? true,
         templeName: pujaForm.templeName,
         mode: pujaForm.mode,
         onlineTimings: pujaForm.onlineTimings.split(',').map((item) => item.trim()).filter(Boolean),
@@ -207,9 +234,19 @@ export default function VendorDashboard() {
         isActive: pujaForm.isActive,
       });
       setIsModalOpen(false);
+      setNotice({
+        tone: 'success',
+        title: editingItem ? 'Puja updated' : 'Puja added',
+        message: 'Your puja offering list has been updated successfully.',
+      });
       fetchData();
     } catch (error) {
       console.error('Error saving puja:', error);
+      setNotice({
+        tone: 'error',
+        title: 'Puja could not be saved',
+        message: error instanceof Error ? error.message : 'Please review the puja form and try again.',
+      });
     }
   };
 
@@ -221,18 +258,40 @@ export default function VendorDashboard() {
       } else {
         await deletePujaDirect(id);
       }
+      setNotice({
+        tone: 'success',
+        title: activeTab === 'products' ? 'Product deleted' : 'Puja deleted',
+        message: activeTab === 'products'
+          ? 'The selected product has been removed from your public catalog.'
+          : 'The selected puja has been removed from your public services list.',
+      });
       fetchData();
     } catch (error) {
       console.error('Error deleting item:', error);
+      setNotice({
+        tone: 'error',
+        title: 'Delete failed',
+        message: error instanceof Error ? error.message : 'The selected item could not be deleted.',
+      });
     }
   };
 
   const updateBookingStatus = async (id: string, status: string) => {
     try {
       await updateBookingStatusDirect(id, status as 'pending' | 'confirmed' | 'completed' | 'cancelled');
+      setNotice({
+        tone: 'success',
+        title: 'Booking status updated',
+        message: `The selected booking is now marked as ${status}.`,
+      });
       fetchData();
     } catch (error) {
       console.error('Error updating booking:', error);
+      setNotice({
+        tone: 'error',
+        title: 'Booking status update failed',
+        message: error instanceof Error ? error.message : 'The booking status could not be updated.',
+      });
     }
   };
 
@@ -363,6 +422,16 @@ export default function VendorDashboard() {
         )}
       </div>
 
+      {notice ? (
+        <InlineNotice
+          tone={notice.tone}
+          title={notice.title}
+          message={notice.message}
+          onClose={() => setNotice(null)}
+          className="mb-8"
+        />
+      ) : null}
+
       {loading ? (
         <div className="flex justify-center py-20">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"></div>
@@ -387,7 +456,12 @@ export default function VendorDashboard() {
                     <tr key={p.id} className="hover:bg-stone-50">
                       <td className="px-6 py-4">
                         <div className="flex items-center space-x-3">
-                          <img src={p.image} className="w-10 h-10 rounded-lg object-cover" referrerPolicy="no-referrer" />
+                          <img
+                            src={p.image}
+                            alt={p.name}
+                            className="w-10 h-10 rounded-lg object-cover"
+                            referrerPolicy="no-referrer"
+                          />
                           <span className="font-bold text-stone-900">{p.name}</span>
                         </div>
                       </td>

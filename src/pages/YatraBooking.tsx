@@ -13,8 +13,9 @@ import {
 } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import PageHero from '../components/PageHero';
+import InlineNotice from '../components/InlineNotice';
 import { createBookingDirect, DEMO_DEVOTEE_PROFILE, listYatraPackagesDirect } from '../lib/firestore-data';
-import { formatIndianRupees } from '../lib/utils';
+import { formatIndianRupees, getTodayDateInputValue } from '../lib/utils';
 import { YatraPackage } from '../types';
 
 const packageTypes: Array<{ value: 'all' | YatraPackage['packageType']; label: string }> = [
@@ -35,6 +36,11 @@ export default function YatraBooking() {
   const [departureCity, setDepartureCity] = useState('');
   const [travellers, setTravellers] = useState('2');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [bookingNotice, setBookingNotice] = useState<{
+    tone: 'success' | 'error' | 'info';
+    title: string;
+    message: string;
+  } | null>(null);
 
   useEffect(() => {
     const packageType = searchParams.get('type') as YatraPackage['packageType'] | null;
@@ -114,11 +120,16 @@ export default function YatraBooking() {
 
   const handleBooking = async () => {
     if (!selectedPackage || !departureDate || !departureCity || !travellers) {
-      alert('Please choose your package, departure date, city, and traveller count.');
+      setBookingNotice({
+        tone: 'error',
+        title: 'Complete your yatra details',
+        message: 'Please choose your package, departure date, city, and traveller count.',
+      });
       return;
     }
 
     setIsSubmitting(true);
+    setBookingNotice(null);
     try {
       await createBookingDirect({
         userId: DEMO_DEVOTEE_PROFILE.uid,
@@ -133,11 +144,19 @@ export default function YatraBooking() {
         totalAmount: totalPrice,
       });
 
-      alert('Yatra package booked successfully. Your pilgrimage booking is now visible in Profile with certificate-ready records.');
-      navigate('/profile?tab=bookings');
+      setBookingNotice({
+        tone: 'success',
+        title: 'Yatra package booked successfully',
+        message: 'Your pilgrimage booking is now visible in Profile with certificate-ready records.',
+      });
+      window.setTimeout(() => navigate('/profile?tab=bookings'), 700);
     } catch (error) {
       console.error('Yatra booking error:', error);
-      alert(error instanceof Error ? error.message : 'Unable to reserve this yatra package right now.');
+      setBookingNotice({
+        tone: 'error',
+        title: 'Yatra package could not be reserved',
+        message: error instanceof Error ? error.message : 'Unable to reserve this yatra package right now.',
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -328,6 +347,16 @@ export default function YatraBooking() {
                 Reserve this full pilgrimage package and keep the booking record ready inside your profile.
               </p>
 
+              {bookingNotice ? (
+                <InlineNotice
+                  tone={bookingNotice.tone}
+                  title={bookingNotice.title}
+                  message={bookingNotice.message}
+                  onClose={() => setBookingNotice(null)}
+                  className="mt-6"
+                />
+              ) : null}
+
               <div className="mt-6 rounded-[2rem] border border-orange-100 bg-orange-50 p-5">
                 <div className="flex items-center justify-between gap-4">
                   <div>
@@ -363,7 +392,7 @@ export default function YatraBooking() {
                   <label className="mb-2 block text-sm font-bold text-stone-700">Departure Date</label>
                   <input
                     type="date"
-                    min={new Date().toISOString().split('T')[0]}
+                    min={getTodayDateInputValue()}
                     value={departureDate}
                     onChange={(event) => setDepartureDate(event.target.value)}
                     className="w-full rounded-2xl border border-stone-200 px-4 py-3 outline-none focus:border-transparent focus:ring-2 focus:ring-orange-500"

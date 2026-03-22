@@ -3,8 +3,10 @@ import { motion } from 'framer-motion';
 import { Calendar, Clock, MapPin, Video, ShieldCheck, ArrowRight, Radio } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import PageHero from '../components/PageHero';
+import InlineNotice from '../components/InlineNotice';
 import { createBookingDirect, DEMO_DEVOTEE_PROFILE } from '../lib/firestore-data';
 import { getLiveSessionInfo } from '../lib/platform';
+import { getTodayDateInputValue } from '../lib/utils';
 
 const temples = [
   {
@@ -39,6 +41,11 @@ export default function DarshanBooking() {
     mode: 'online' as 'online' | 'offline',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [bookingNotice, setBookingNotice] = useState<{
+    tone: 'success' | 'error' | 'info';
+    title: string;
+    message: string;
+  } | null>(null);
 
   const selectedTemple = useMemo(
     () => temples.find((temple) => temple.id === formData.templeId) || temples[0],
@@ -59,11 +66,16 @@ export default function DarshanBooking() {
 
   const handleBookDarshan = async () => {
     if (!formData.date || !formData.timeSlot) {
-      alert('Please choose your darshan date and time slot.');
+      setBookingNotice({
+        tone: 'error',
+        title: 'Choose darshan details',
+        message: 'Please choose your darshan date and time slot.',
+      });
       return;
     }
 
     setIsSubmitting(true);
+    setBookingNotice(null);
     try {
       await createBookingDirect({
         userId: DEMO_DEVOTEE_PROFILE.uid,
@@ -78,11 +90,19 @@ export default function DarshanBooking() {
         totalAmount: 0,
       });
 
-      alert('Darshan booked successfully. You can see it in your profile bookings.');
-      navigate('/profile?tab=bookings');
+      setBookingNotice({
+        tone: 'success',
+        title: 'Darshan booked successfully',
+        message: 'Your darshan support record is now ready in the profile bookings section.',
+      });
+      window.setTimeout(() => navigate('/profile?tab=bookings'), 700);
     } catch (error) {
       console.error('Darshan booking error:', error);
-      alert(error instanceof Error ? error.message : 'Unable to reserve darshan right now.');
+      setBookingNotice({
+        tone: 'error',
+        title: 'Darshan could not be reserved',
+        message: error instanceof Error ? error.message : 'Unable to reserve darshan right now.',
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -179,6 +199,14 @@ export default function DarshanBooking() {
             Reserve Darshan
           </h2>
           <div className="space-y-6">
+            {bookingNotice ? (
+              <InlineNotice
+                tone={bookingNotice.tone}
+                title={bookingNotice.title}
+                message={bookingNotice.message}
+                onClose={() => setBookingNotice(null)}
+              />
+            ) : null}
             <div>
               <label className="block text-sm font-bold text-stone-700 mb-2">Temple</label>
               <div className="w-full px-4 py-3 rounded-xl bg-stone-50 border border-stone-200 text-stone-900 font-medium">
@@ -235,7 +263,7 @@ export default function DarshanBooking() {
               </label>
               <input
                 type="date"
-                min={new Date().toISOString().split('T')[0]}
+                min={getTodayDateInputValue()}
                 value={formData.date}
                 onChange={(event) =>
                   setFormData((current) => ({ ...current, date: event.target.value }))

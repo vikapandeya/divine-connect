@@ -14,6 +14,7 @@ import {
   Wallet,
 } from 'lucide-react';
 import PageHero from '../components/PageHero';
+import InlineNotice from '../components/InlineNotice';
 import {
   CartItem,
   clearCart,
@@ -29,6 +30,11 @@ export default function Cart() {
   const navigate = useNavigate();
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [items, setItems] = useState<CartItem[]>([]);
+  const [checkoutNotice, setCheckoutNotice] = useState<{
+    tone: 'success' | 'error' | 'info';
+    title: string;
+    message: string;
+  } | null>(null);
   const [customerDetails, setCustomerDetails] = useState({
     fullName: DEMO_DEVOTEE_PROFILE.displayName || '',
     email: DEMO_DEVOTEE_PROFILE.email || '',
@@ -74,26 +80,43 @@ export default function Cart() {
     ];
 
     if (requiredFields.some((field) => !field.trim())) {
-      alert('Please fill in full name, email, phone number, address, city, state, and pincode.');
+      setCheckoutNotice({
+        tone: 'error',
+        title: 'Missing delivery details',
+        message: 'Please fill in full name, email, phone number, address, city, state, and pincode.',
+      });
       return;
     }
 
     if (!/^\S+@\S+\.\S+$/.test(customerDetails.email.trim())) {
-      alert('Please enter a valid email address.');
+      setCheckoutNotice({
+        tone: 'error',
+        title: 'Invalid email address',
+        message: 'Please enter a valid email address before placing the order.',
+      });
       return;
     }
 
     if (!/^\d{10}$/.test(customerDetails.phoneNumber.trim())) {
-      alert('Please enter a valid 10-digit contact number.');
+      setCheckoutNotice({
+        tone: 'error',
+        title: 'Invalid contact number',
+        message: 'Please enter a valid 10-digit contact number.',
+      });
       return;
     }
 
     if (!/^\d{6}$/.test(customerDetails.pincode.trim())) {
-      alert('Please enter a valid 6-digit pincode.');
+      setCheckoutNotice({
+        tone: 'error',
+        title: 'Invalid pincode',
+        message: 'Please enter a valid 6-digit pincode.',
+      });
       return;
     }
 
     setIsCheckingOut(true);
+    setCheckoutNotice(null);
     try {
       await createOrderDirect({
         userId: DEMO_DEVOTEE_PROFILE.uid,
@@ -125,11 +148,19 @@ export default function Cart() {
         shippingFee: 0,
       });
       clearCart();
-      alert('Order placed successfully. Your PDF invoice, product certificate, automated receipt email, and order notifications are available in this hardcoded demo.');
-      navigate('/profile?tab=orders');
+      setCheckoutNotice({
+        tone: 'success',
+        title: 'Order placed successfully',
+        message: 'Your PDF invoice, product certificate, automated receipt email, and order notifications are ready in this hardcoded demo.',
+      });
+      window.setTimeout(() => navigate('/profile?tab=orders'), 700);
     } catch (error) {
       console.error('Checkout error:', error);
-      alert('Failed to place order. Please try again.');
+      setCheckoutNotice({
+        tone: 'error',
+        title: 'Order could not be placed',
+        message: 'Please try again. If the issue continues, review the delivery details and payment mode.',
+      });
     } finally {
       setIsCheckingOut(false);
     }
@@ -186,6 +217,14 @@ export default function Cart() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
         <div className="lg:col-span-2 space-y-6">
+          {checkoutNotice ? (
+            <InlineNotice
+              tone={checkoutNotice.tone}
+              title={checkoutNotice.title}
+              message={checkoutNotice.message}
+              onClose={() => setCheckoutNotice(null)}
+            />
+          ) : null}
           {items.map((item) => (
             <div
               key={item.id}

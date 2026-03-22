@@ -13,7 +13,9 @@ import {
   MapPin,
   Radio,
 } from 'lucide-react';
+import InlineNotice from '../components/InlineNotice';
 import { formatIndianRupees } from '../lib/utils';
+import { getTodayDateInputValue } from '../lib/utils';
 import { createBookingDirect, DEMO_DEVOTEE_PROFILE, getPujaDirect } from '../lib/firestore-data';
 import { getLiveSessionInfo } from '../lib/platform';
 
@@ -105,6 +107,11 @@ export default function PujaDetail() {
   const [bookingTime, setBookingTime] = useState('');
   const [bookingMode, setBookingMode] = useState<'online' | 'offline'>('online');
   const [isBooking, setIsBooking] = useState(false);
+  const [bookingNotice, setBookingNotice] = useState<{
+    tone: 'success' | 'error' | 'info';
+    title: string;
+    message: string;
+  } | null>(null);
 
   useEffect(() => {
     const fetchPuja = async () => {
@@ -146,11 +153,16 @@ export default function PujaDetail() {
 
   const handleBooking = async () => {
     if (!bookingDate || !bookingTime) {
-      alert('Please select a date and time.');
+      setBookingNotice({
+        tone: 'error',
+        title: 'Choose a date and time',
+        message: 'Please select your puja date and preferred slot before continuing.',
+      });
       return;
     }
 
     setIsBooking(true);
+    setBookingNotice(null);
     try {
       await createBookingDirect({
         userId: DEMO_DEVOTEE_PROFILE.uid,
@@ -164,11 +176,19 @@ export default function PujaDetail() {
         status: 'confirmed',
         totalAmount: puja?.price || 0,
       });
-      alert('Puja booked successfully. Pandit ji will be available in your selected online or offline slot, and your booking certificate plus invitation card are available in your profile.');
-      navigate('/profile?tab=bookings');
+      setBookingNotice({
+        tone: 'success',
+        title: 'Puja booked successfully',
+        message: 'Pandit ji will be available in your selected slot, and your certificate plus invitation card are ready in your profile.',
+      });
+      window.setTimeout(() => navigate('/profile?tab=bookings'), 700);
     } catch (error) {
       console.error('Booking error:', error);
-      alert(error instanceof Error ? error.message : 'Failed to book puja. Please try again.');
+      setBookingNotice({
+        tone: 'error',
+        title: 'Booking failed',
+        message: error instanceof Error ? error.message : 'Failed to book puja. Please try again.',
+      });
     } finally {
       setIsBooking(false);
     }
@@ -308,6 +328,14 @@ export default function PujaDetail() {
             </div>
 
           <div className="space-y-6">
+            {bookingNotice ? (
+              <InlineNotice
+                tone={bookingNotice.tone}
+                title={bookingNotice.title}
+                message={bookingNotice.message}
+                onClose={() => setBookingNotice(null)}
+              />
+            ) : null}
             <div>
               <label className="block text-sm font-bold text-stone-700 mb-2">
                 Choose Puja Mode
@@ -345,7 +373,7 @@ export default function PujaDetail() {
               </label>
               <input 
                 type="date" 
-                min={new Date().toISOString().split('T')[0]}
+                min={getTodayDateInputValue()}
                 value={bookingDate}
                 onChange={(e) => setBookingDate(e.target.value)}
                 className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
