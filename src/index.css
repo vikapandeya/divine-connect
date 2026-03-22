@@ -2,22 +2,27 @@
 
 :root {
   color-scheme: light;
-  --dc-bg: #f8f5f1;
+  --dc-bg: #f7f2eb;
+  --dc-bg-soft: #fffdf9;
   --dc-text: #1c1917;
   --dc-accent: #f97316;
   --dc-accent-dark: #c2410c;
+  --dc-accent-soft: rgba(249, 115, 22, 0.12);
+  --dc-line: rgba(120, 113, 108, 0.16);
 }
 
 html {
   scroll-behavior: smooth;
+  scroll-padding-top: 112px;
 }
 
 body {
   margin: 0;
   min-width: 320px;
   background:
-    radial-gradient(circle at top left, rgba(249, 115, 22, 0.08), transparent 24%),
-    linear-gradient(180deg, #fffdfb 0%, var(--dc-bg) 100%);
+    radial-gradient(circle at top left, rgba(249, 115, 22, 0.09), transparent 24%),
+    radial-gradient(circle at 100% 12%, rgba(245, 158, 11, 0.08), transparent 18%),
+    linear-gradient(180deg, var(--dc-bg-soft) 0%, var(--dc-bg) 100%);
   color: var(--dc-text);
   font-family:
     "Segoe UI",
@@ -28,6 +33,7 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 a,
@@ -59,6 +65,24 @@ button:disabled {
 :focus-visible {
   outline: 3px solid rgba(249, 115, 22, 0.28);
   outline-offset: 2px;
+}
+
+::-webkit-scrollbar {
+  width: 11px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(231, 229, 228, 0.7);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(249, 115, 22, 0.38);
+  border: 2px solid rgba(255, 251, 235, 0.8);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(249, 115, 22, 0.58);
 }
 
 input::placeholder,

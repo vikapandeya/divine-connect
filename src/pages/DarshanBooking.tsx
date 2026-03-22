@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Calendar, Clock, MapPin, Video, ShieldCheck, ArrowRight } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import PageHero from '../components/PageHero';
 import { createBookingDirect, DEMO_DEVOTEE_PROFILE } from '../lib/firestore-data';
 
 const temples = [
@@ -86,38 +87,62 @@ export default function DarshanBooking() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-10">
-        <div className="space-y-8">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-[0.3em] text-orange-500 mb-4">
-              Live Darshan
+    <div className="mx-auto max-w-7xl space-y-10 px-4 py-12 sm:px-6 lg:px-8">
+      <PageHero
+        eyebrow="Live Darshan"
+        title="Reserve temple darshan with a clearer choice between online participation and on-site visit support."
+        description="This flow is designed to reduce uncertainty around temple selection, mode, date, and available slots so devotees can confirm darshan with more confidence."
+        stats={[
+          { label: 'Temple Options', value: `${temples.length}` },
+          { label: 'Support Modes', value: 'Online & Offline' },
+          { label: 'Booking Outcome', value: 'Profile Synced' },
+        ]}
+        actions={
+          <Link
+            to="/profile?tab=bookings"
+            className="inline-flex items-center rounded-full bg-white px-6 py-3 font-bold text-stone-900 hover:bg-stone-100"
+          >
+            View My Bookings
+          </Link>
+        }
+        aside={
+          <div className="rounded-[2rem] border border-white/10 bg-white/10 p-6 backdrop-blur-sm">
+            <p className="text-xs font-bold uppercase tracking-[0.24em] text-orange-300">
+              Booking improvements
             </p>
-            <h1 className="text-4xl md:text-5xl font-serif font-bold text-stone-900 mb-4">
-              Book Online or Offline Darshan Support
-            </h1>
-            <p className="text-stone-600 max-w-2xl leading-relaxed">
-              Reserve online live darshan or temple visit assistance for your family.
-              We help devotees with clear timings, temple coordination, and special prayer support.
-            </p>
+            <div className="mt-5 space-y-3 text-sm text-stone-200">
+              <div className="rounded-2xl bg-white/5 px-4 py-3">
+                Stronger hierarchy between temple discovery and reservation form.
+              </div>
+              <div className="rounded-2xl bg-white/5 px-4 py-3">
+                Cleaner mode selection and more balanced information cards.
+              </div>
+              <div className="rounded-2xl bg-white/5 px-4 py-3">
+                Sticky booking card keeps the action clear while comparing options.
+              </div>
+            </div>
           </div>
+        }
+      />
 
+      <div className="grid grid-cols-1 gap-10 lg:grid-cols-[1.1fr_0.9fr]">
+        <div className="space-y-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-white border border-stone-200 rounded-[2rem] p-5">
+            <div className="rounded-[2rem] border border-stone-200 bg-white p-5 shadow-sm">
               <Video className="w-6 h-6 text-blue-500 mb-3" />
               <h2 className="font-bold text-stone-900 mb-2">Online Live Darshan</h2>
               <p className="text-sm text-stone-600">
                 Join remotely with guided support for live devotional participation.
               </p>
             </div>
-            <div className="bg-white border border-stone-200 rounded-[2rem] p-5">
+            <div className="rounded-[2rem] border border-stone-200 bg-white p-5 shadow-sm">
               <MapPin className="w-6 h-6 text-orange-500 mb-3" />
               <h2 className="font-bold text-stone-900 mb-2">Offline Visit Support</h2>
               <p className="text-sm text-stone-600">
                 Plan family darshan with timing windows and visit assistance.
               </p>
             </div>
-            <div className="bg-white border border-stone-200 rounded-[2rem] p-5">
+            <div className="rounded-[2rem] border border-stone-200 bg-white p-5 shadow-sm">
               <ShieldCheck className="w-6 h-6 text-emerald-500 mb-3" />
               <h2 className="font-bold text-stone-900 mb-2">Trusted Coordination</h2>
               <p className="text-sm text-stone-600">
@@ -135,8 +160,8 @@ export default function DarshanBooking() {
                 onClick={() => setFormData((current) => ({ ...current, templeId: temple.id }))}
                 className={`text-left rounded-[2rem] border p-6 transition-colors ${
                   formData.templeId === temple.id
-                    ? 'bg-orange-50 border-orange-200'
-                    : 'bg-white border-stone-200'
+                    ? 'border-orange-200 bg-orange-50 shadow-sm'
+                    : 'border-stone-200 bg-white shadow-sm'
                 }`}
               >
                 <p className="text-sm font-bold text-orange-600 mb-2">{temple.city}</p>
@@ -147,7 +172,7 @@ export default function DarshanBooking() {
           </div>
         </div>
 
-        <div className="bg-white border border-stone-200 rounded-[2.5rem] p-8 shadow-xl shadow-stone-200/40 h-fit sticky top-24">
+        <div className="sticky top-28 h-fit rounded-[2.5rem] border border-stone-200 bg-white p-8 shadow-xl shadow-stone-200/40">
           <h2 className="text-2xl font-serif font-bold text-stone-900 mb-6">
             Reserve Darshan
           </h2>

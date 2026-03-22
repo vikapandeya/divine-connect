@@ -8,7 +8,9 @@ import {
   Headphones,
   Sparkles,
   Send,
+  MessageSquareText,
 } from 'lucide-react';
+import PageHero from '../components/PageHero';
 import { generateDemoSupportReply } from '../lib/firestore-data';
 
 const contactCards = [
@@ -86,31 +88,45 @@ export default function Contact() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-12">
-      <section className="rounded-[3rem] bg-stone-900 text-white overflow-hidden relative px-8 py-12 md:px-14 md:py-16">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(249,115,22,0.35),_transparent_35%),radial-gradient(circle_at_bottom_right,_rgba(245,158,11,0.22),_transparent_30%)]" />
-        <div className="relative z-10 max-w-3xl">
-          <p className="text-xs font-bold uppercase tracking-[0.3em] text-orange-300 mb-4">
-            Contact DivineConnect
-          </p>
-          <h1 className="text-4xl md:text-6xl font-serif font-bold leading-tight mb-6">
-            We are here to help you with bookings, products, and spiritual guidance.
-          </h1>
-          <p className="text-stone-300 text-lg max-w-2xl">
-            If you need help with puja booking, darshan access, prasad orders,
-            or vendor onboarding, reach out and we will guide you.
-          </p>
-        </div>
-      </section>
+    <div className="mx-auto max-w-7xl space-y-10 px-4 py-12 sm:px-6 lg:px-8">
+      <PageHero
+        eyebrow="Contact DivineConnect"
+        title="Get support for bookings, products, account questions, and spiritual guidance."
+        description="This support experience is designed to feel immediate and calm, with direct contact options and a built-in AI assistant for quick answers."
+        stats={[
+          { label: 'Support Channels', value: 'Email, Phone, Chat' },
+          { label: 'Availability', value: 'Mon-Sat' },
+          { label: 'Best For', value: 'Bookings, Orders, Onboarding' },
+        ]}
+        aside={
+          <div className="rounded-[2rem] border border-white/10 bg-white/10 p-6 backdrop-blur-sm">
+            <div className="flex items-center gap-3 text-orange-300">
+              <MessageSquareText className="h-5 w-5" />
+              <p className="text-xs font-bold uppercase tracking-[0.24em]">Support Experience</p>
+            </div>
+            <div className="mt-5 space-y-3 text-sm text-stone-200">
+              <div className="rounded-2xl bg-white/5 px-4 py-3">
+                Quick contact cards for phone, email, and location context.
+              </div>
+              <div className="rounded-2xl bg-white/5 px-4 py-3">
+                Demo AI support for common questions before human escalation.
+              </div>
+              <div className="rounded-2xl bg-white/5 px-4 py-3">
+                Cleaner split between live help, support hours, and capability scope.
+              </div>
+            </div>
+          </div>
+        }
+      />
 
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <section className="grid grid-cols-1 gap-6 md:grid-cols-3">
         {contactCards.map(({ title, description, value, href, icon: Icon }) => (
           <a
             key={title}
             href={href}
             target={href.startsWith('https://') ? '_blank' : undefined}
             rel={href.startsWith('https://') ? 'noreferrer' : undefined}
-            className="bg-white rounded-[2rem] border border-stone-200 p-8 hover:border-orange-200 hover:shadow-xl hover:shadow-orange-500/10 transition-all"
+            className="rounded-[2rem] border border-stone-200 bg-white p-8 shadow-sm transition-all hover:-translate-y-1 hover:border-orange-200 hover:shadow-xl hover:shadow-orange-500/10"
           >
             <div className="w-12 h-12 rounded-2xl bg-orange-50 text-orange-500 flex items-center justify-center mb-6">
               <Icon className="w-6 h-6" />
@@ -127,8 +143,8 @@ export default function Contact() {
         ))}
       </section>
 
-      <section className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-8">
-        <div className="bg-white rounded-[2.5rem] border border-stone-200 overflow-hidden shadow-sm">
+      <section className="grid grid-cols-1 gap-8 lg:grid-cols-[1.1fr_0.9fr]">
+        <div className="overflow-hidden rounded-[2.5rem] border border-stone-200 bg-white shadow-sm shadow-stone-200/50">
           <div className="border-b border-stone-100 px-6 py-5 md:px-8 flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <div className="w-11 h-11 rounded-2xl bg-orange-50 text-orange-500 flex items-center justify-center">
@@ -224,7 +240,7 @@ export default function Contact() {
         </div>
 
         <div className="space-y-6">
-          <section className="bg-stone-100 rounded-[2.5rem] p-8 md:p-10">
+          <section className="rounded-[2.5rem] border border-stone-200 bg-stone-100 p-8 md:p-10">
             <div className="flex items-start gap-4">
               <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center text-orange-500 shadow-sm">
                 <Clock className="w-6 h-6" />

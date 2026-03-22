@@ -3,6 +3,7 @@ import { Product } from '../types';
 import { motion } from 'framer-motion';
 import { ShoppingCart, Star, Search, IndianRupee, X } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
+import PageHero from '../components/PageHero';
 import { addToCart } from '../lib/cart';
 import { formatIndianRupees } from '../lib/utils';
 import { listProductsDirect } from '../lib/firestore-data';
@@ -200,51 +201,59 @@ export default function Shop() {
   });
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <div className="flex flex-col md:flex-row md:items-center justify-between mb-12 gap-6">
-        <div>
-          <h1 className="text-4xl font-serif font-bold text-stone-900 mb-2">
-            Spiritual Offerings
-          </h1>
-          <p className="text-stone-600">
-            Discover temple prasad, puja essentials, idols, books, and devotional offerings. All listed items are available for delivery.
-          </p>
-        </div>
-
-        <div className="w-full md:w-auto">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
-            <input
-              type="text"
-              value={searchInput}
-              onChange={(event) => handleSearchChange(event.target.value)}
-              placeholder="Search products..."
-              className="w-full md:w-72 pl-10 pr-10 py-2 bg-white border border-stone-200 rounded-full text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
-            />
-            {searchInput && (
-              <button
-                type="button"
-                onClick={() => handleSearchChange('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-700"
-                aria-label="Clear search"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            )}
+    <div className="mx-auto max-w-7xl space-y-8 px-4 py-12 sm:px-6 lg:px-8">
+      <PageHero
+        tone="stone"
+        eyebrow="Spiritual Shop"
+        title="Curated offerings with cleaner filtering, stronger hierarchy, and faster product scanning."
+        description="Browse prasad, idols, incense, books, malas, and puja essentials through a calmer commerce layout designed for trust and quick comparison."
+        stats={[
+          { label: 'Catalog Categories', value: `${categories.length - 1}` },
+          { label: 'Temple-linked Picks', value: 'Prasad Focused' },
+          { label: 'Checkout Support', value: 'Invoice Ready' },
+        ]}
+        aside={
+          <div className="rounded-[2rem] border border-stone-200 bg-white p-6 shadow-sm">
+            <p className="text-xs font-bold uppercase tracking-[0.24em] text-orange-600">
+              Smart Catalog Search
+            </p>
+            <div className="relative mt-5">
+              <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400" />
+              <input
+                type="text"
+                value={searchInput}
+                onChange={(event) => handleSearchChange(event.target.value)}
+                placeholder="Search products, temples, or categories"
+                className="w-full rounded-[1.5rem] border border-stone-200 bg-stone-50 py-3 pl-11 pr-10 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-orange-500"
+              />
+              {searchInput ? (
+                <button
+                  type="button"
+                  onClick={() => handleSearchChange('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-700"
+                  aria-label="Clear search"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              ) : null}
+            </div>
+            <p className="mt-3 text-xs leading-relaxed text-stone-500">
+              Search works across product names, categories, descriptions, and temple names.
+            </p>
           </div>
-        </div>
-      </div>
+        }
+      />
 
-      <div className="flex flex-wrap gap-2 mb-4">
+      <div className="flex flex-wrap gap-2">
         {categories.map((category) => (
           <button
             key={category}
             type="button"
             onClick={() => handleCategoryChange(category)}
-            className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${
+            className={`rounded-full px-6 py-2 text-sm font-medium transition-all ${
               selectedCategory === category
-                ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20'
-                : 'bg-white text-stone-600 border border-stone-200 hover:border-orange-200'
+                ? 'bg-stone-900 text-white shadow-md shadow-stone-900/15'
+                : 'border border-stone-200 bg-white text-stone-600 hover:border-orange-200 hover:text-orange-600'
             }`}
           >
             {category}
@@ -252,12 +261,14 @@ export default function Shop() {
         ))}
       </div>
 
-      <div className="mb-10 text-sm text-stone-500">
-        {loading ? 'Refreshing catalog...' : `${filteredProducts.length} items found`}
+      <div className="rounded-[1.75rem] border border-stone-200 bg-white px-5 py-4 text-sm text-stone-500 shadow-sm">
+        {loading
+          ? 'Refreshing catalog...'
+          : `${filteredProducts.length} items found${selectedCategory !== 'all' ? ` in ${selectedCategory}` : ''}${normalizedQuery ? ` for "${searchInput}"` : ''}`}
       </div>
 
       {filteredProducts.length === 0 ? (
-        <div className="bg-white rounded-[2rem] border border-stone-200 p-10 text-center">
+        <div className="rounded-[2rem] border border-stone-200 bg-white p-10 text-center shadow-sm">
           <h2 className="text-2xl font-serif font-bold text-stone-900 mb-3">
             No products matched your search
           </h2>
@@ -277,14 +288,14 @@ export default function Shop() {
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {filteredProducts.map((product, index) => (
             <motion.div
               key={product.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.05 }}
-              className="bg-white rounded-3xl overflow-hidden border border-stone-200 group hover:shadow-xl transition-all"
+              className="group overflow-hidden rounded-[2rem] border border-stone-200 bg-white shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-orange-500/10"
             >
               <div className="aspect-square overflow-hidden relative">
                 <img

@@ -432,7 +432,7 @@ export default function Home() {
                   </p>
                   <h3 className="font-bold text-stone-900 mb-1">{product.name}</h3>
                   <p className="text-sm text-stone-500 mb-4">
-                    {product.templeName} • {product.weight}
+                    {product.templeName} | {product.weight}
                   </p>
                   <div className="flex justify-between items-center gap-3">
                     <div className="flex items-center text-lg font-serif font-bold text-orange-600">

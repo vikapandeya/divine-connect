@@ -12,6 +12,7 @@ import {
   HandHelping,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import PageHero from '../components/PageHero';
 
 const values = [
   {
@@ -68,38 +69,30 @@ const developers = [
 
 export default function About() {
   return (
-    <div className="min-h-screen bg-stone-50 py-20 px-4">
-      <div className="max-w-6xl mx-auto space-y-20">
-        <div className="text-center max-w-4xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-orange-100 text-orange-700 text-xs font-bold uppercase tracking-widest mb-6"
-          >
-            <Star className="w-4 h-4" />
-            <span>Our Mission</span>
-          </motion.div>
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="text-5xl md:text-6xl font-serif font-bold text-stone-900 mb-8"
-          >
-            Bridging the <span className="text-orange-500 italic">Divine</span> & the{' '}
-            <span className="text-orange-500 italic">Digital</span>
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="text-xl text-stone-600 leading-relaxed"
-          >
-            DivineConnect is designed to make spiritual services more accessible,
-            organized, and trustworthy for devotees everywhere. We believe
-            technology should support faith with clarity, authenticity, and
-            convenience without losing the warmth of tradition.
-          </motion.p>
-        </div>
+    <div className="min-h-screen px-4 py-12 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-6xl space-y-16">
+        <PageHero
+          tone="stone"
+          eyebrow="Our Mission"
+          title="Bridging the Divine and the Digital with more clarity, warmth, and trust."
+          description="DivineConnect is built to make spiritual services more accessible, organized, and reassuring for devotees everywhere while preserving the emotional warmth of tradition."
+          stats={[
+            { label: 'Primary Focus', value: 'Trust & Clarity' },
+            { label: 'Platform Pillars', value: '3 Core Areas' },
+            { label: 'Audience', value: 'Families & Devotees' },
+          ]}
+          aside={
+            <div className="rounded-[2rem] border border-stone-200 bg-white p-6 shadow-sm">
+              <div className="inline-flex items-center gap-2 rounded-full bg-orange-50 px-3 py-1 text-xs font-bold uppercase tracking-[0.22em] text-orange-700">
+                <Star className="h-3.5 w-3.5" />
+                Intentional Product Design
+              </div>
+              <p className="mt-4 text-sm leading-relaxed text-stone-600">
+                The goal is not just to digitize rituals, but to make the full spiritual journey easier to understand, safer to navigate, and calmer to return to.
+              </p>
+            </div>
+          }
+        />
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {values.map((value, idx) => (

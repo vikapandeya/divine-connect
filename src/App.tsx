@@ -1,6 +1,8 @@
 import React, { Suspense, lazy } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { Compass, Sparkles } from 'lucide-react';
 import Layout from './components/Layout';
+import ScrollToTop from './components/ScrollToTop';
 import { ErrorBoundary } from './components/ErrorBoundary';
 
 const Home = lazy(() => import('./pages/Home'));
@@ -16,13 +18,28 @@ const About = lazy(() => import('./pages/About'));
 const Contact = lazy(() => import('./pages/Contact'));
 const DarshanBooking = lazy(() => import('./pages/DarshanBooking'));
 const PrasadDelivery = lazy(() => import('./pages/PrasadDelivery'));
+const NotFound = lazy(() => import('./pages/NotFound'));
 
 function PageLoader() {
   return (
-    <div className="min-h-[60vh] flex items-center justify-center px-4">
-      <div className="text-center">
-        <div className="w-12 h-12 mx-auto mb-4 rounded-full border-4 border-orange-100 border-t-orange-500 animate-spin" />
-        <p className="text-sm font-medium text-stone-500">Loading DivineConnect...</p>
+    <div className="flex min-h-[65vh] items-center justify-center px-4 py-10">
+      <div className="w-full max-w-md rounded-[2rem] border border-stone-200 bg-white p-8 text-center shadow-xl shadow-stone-200/40">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-orange-50 text-orange-500">
+          <Compass className="h-6 w-6" />
+        </div>
+        <div className="mt-5 inline-flex items-center gap-2 rounded-full bg-orange-50 px-3 py-1 text-xs font-bold uppercase tracking-[0.22em] text-orange-700">
+          <Sparkles className="h-3.5 w-3.5" />
+          Loading Experience
+        </div>
+        <h2 className="mt-5 text-2xl font-serif font-bold text-stone-900">
+          Preparing your DivineConnect page
+        </h2>
+        <p className="mt-3 text-sm leading-relaxed text-stone-600">
+          We are arranging the next view, services, and devotional details for a smooth transition.
+        </p>
+        <div className="mx-auto mt-6 h-2.5 w-full overflow-hidden rounded-full bg-stone-100">
+          <div className="h-full w-1/2 animate-pulse rounded-full bg-gradient-to-r from-orange-400 via-amber-400 to-orange-500" />
+        </div>
       </div>
     </div>
   );
@@ -32,6 +49,7 @@ export default function App() {
   return (
     <ErrorBoundary>
       <Router basename={import.meta.env.BASE_URL}>
+        <ScrollToTop />
         <Layout>
           <Suspense fallback={<PageLoader />}>
             <Routes>
@@ -49,6 +67,7 @@ export default function App() {
               <Route path="/vendor" element={<VendorDashboard />} />
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/astrology" element={<Astrology />} />
+              <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
         </Layout>

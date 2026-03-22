@@ -11,6 +11,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import PageHero from '../components/PageHero';
 import { formatIndianRupees } from '../lib/utils';
 import { listPujasDirect } from '../lib/firestore-data';
 
@@ -92,19 +93,54 @@ export default function Services() {
         ];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <div className="mb-12">
-        <h1 className="text-4xl font-serif font-bold text-stone-900 mb-4">
-          Sacred Puja Services
-        </h1>
-        <p className="text-stone-600 max-w-2xl">
-          Connect with experienced pandit ji for authentic Vedic rituals, online and
-          offline puja timings, and guided live darshan support.
-        </p>
-      </div>
+    <div className="mx-auto max-w-7xl space-y-10 px-4 py-12 sm:px-6 lg:px-8">
+      <PageHero
+        eyebrow="Sacred Services"
+        title="Book puja services with clearer guidance, better timing context, and trusted delivery."
+        description="Choose from verified rituals, hybrid seva formats, live darshan support, and AI-guided next steps built to feel calm, practical, and dependable."
+        stats={[
+          { label: 'Service Formats', value: 'Online, Offline, Hybrid' },
+          { label: 'Popular Ritual Types', value: `${displayPujas.length}+` },
+          { label: 'Guidance Layers', value: 'Puja, Darshan, Astrology' },
+        ]}
+        actions={
+          <>
+            <Link
+              to="/services/darshan"
+              className="inline-flex items-center rounded-full bg-white px-6 py-3 font-bold text-stone-900 hover:bg-stone-100"
+            >
+              Book Darshan
+            </Link>
+            <Link
+              to="/astrology"
+              className="inline-flex items-center rounded-full border border-white/15 bg-white/5 px-6 py-3 font-bold text-white hover:bg-white/10"
+            >
+              Open AI Astrology
+            </Link>
+          </>
+        }
+        aside={
+          <div className="rounded-[2rem] border border-white/10 bg-white/10 p-6 backdrop-blur-sm">
+            <p className="text-xs font-bold uppercase tracking-[0.24em] text-orange-300">
+              Why this flow feels better
+            </p>
+            <div className="mt-5 space-y-3 text-sm text-stone-200">
+              <div className="rounded-2xl bg-white/5 px-4 py-3">
+                Clear duration, schedule, and samagri expectations.
+              </div>
+              <div className="rounded-2xl bg-white/5 px-4 py-3">
+                Direct paths into darshan support and astrology remedies.
+              </div>
+              <div className="rounded-2xl bg-white/5 px-4 py-3">
+                Stronger card hierarchy for faster comparison across services.
+              </div>
+            </div>
+          </div>
+        }
+      />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
-        <div className="bg-white rounded-[2rem] border border-stone-200 p-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className="rounded-[2rem] border border-stone-200 bg-white p-6 shadow-sm shadow-stone-200/50">
           <div className="w-12 h-12 rounded-2xl bg-orange-50 flex items-center justify-center mb-4">
             <Flame className="w-6 h-6 text-orange-500" />
           </div>
@@ -115,7 +151,7 @@ export default function Services() {
             Choose puja slots for home visits or online sankalp sessions. Pandit ji is available in both online and offline modes.
           </p>
         </div>
-        <div className="bg-white rounded-[2rem] border border-stone-200 p-6">
+        <div className="rounded-[2rem] border border-stone-200 bg-white p-6 shadow-sm shadow-stone-200/50">
           <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center mb-4">
             <Video className="w-6 h-6 text-blue-500" />
           </div>
@@ -130,7 +166,7 @@ export default function Services() {
             Book Darshan Support
           </Link>
         </div>
-        <div className="bg-white rounded-[2rem] border border-stone-200 p-6">
+        <div className="rounded-[2rem] border border-stone-200 bg-white p-6 shadow-sm shadow-stone-200/50">
           <div className="w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center mb-4">
             <Sparkles className="w-6 h-6 text-amber-500" />
           </div>
@@ -145,14 +181,14 @@ export default function Services() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
         {displayPujas.map((puja, index) => (
           <motion.div
             key={puja.id}
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: index * 0.1 }}
-            className="bg-white rounded-3xl border border-stone-200 overflow-hidden hover:shadow-xl transition-all flex flex-col"
+            className="flex flex-col overflow-hidden rounded-[2rem] border border-stone-200 bg-white shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-orange-500/10"
           >
             <div className="h-48 bg-orange-100 relative overflow-hidden">
               <img
@@ -167,7 +203,7 @@ export default function Services() {
               </div>
             </div>
 
-            <div className="p-8 flex-grow">
+            <div className="flex flex-grow flex-col p-8">
               <h3 className="text-2xl font-serif font-bold text-stone-900 mb-3">{puja.title}</h3>
               <p className="text-stone-600 text-sm mb-5 line-clamp-2">{puja.description}</p>
               {puja.templeName && (
@@ -177,7 +213,7 @@ export default function Services() {
                 </div>
               )}
 
-              <div className="space-y-3 mb-8">
+              <div className="mb-8 space-y-3">
                 <div className="flex items-center text-stone-500 text-sm">
                   <Clock className="w-4 h-4 mr-2" />
                   <span>Duration: {puja.duration}</span>
@@ -206,7 +242,7 @@ export default function Services() {
                 ) : null}
               </div>
 
-              <div className="flex items-center justify-between pt-6 border-t border-stone-100">
+              <div className="mt-auto flex items-center justify-between border-t border-stone-100 pt-6">
                 <div className="flex items-center text-2xl font-serif font-bold text-orange-600">
                   <IndianRupee className="w-5 h-5" />
                   <span>{formatIndianRupees(puja.price)}</span>
