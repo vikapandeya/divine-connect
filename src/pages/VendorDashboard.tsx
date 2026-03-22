@@ -3,7 +3,7 @@ import { Booking, Order, Product, Puja } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Edit2, Trash2, X, Save, CheckCircle, XCircle, Bell, Wallet, AlertTriangle, ShieldCheck } from 'lucide-react';
 import InlineNotice from '../components/InlineNotice';
-import { formatIndianRupees } from '../lib/utils';
+import { formatIndianRupees, getProductPlaceholderImage } from '../lib/utils';
 import {
   deleteProductDirect,
   deletePujaDirect,
@@ -461,6 +461,18 @@ export default function VendorDashboard() {
                             alt={p.name}
                             className="w-10 h-10 rounded-lg object-cover"
                             referrerPolicy="no-referrer"
+                            onError={(event) => {
+                              if (event.currentTarget.dataset.fallbackApplied === 'true') {
+                                return;
+                              }
+
+                              event.currentTarget.dataset.fallbackApplied = 'true';
+                              event.currentTarget.src = getProductPlaceholderImage(
+                                p.name,
+                                p.category,
+                                p.templeName || p.offeringType || p.city,
+                              );
+                            }}
                           />
                           <span className="font-bold text-stone-900">{p.name}</span>
                         </div>

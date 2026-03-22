@@ -23,7 +23,7 @@ import {
   subscribeToCart,
   updateCartItemQuantity,
 } from '../lib/cart';
-import { formatIndianRupees } from '../lib/utils';
+import { formatIndianRupees, getProductPlaceholderImage } from '../lib/utils';
 import { createOrderDirect, DEMO_DEVOTEE_PROFILE } from '../lib/firestore-data';
 
 export default function Cart() {
@@ -234,6 +234,18 @@ export default function Cart() {
                 src={item.image}
                 alt={item.name}
                 className="w-20 h-20 rounded-2xl object-cover border border-stone-100"
+                onError={(event) => {
+                  if (event.currentTarget.dataset.fallbackApplied === 'true') {
+                    return;
+                  }
+
+                  event.currentTarget.dataset.fallbackApplied = 'true';
+                  event.currentTarget.src = getProductPlaceholderImage(
+                    item.name,
+                    item.category || 'Offerings',
+                    item.templeName || item.weight || item.size,
+                  );
+                }}
               />
               <div className="sm:ml-2 flex-grow">
                 <h3 className="font-bold text-stone-900">{item.name}</h3>

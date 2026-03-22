@@ -23,6 +23,10 @@ function buildAiProductImage(seed: string, prompt: string) {
   return `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=800&height=800&model=flux&seed=${seed}&nologo=true`;
 }
 
+function buildAiTravelImage(seed: string, prompt: string) {
+  return `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=1400&height=900&model=flux&seed=${seed}&nologo=true`;
+}
+
 function createSeedProduct(
   payload: Omit<Product, 'vendorId' | 'isActive' | 'createdAt' | 'updatedAt'> & Partial<Pick<Product, 'isActive'>>,
 ): Product {
@@ -690,7 +694,7 @@ const defaultYatraPackages: YatraPackage[] = [
     inclusions: ['Accommodation', 'Transfers', 'Yatra coordinator', 'Darshan guidance', 'Basic medical support'],
     routePlan: ['Arrival in Haridwar', 'Yamunotri darshan', 'Gangotri darshan', 'Kedarnath trek and stay', 'Badrinath darshan', 'Return via Rishikesh'],
     badge: 'Most Requested',
-    image: 'https://picsum.photos/seed/char-dham/1200/800',
+    image: buildAiTravelImage('char-dham-yatra', 'cinematic Himalayan Char Dham pilgrimage route with Kedarnath and Badrinath temple atmosphere mountain road sunrise devotional travel poster'),
   },
   {
     id: 'yatra-do-dham-family',
@@ -709,7 +713,7 @@ const defaultYatraPackages: YatraPackage[] = [
     inclusions: ['Hotel stay', 'Ground transfers', 'Helpline support', 'Darshan assistance'],
     routePlan: ['Haridwar arrival', 'Guptkashi halt', 'Kedarnath darshan', 'Joshimath stay', 'Badrinath darshan', 'Departure'],
     badge: 'Family Friendly',
-    image: 'https://picsum.photos/seed/do-dham/1200/800',
+    image: buildAiTravelImage('do-dham-family', 'family friendly Kedarnath Badrinath pilgrimage package visual with mountain valley temple town and premium spiritual travel brochure style'),
   },
   {
     id: 'yatra-jyotirlinga-west',
@@ -728,7 +732,7 @@ const defaultYatraPackages: YatraPackage[] = [
     inclusions: ['Hotel stay', 'Sightseeing transfers', 'Temple queue planning', 'Yatra support desk'],
     routePlan: ['Ahmedabad arrival', 'Somnath darshan', 'Dwarka and Nageshwar', 'Transfer to Ujjain', 'Mahakaleshwar darshan', 'Departure'],
     badge: 'Jyotirlinga Circuit',
-    image: 'https://picsum.photos/seed/jyotirlinga-west/1200/800',
+    image: buildAiTravelImage('jyotirlinga-west', 'western India jyotirlinga circuit travel artwork with Somnath sea temple Dwarka spiritual skyline and premium yatra brochure composition'),
   },
   {
     id: 'yatra-kashi-ayodhya-prayagraj',
@@ -747,7 +751,7 @@ const defaultYatraPackages: YatraPackage[] = [
     inclusions: ['Hotel stay', 'Local transfers', 'Aarti guidance', 'Sangam coordination', 'Temple support'],
     routePlan: ['Kashi Vishwanath darshan', 'Ganga aarti evening', 'Prayagraj sangam ritual support', 'Ayodhya temple circuit', 'Return transfer'],
     badge: 'Popular Tirth Circuit',
-    image: 'https://picsum.photos/seed/kashi-ayodhya/1200/800',
+    image: buildAiTravelImage('kashi-ayodhya-prayagraj', 'Kashi Ayodhya Prayagraj pilgrimage scene with ghats temple shikhara sacred river and devotional golden light for travel package hero image'),
   },
   {
     id: 'yatra-pancha-jyotirlinga',
@@ -766,7 +770,7 @@ const defaultYatraPackages: YatraPackage[] = [
     inclusions: ['Premium stay', 'Transfers', 'Support executive', 'Temple coverage', 'Daily itinerary guidance'],
     routePlan: ['Ujjain and Omkareshwar', 'Somnath', 'Dwarka and Nageshwar zone', 'Maharashtra Jyotirlinga stops', 'Departure'],
     badge: 'Premium Package',
-    image: 'https://picsum.photos/seed/pancha-jyotirlinga/1200/800',
+    image: buildAiTravelImage('pancha-jyotirlinga', 'premium pancha jyotirlinga pilgrimage montage with temple silhouettes sacred fire and elegant spiritual travel campaign look'),
   },
 ];
 

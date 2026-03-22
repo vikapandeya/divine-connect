@@ -5,7 +5,7 @@ import { ShoppingCart, Star, Search, IndianRupee, X, Heart, MapPin, ShieldCheck,
 import { useSearchParams } from 'react-router-dom';
 import PageHero from '../components/PageHero';
 import { addToCart } from '../lib/cart';
-import { formatIndianRupees } from '../lib/utils';
+import { formatIndianRupees, getProductPlaceholderImage } from '../lib/utils';
 import { listProductsDirect } from '../lib/firestore-data';
 import {
   getReviewCount,
@@ -409,6 +409,18 @@ export default function Shop() {
                   alt={product.name}
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                   referrerPolicy="no-referrer"
+                  onError={(event) => {
+                    if (event.currentTarget.dataset.fallbackApplied === 'true') {
+                      return;
+                    }
+
+                    event.currentTarget.dataset.fallbackApplied = 'true';
+                    event.currentTarget.src = getProductPlaceholderImage(
+                      product.name,
+                      product.category,
+                      product.templeName || product.offeringType || product.city,
+                    );
+                  }}
                 />
                 <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-lg flex items-center space-x-1 shadow-sm">
                   <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />

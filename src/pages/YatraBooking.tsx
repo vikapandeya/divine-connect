@@ -5,6 +5,7 @@ import {
   BedDouble,
   Bus,
   CalendarDays,
+  Compass,
   IndianRupee,
   MapPinned,
   ShieldCheck,
@@ -15,7 +16,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import PageHero from '../components/PageHero';
 import InlineNotice from '../components/InlineNotice';
 import { createBookingDirect, DEMO_DEVOTEE_PROFILE, listYatraPackagesDirect } from '../lib/firestore-data';
-import { formatIndianRupees, getTodayDateInputValue } from '../lib/utils';
+import { formatIndianRupees, getTodayDateInputValue, getYatraPlaceholderImage } from '../lib/utils';
 import { YatraPackage } from '../types';
 
 const packageTypes: Array<{ value: 'all' | YatraPackage['packageType']; label: string }> = [
@@ -210,7 +211,7 @@ export default function YatraBooking() {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 gap-10 lg:grid-cols-[1.05fr_0.95fr]">
+      <div className="grid grid-cols-1 gap-10 xl:grid-cols-[minmax(0,1.08fr)_24rem] 2xl:grid-cols-[minmax(0,1.1fr)_25rem]">
         <div className="space-y-6">
           {packages.map((yatraPackage, index) => (
             <motion.button
@@ -220,29 +221,48 @@ export default function YatraBooking() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.05 }}
               onClick={() => handlePackageSelect(yatraPackage.id)}
-              className={`w-full overflow-hidden rounded-[2.5rem] border text-left transition-all ${
+              className={`w-full overflow-hidden rounded-[2.75rem] border text-left transition-all ${
                 selectedPackage?.id === yatraPackage.id
-                  ? 'border-orange-300 bg-orange-50 shadow-lg shadow-orange-500/10'
+                  ? 'border-orange-300 bg-[linear-gradient(180deg,#fff7ed_0%,#ffffff_100%)] shadow-xl shadow-orange-500/10'
                   : 'border-stone-200 bg-white shadow-sm hover:-translate-y-1 hover:shadow-lg hover:shadow-stone-200/40'
               }`}
             >
-              <div className="grid grid-cols-1 md:grid-cols-[260px_1fr]">
-                <div className="relative h-full min-h-[220px] overflow-hidden">
+              <div className="grid grid-cols-1 lg:grid-cols-[320px_minmax(0,1fr)]">
+                <div className="relative min-h-[250px] overflow-hidden lg:min-h-full">
                   <img
                     src={yatraPackage.image}
                     alt={yatraPackage.title}
                     className="h-full w-full object-cover"
                     referrerPolicy="no-referrer"
+                    onError={(event) => {
+                      if (event.currentTarget.dataset.fallbackApplied === 'true') {
+                        return;
+                      }
+
+                      event.currentTarget.dataset.fallbackApplied = 'true';
+                      event.currentTarget.src = getYatraPlaceholderImage(
+                        yatraPackage.title,
+                        yatraPackage.packageType.replace('-', ' '),
+                        yatraPackage.destinations.slice(0, 3).join(' | '),
+                      );
+                    }}
                   />
+                  <div className="absolute inset-0 bg-gradient-to-t from-stone-950/70 via-stone-950/10 to-transparent" />
                   {yatraPackage.badge ? (
                     <span className="absolute left-4 top-4 rounded-full bg-white/90 px-3 py-1 text-xs font-bold text-stone-900">
                       {yatraPackage.badge}
                     </span>
                   ) : null}
+                  <div className="absolute bottom-4 left-4 right-4">
+                    <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.22em] text-white backdrop-blur-sm">
+                      <Compass className="h-3.5 w-3.5" />
+                      {yatraPackage.destinations.length} sacred stops
+                    </div>
+                  </div>
                 </div>
 
                 <div className="p-7">
-                  <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                  <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
                     <div>
                       <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-orange-600">
                         {yatraPackage.packageType.replace('-', ' ')}
@@ -254,11 +274,11 @@ export default function YatraBooking() {
                         {yatraPackage.description}
                       </p>
                     </div>
-                    <div className="rounded-[1.5rem] border border-stone-200 bg-white px-4 py-4 text-right">
+                    <div className="rounded-[1.5rem] border border-orange-100 bg-orange-50 px-4 py-4 text-left lg:min-w-[180px] lg:text-right">
                       <p className="text-xs font-bold uppercase tracking-[0.22em] text-stone-400">
                         Starting from
                       </p>
-                      <div className="mt-3 flex items-center justify-end text-2xl font-serif font-bold text-orange-600">
+                      <div className="mt-3 flex items-center text-2xl font-serif font-bold text-orange-600 lg:justify-end">
                         <IndianRupee className="h-5 w-5" />
                         <span>{formatIndianRupees(yatraPackage.startingPrice)}</span>
                       </div>
@@ -266,7 +286,7 @@ export default function YatraBooking() {
                     </div>
                   </div>
 
-                  <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+                  <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 2xl:grid-cols-4">
                     {[
                       { label: 'Duration', value: yatraPackage.duration, icon: CalendarDays },
                       { label: 'Transport', value: yatraPackage.transport, icon: Bus },
@@ -280,13 +300,13 @@ export default function YatraBooking() {
                             <Icon className="h-4 w-4 text-orange-500" />
                             {item.label}
                           </div>
-                          <p className="mt-3 text-sm font-bold text-stone-900">{item.value}</p>
+                          <p className="mt-3 text-sm leading-relaxed font-bold text-stone-900">{item.value}</p>
                         </div>
                       );
                     })}
                   </div>
 
-                  <div className="mt-6 grid grid-cols-1 gap-5 xl:grid-cols-[1fr_0.95fr]">
+                  <div className="mt-6 grid grid-cols-1 gap-5 2xl:grid-cols-[1fr_0.95fr]">
                     <div className="rounded-[1.75rem] border border-stone-200 bg-white p-5">
                       <p className="text-xs font-bold uppercase tracking-[0.22em] text-stone-400">
                         Destinations and route
@@ -334,7 +354,7 @@ export default function YatraBooking() {
           ))}
         </div>
 
-        <div className="sticky top-24 h-fit rounded-[2.75rem] border border-stone-200 bg-white p-8 shadow-xl shadow-stone-200/50">
+        <div className="h-fit rounded-[2.75rem] border border-stone-200 bg-white p-8 shadow-xl shadow-stone-200/50 xl:sticky xl:top-24">
           {selectedPackage ? (
             <>
               <p className="text-xs font-bold uppercase tracking-[0.24em] text-orange-600">
@@ -357,7 +377,7 @@ export default function YatraBooking() {
                 />
               ) : null}
 
-              <div className="mt-6 rounded-[2rem] border border-orange-100 bg-orange-50 p-5">
+              <div className="mt-6 rounded-[2rem] border border-orange-100 bg-[linear-gradient(135deg,#fff7ed_0%,#ffedd5_100%)] p-5">
                 <div className="flex items-center justify-between gap-4">
                   <div>
                     <p className="text-xs font-bold uppercase tracking-[0.22em] text-orange-600">
@@ -429,7 +449,7 @@ export default function YatraBooking() {
                 </div>
                 <div className="mt-3 flex items-center justify-between gap-4">
                   <span className="text-sm text-stone-600">Package type</span>
-                  <span className="text-sm font-bold text-stone-900">{selectedPackage.packageType.replace('-', ' ')}</span>
+                  <span className="text-sm font-bold capitalize text-stone-900">{selectedPackage.packageType.replace('-', ' ')}</span>
                 </div>
                 <div className="mt-4 border-t border-stone-200 pt-4 flex items-center justify-between gap-4">
                   <span className="text-base font-bold text-stone-900">Estimated Total</span>

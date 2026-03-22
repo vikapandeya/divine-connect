@@ -3,7 +3,7 @@ import { Booking, Order, Product } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Edit2, Trash2, X, Save, Package, Star, Users, Store, Calendar, Bell, Smartphone, ShieldCheck, Wallet } from 'lucide-react';
 import InlineNotice from '../components/InlineNotice';
-import { formatIndianRupees } from '../lib/utils';
+import { formatIndianRupees, getProductPlaceholderImage } from '../lib/utils';
 import {
   deleteProductDirect,
   getAdminStatsDirect,
@@ -361,7 +361,24 @@ export default function AdminDashboard() {
                   <tr key={product.id} className="hover:bg-stone-50 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center space-x-4">
-                        <img src={product.image} alt={product.name} className="w-10 h-10 rounded-lg object-cover" referrerPolicy="no-referrer" />
+                        <img
+                          src={product.image}
+                          alt={product.name}
+                          className="w-10 h-10 rounded-lg object-cover"
+                          referrerPolicy="no-referrer"
+                          onError={(event) => {
+                            if (event.currentTarget.dataset.fallbackApplied === 'true') {
+                              return;
+                            }
+
+                            event.currentTarget.dataset.fallbackApplied = 'true';
+                            event.currentTarget.src = getProductPlaceholderImage(
+                              product.name,
+                              product.category,
+                              product.templeName || product.offeringType || product.city,
+                            );
+                          }}
+                        />
                         <span className="font-bold text-stone-900">{product.name}</span>
                       </div>
                     </td>
