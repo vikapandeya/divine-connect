@@ -1,4 +1,5 @@
 import { Booking, Order, Product } from '../types';
+import { knowledgeHighlights } from './knowledge';
 
 export type AppLocale = 'en' | 'hi' | 'sa';
 
@@ -166,29 +167,13 @@ const templeSpotlights: TempleSpotlight[] = [
   },
 ];
 
-const articles: SpiritualArticle[] = [
-  {
-    id: 'ganesh-puja-guide',
-    title: 'Why Ganesh Puja is booked before new beginnings',
-    excerpt: 'A concise family-friendly guide to sankalp, timing, and what devotees usually include in the ritual.',
-    category: 'Ritual Guide',
-    readTime: '5 min read',
-  },
-  {
-    id: 'prasad-significance',
-    title: 'How temple prasad becomes a trust signal in spiritual commerce',
-    excerpt: 'An explainer on blessing lineage, freshness, packaging clarity, and how devotees verify authenticity.',
-    category: 'Trust & Ritual',
-    readTime: '4 min read',
-  },
-  {
-    id: 'festival-calendar',
-    title: 'Festival preparation checklist for families using online spiritual services',
-    excerpt: 'A practical list for booking puja slots, arranging samagri, scheduling livestreams, and sharing invitations.',
-    category: 'Festival Planning',
-    readTime: '6 min read',
-  },
-];
+const articles: SpiritualArticle[] = knowledgeHighlights.map((article) => ({
+  id: article.id,
+  title: article.title,
+  excerpt: article.excerpt,
+  category: article.category,
+  readTime: article.readTime,
+}));
 
 const reviewMedia: ReviewMedia[] = [
   {

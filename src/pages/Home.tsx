@@ -232,7 +232,7 @@ export default function Home() {
               Experience sacred rituals, online live darshan, and temple offerings on
               a platform built for trust, clarity, devotional ease, and reliable delivery.
             </p>
-            <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
+            <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap">
               <Link
                 to="/services/puja"
                 className="bg-orange-500 text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/20 text-center"
@@ -244,6 +244,12 @@ export default function Home() {
                 className="bg-white/10 backdrop-blur-md border border-white/20 text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-white/20 transition-all text-center"
               >
                 {copy.templePrasad}
+              </Link>
+              <Link
+                to="/knowledge"
+                className="bg-white text-stone-900 px-8 py-4 rounded-full font-bold text-lg hover:bg-orange-50 transition-all text-center shadow-lg shadow-stone-950/10"
+              >
+                Spiritual Knowledge
               </Link>
             </div>
           </motion.div>
@@ -651,6 +657,12 @@ export default function Home() {
               {copy.blogDescription}
             </p>
           </div>
+          <Link
+            to="/knowledge"
+            className="hidden sm:inline-flex rounded-full border border-stone-200 bg-white px-5 py-3 text-sm font-bold text-stone-900 hover:border-orange-200 hover:text-orange-600"
+          >
+            Open Knowledge Hub
+          </Link>
         </div>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -670,7 +682,10 @@ export default function Home() {
               </p>
               <div className="mt-6 flex items-center justify-between text-sm">
                 <span className="font-bold text-stone-900">{article.readTime}</span>
-                <Link to="/about" className="font-bold text-orange-600 hover:text-orange-500">
+                <Link
+                  to={`/knowledge#${article.id}`}
+                  className="font-bold text-orange-600 hover:text-orange-500"
+                >
                   Read article
                 </Link>
               </div>

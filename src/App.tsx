@@ -8,6 +8,7 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 const Home = lazy(() => import('./pages/Home'));
 const Services = lazy(() => import('./pages/Services'));
 const Shop = lazy(() => import('./pages/Shop'));
+const SpiritualKnowledge = lazy(() => import('./pages/SpiritualKnowledge'));
 const PujaDetail = lazy(() => import('./pages/PujaDetail'));
 const Profile = lazy(() => import('./pages/Profile'));
 const Cart = lazy(() => import('./pages/Cart'));
@@ -62,6 +63,7 @@ export default function App() {
               <Route path="/services/yatra" element={<YatraBooking />} />
               <Route path="/services/prasad" element={<PrasadDelivery />} />
               <Route path="/shop" element={<Shop />} />
+              <Route path="/knowledge" element={<SpiritualKnowledge />} />
               <Route path="/about" element={<About />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/profile" element={<Profile />} />

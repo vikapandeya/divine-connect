@@ -37,6 +37,7 @@ const navLinks = [
   { to: '/', label: 'Home', end: true },
   { to: '/services', label: 'Services' },
   { to: '/shop', label: 'Shop' },
+  { to: '/knowledge', label: 'Knowledge' },
   { to: '/astrology', label: 'AI Astrology' },
   { to: '/about', label: 'About' },
   { to: '/contact', label: 'Contact' },
@@ -57,6 +58,11 @@ const quickActions = [
     title: 'Temple Prasad',
     description: 'Explore mandir-backed offerings and delivery-ready packs.',
     to: '/shop?category=prasad',
+  },
+  {
+    title: 'Spiritual Knowledge',
+    description: 'Read puja, scripture, and temple guidance in one place.',
+    to: '/knowledge',
   },
 ];
 
@@ -415,7 +421,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   ))}
                 </div>
 
-                <div className="mt-5 grid gap-3 sm:grid-cols-3">
+                <div className="mt-5 grid gap-3 sm:grid-cols-2">
                   {quickActions.map((action) => (
                     <Link
                       key={action.to}
@@ -477,6 +483,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 <li><Link to="/services/darshan" className="hover:text-white">Darshan Support</Link></li>
                 <li><Link to="/services/prasad" className="hover:text-white">Temple Prasad</Link></li>
                 <li><Link to="/shop" className="hover:text-white">Spiritual Shop</Link></li>
+                <li><Link to="/knowledge" className="hover:text-white">Spiritual Knowledge</Link></li>
                 <li><Link to="/astrology" className="hover:text-white">AI Astrology</Link></li>
               </ul>
             </div>
