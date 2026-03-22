@@ -5,6 +5,54 @@ type PdfLine = {
   gapBefore?: number;
 };
 
+export type PdfColor = [number, number, number];
+
+type PdfTextElement = {
+  type: 'text';
+  text: string;
+  x: number;
+  y: number;
+  size?: number;
+  bold?: boolean;
+  color?: PdfColor;
+  maxWidth?: number;
+  lineHeight?: number;
+  align?: 'left' | 'center' | 'right';
+};
+
+type PdfRectElement = {
+  type: 'rect';
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  fillColor?: PdfColor;
+  strokeColor?: PdfColor;
+  strokeWidth?: number;
+};
+
+type PdfLineElement = {
+  type: 'line';
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+  color?: PdfColor;
+  width?: number;
+};
+
+export type PdfElement = PdfTextElement | PdfRectElement | PdfLineElement;
+
+export type PdfPage = {
+  width?: number;
+  height?: number;
+  backgroundColor?: PdfColor;
+  elements: PdfElement[];
+};
+
+const DEFAULT_PAGE_WIDTH = 595;
+const DEFAULT_PAGE_HEIGHT = 842;
+
 function escapePdfText(value: string) {
   return value
     .replace(/\\/g, '\\\\')
@@ -41,7 +89,35 @@ function wrapText(text: string, maxChars: number) {
   return lines;
 }
 
-function buildPdfContent(lines: PdfLine[]) {
+function normalizeColor(color: PdfColor = [0.16, 0.13, 0.11]) {
+  return color.map((value) => Number(value.toFixed(3))) as PdfColor;
+}
+
+function estimateTextWidth(text: string, size: number) {
+  return Math.max(1, text.length) * size * 0.52;
+}
+
+function wrapTextToWidth(text: string, maxWidth: number | undefined, size: number) {
+  const normalizedText = text.trim();
+  if (!normalizedText) {
+    return [''];
+  }
+
+  const paragraphs = normalizedText.split(/\n+/);
+  const estimatedMaxChars = maxWidth
+    ? Math.max(10, Math.floor(maxWidth / Math.max(4, size * 0.52)))
+    : Math.max(10, Math.floor(460 / Math.max(4, size * 0.52)));
+
+  return paragraphs.flatMap((paragraph, paragraphIndex) => {
+    const wrapped = wrapText(paragraph, estimatedMaxChars);
+    if (paragraphIndex === 0) {
+      return wrapped;
+    }
+    return ['', ...wrapped];
+  });
+}
+
+function buildLegacyPdfContent(lines: PdfLine[]) {
   const commands: string[] = [
     '1 0.45 0.09 rg',
     '48 812 499 6 re f',
@@ -70,13 +146,91 @@ function buildPdfContent(lines: PdfLine[]) {
   return commands.join('\n');
 }
 
-function createPdfBlob(lines: PdfLine[]) {
-  const content = buildPdfContent(lines);
+function buildStyledPdfContent(page: PdfPage) {
+  const commands: string[] = [];
+  const width = page.width ?? DEFAULT_PAGE_WIDTH;
+  const height = page.height ?? DEFAULT_PAGE_HEIGHT;
 
+  if (page.backgroundColor) {
+    const [red, green, blue] = normalizeColor(page.backgroundColor);
+    commands.push(`${red} ${green} ${blue} rg`);
+    commands.push(`0 0 ${width} ${height} re f`);
+  }
+
+  page.elements.forEach((element) => {
+    if (element.type === 'rect') {
+      commands.push('q');
+
+      if (element.fillColor) {
+        const [red, green, blue] = normalizeColor(element.fillColor);
+        commands.push(`${red} ${green} ${blue} rg`);
+      }
+
+      if (element.strokeColor) {
+        const [red, green, blue] = normalizeColor(element.strokeColor);
+        commands.push(`${red} ${green} ${blue} RG`);
+        commands.push(`${element.strokeWidth ?? 1} w`);
+      }
+
+      commands.push(`${element.x} ${element.y} ${element.width} ${element.height} re`);
+
+      if (element.fillColor && element.strokeColor) {
+        commands.push('B');
+      } else if (element.fillColor) {
+        commands.push('f');
+      } else if (element.strokeColor) {
+        commands.push('S');
+      }
+
+      commands.push('Q');
+      return;
+    }
+
+    if (element.type === 'line') {
+      const [red, green, blue] = normalizeColor(element.color ?? [0.8, 0.76, 0.7]);
+      commands.push('q');
+      commands.push(`${red} ${green} ${blue} RG`);
+      commands.push(`${element.width ?? 1} w`);
+      commands.push(`${element.x1} ${element.y1} m ${element.x2} ${element.y2} l S`);
+      commands.push('Q');
+      return;
+    }
+
+    const size = element.size ?? 12;
+    const lineHeight = element.lineHeight ?? size + 5;
+    const [red, green, blue] = normalizeColor(element.color ?? [0.16, 0.13, 0.11]);
+    const wrappedLines = wrapTextToWidth(element.text, element.maxWidth, size);
+
+    commands.push('BT');
+    commands.push(`${red} ${green} ${blue} rg`);
+
+    wrappedLines.forEach((line, index) => {
+      const font = element.bold ? 'F2' : 'F1';
+      const lineWidth = estimateTextWidth(line, size);
+      let x = element.x;
+
+      if (element.align === 'center') {
+        x = element.x - lineWidth / 2;
+      } else if (element.align === 'right') {
+        x = element.x - lineWidth;
+      }
+
+      commands.push(`/${font} ${size} Tf`);
+      commands.push(`1 0 0 1 ${x.toFixed(2)} ${(element.y - index * lineHeight).toFixed(2)} Tm`);
+      commands.push(`(${escapePdfText(line)}) Tj`);
+    });
+
+    commands.push('ET');
+  });
+
+  return commands.join('\n');
+}
+
+function createPdfBlob(content: string, width = DEFAULT_PAGE_WIDTH, height = DEFAULT_PAGE_HEIGHT) {
   const objects = [
     '1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj',
     '2 0 obj << /Type /Pages /Kids [3 0 R] /Count 1 >> endobj',
-    '3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> /Contents 4 0 R >> endobj',
+    `3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 ${width} ${height}] /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> /Contents 4 0 R >> endobj`,
     `4 0 obj << /Length ${content.length} >> stream\n${content}\nendstream\nendobj`,
     '5 0 obj << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> endobj',
     '6 0 obj << /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >> endobj',
@@ -101,16 +255,27 @@ function createPdfBlob(lines: PdfLine[]) {
   return new Blob([pdf], { type: 'application/pdf' });
 }
 
-export function downloadPdfDocument(filename: string, lines: PdfLine[]) {
+function downloadBlob(filename: string, blob: Blob) {
   if (typeof window === 'undefined') {
     return;
   }
 
-  const blob = createPdfBlob(lines);
   const url = window.URL.createObjectURL(blob);
   const anchor = window.document.createElement('a');
   anchor.href = url;
   anchor.download = filename.endsWith('.pdf') ? filename : `${filename}.pdf`;
   anchor.click();
   window.URL.revokeObjectURL(url);
+}
+
+export function downloadPdfDocument(filename: string, lines: PdfLine[]) {
+  const blob = createPdfBlob(buildLegacyPdfContent(lines));
+  downloadBlob(filename, blob);
+}
+
+export function downloadStyledPdfDocument(filename: string, page: PdfPage) {
+  const width = page.width ?? DEFAULT_PAGE_WIDTH;
+  const height = page.height ?? DEFAULT_PAGE_HEIGHT;
+  const blob = createPdfBlob(buildStyledPdfContent(page), width, height);
+  downloadBlob(filename, blob);
 }
