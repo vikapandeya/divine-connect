@@ -56,6 +56,28 @@ function buildCertificateId(prefix: string, seed: string) {
   return `${prefix}-${seed.replace(/[^A-Z0-9]/gi, '').toUpperCase().slice(-12)}`;
 }
 
+function getOrderCertificateCopy(order: Order) {
+  const primaryItem = order.items[0];
+  const hasSingleItem = order.items.length === 1 && (order.itemCount || order.items.length) === 1;
+  const title = hasSingleItem && primaryItem
+    ? `${primaryItem.name} Certificate`
+    : 'Sacred Product Purchase Certificate';
+  const subtitle = hasSingleItem
+    ? 'Product purchase verification'
+    : 'Multi-item purchase verification';
+  const summary = hasSingleItem && primaryItem
+    ? `This certificate confirms that ${primaryItem.name} was purchased through DivineConnect and recorded with payment details in your order history.`
+    : 'This certificate confirms that the listed sacred products were purchased through DivineConnect and recorded with payment details in your order history.';
+
+  return {
+    title,
+    subtitle,
+    summary,
+    primaryItem,
+    hasSingleItem,
+  };
+}
+
 function addInfoCard(
   elements: PdfElement[],
   left: number,
@@ -689,22 +711,52 @@ export function downloadPujaInvitationCard(booking: Booking, profile: UserProfil
 
 export function downloadOrderCertificate(order: Order) {
   const certificateId = buildCertificateId('ORDER', order.orderNumber || order.id);
+  const certificateCopy = getOrderCertificateCopy(order);
+  const itemSummary = order.items
+    .slice(0, 2)
+    .map((item) => item.name)
+    .join(', ');
+  const additionalItems =
+    order.items.length > 2 ? ` +${order.items.length - 2} more` : '';
 
   buildCertificatePage({
     filename: `${certificateId.toLowerCase()}-certificate`,
-    title: 'Order Completion Certificate',
-    subtitle: 'Sacred commerce verification',
+    title: certificateCopy.title,
+    subtitle: certificateCopy.subtitle,
     documentId: certificateId,
-    recipientLabel: 'Prepared For',
+    recipientLabel: 'Issued To',
     recipient: order.customerDetails?.fullName || 'DivineConnect Customer',
-    summary:
-      'This certificate confirms that the listed order was generated through DivineConnect, captured with payment details, and stored in your order history.',
+    summary: certificateCopy.summary,
     cards: [
       {
-        title: 'Order Details',
+        title: 'Product Details',
         rows: [
-          { label: 'Order Number', value: order.orderNumber || order.id.slice(-6).toUpperCase() },
-          { label: 'Item Count', value: String(order.itemCount || order.items.length) },
+          {
+            label: certificateCopy.hasSingleItem ? 'Product Name' : 'Products',
+            value:
+              certificateCopy.hasSingleItem && certificateCopy.primaryItem
+                ? certificateCopy.primaryItem.name
+                : `${itemSummary}${additionalItems}`,
+          },
+          {
+            label: 'Category / Quantity',
+            value: certificateCopy.hasSingleItem && certificateCopy.primaryItem
+              ? `${certificateCopy.primaryItem.category} | Qty ${certificateCopy.primaryItem.quantity}`
+              : `${order.items.length} items in this purchase`,
+          },
+        ],
+      },
+      {
+        title: 'Source and Pricing',
+        rows: [
+          {
+            label: 'Temple / Source',
+            value:
+              certificateCopy.primaryItem?.templeName ||
+              certificateCopy.primaryItem?.category ||
+              'DivineConnect marketplace selection',
+          },
+          { label: 'Total Amount', value: `Rs. ${formatIndianRupees(order.totalAmount)}` },
         ],
       },
       {
@@ -715,23 +767,16 @@ export function downloadOrderCertificate(order: Order) {
         ],
       },
       {
-        title: 'Transaction Trace',
+        title: 'Order Trace',
         rows: [
-          { label: 'Transaction ID', value: order.receipt?.transactionId || 'Generated at checkout' },
+          { label: 'Order Number', value: order.orderNumber || order.id.slice(-6).toUpperCase() },
           { label: 'Issued On', value: formatDateTime(order.receipt?.issuedAt || order.createdAt) },
-        ],
-      },
-      {
-        title: 'Fulfillment',
-        rows: [
-          { label: 'Total Amount', value: `Rs. ${formatIndianRupees(order.totalAmount)}` },
-          { label: 'Delivery Address', value: order.shippingAddress },
         ],
       },
     ],
     footerNote:
-      'Use this certificate together with the invoice for recordkeeping, customer support, and delivery reconciliation.',
-    footerLabel: 'Order certificate',
+      'Use this certificate together with the invoice for recordkeeping, product verification, customer support, and delivery reconciliation.',
+    footerLabel: 'Product certificate',
     theme: {
       background: [0.958, 0.978, 0.975],
       panel: [0.994, 0.998, 0.997],

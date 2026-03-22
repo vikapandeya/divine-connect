@@ -422,7 +422,7 @@ export default function Profile() {
                             className="inline-flex items-center px-4 py-3 rounded-2xl border border-orange-200 bg-white text-sm font-bold text-orange-600 hover:bg-orange-100 transition-colors"
                           >
                             <Download className="w-4 h-4 mr-2" />
-                            Order Certificate
+                            Product Certificate
                           </button>
                         </div>
                       </div>
@@ -580,7 +580,7 @@ export default function Profile() {
                                 className="inline-flex items-center px-3 py-2 rounded-xl border border-orange-200 bg-white text-sm font-bold text-orange-600 hover:bg-orange-100 transition-colors"
                               >
                                 <Download className="w-4 h-4 mr-2" />
-                                Order Certificate
+                                Product Certificate
                               </button>
                             </div>
                           </div>

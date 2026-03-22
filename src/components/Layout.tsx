@@ -110,7 +110,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <Sparkles className="h-3.5 w-3.5" />
               <span>Spiritual platform demo</span>
             </div>
-            <p className="hidden text-stone-300 md:block">
+            <p className="hidden text-stone-300 xl:block">
               Puja booking, darshan support, prasad delivery, and astrology in one guided experience.
             </p>
             <Link to="/contact" className="font-bold text-white hover:text-orange-300">
@@ -121,22 +121,22 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
         <div className="border-b border-stone-200/80 bg-white/88 backdrop-blur-xl shadow-[0_12px_40px_rgba(28,25,23,0.06)]">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="flex h-20 items-center justify-between gap-4">
-              <Link to="/" className="flex min-w-0 items-center gap-3">
+            <div className="flex h-20 items-center justify-between gap-4 xl:gap-6">
+              <Link to="/" className="flex shrink-0 items-center gap-3 pr-2 xl:pr-4">
                 <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-orange-50 ring-1 ring-orange-100">
                   <img src={logoMark} alt="DivineConnect logo" className="h-8 w-8" />
                 </div>
-                <div className="min-w-0">
-                  <p className="truncate text-lg font-serif font-bold tracking-tight text-stone-900">
+                <div>
+                  <p className="text-xl font-serif font-bold tracking-tight text-stone-900">
                     DivineConnect
                   </p>
-                  <p className="hidden text-xs text-stone-500 sm:block">
+                  <p className="hidden text-xs text-stone-500 2xl:block">
                     Sacred services with modern clarity
                   </p>
                 </div>
               </Link>
 
-              <nav className="hidden items-center gap-2 lg:flex">
+              <nav className="hidden flex-1 items-center justify-center gap-1 xl:flex">
                 {navLinks.map((link) => (
                   <NavLink
                     key={link.to}
@@ -156,10 +156,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 ))}
               </nav>
 
-              <div className="flex items-center gap-2 sm:gap-3">
+              <div className="flex shrink-0 items-center gap-2 sm:gap-3">
                 <form
                   onSubmit={handleSearch}
-                  className="hidden items-center rounded-full border border-stone-200 bg-stone-50 px-3 py-2 shadow-inner shadow-white/80 md:flex"
+                  className="hidden items-center rounded-full border border-stone-200 bg-stone-50 px-3 py-2 shadow-inner shadow-white/80 xl:flex"
                 >
                   <Search className="h-4 w-4 text-stone-400" />
                   <input
@@ -167,11 +167,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                     placeholder="Search offerings"
                     value={searchTerm}
                     onChange={(event) => setSearchTerm(event.target.value)}
-                    className="ml-2 w-36 bg-transparent text-sm outline-none lg:w-52"
+                    className="ml-2 w-40 bg-transparent text-sm outline-none 2xl:w-52"
                   />
                 </form>
 
-                <div className="hidden rounded-full border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700 xl:block">
+                <div className="hidden rounded-full border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700 2xl:block">
                   Demo Mode Active
                 </div>
 
@@ -207,11 +207,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                         <UserRound className="h-4 w-4" />
                       </div>
                     )}
-                    <div className="hidden text-left lg:block">
-                      <p className="max-w-28 truncate text-sm font-bold text-stone-900">
+                    <div className="hidden text-left 2xl:block">
+                      <p className="text-sm font-bold text-stone-900">
                         {profile?.displayName || 'Demo Devotee'}
                       </p>
-                      <p className="text-[11px] text-stone-500">Profile & dashboards</p>
+                      <p className="text-[11px] text-stone-500">Account</p>
                     </div>
                     <ChevronDown className="h-4 w-4 text-stone-400" />
                   </button>
