@@ -56,6 +56,42 @@ function buildCertificateId(prefix: string, seed: string) {
   return `${prefix}-${seed.replace(/[^A-Z0-9]/gi, '').toUpperCase().slice(-12)}`;
 }
 
+function getAdaptiveTitleStyle(value: string) {
+  if (value.length > 48) {
+    return { size: 18, lineHeight: 21 };
+  }
+
+  if (value.length > 34) {
+    return { size: 20, lineHeight: 23 };
+  }
+
+  return { size: 22, lineHeight: 26 };
+}
+
+function getAdaptiveRecipientStyle(value: string) {
+  if (value.length > 28) {
+    return { size: 18, lineHeight: 21 };
+  }
+
+  if (value.length > 20) {
+    return { size: 21, lineHeight: 24 };
+  }
+
+  return { size: 24, lineHeight: 27 };
+}
+
+function getAdaptiveInvitationTitleStyle(value: string) {
+  if (value.length > 36) {
+    return { size: 19, lineHeight: 21 };
+  }
+
+  if (value.length > 24) {
+    return { size: 20, lineHeight: 22 };
+  }
+
+  return { size: 22, lineHeight: 24 };
+}
+
 function getOrderCertificateCopy(order: Order) {
   const primaryItem = order.items[0];
   const hasSingleItem = order.items.length === 1 && (order.itemCount || order.items.length) === 1;
@@ -99,16 +135,25 @@ function addInfoCard(
   });
 
   elements.push({
+    type: 'rect',
+    x: left,
+    y: rectYFromTop(top, 6),
+    width,
+    height: 6,
+    fillColor: theme.accent,
+  });
+
+  elements.push({
     type: 'text',
     x: left + 18,
-    y: textYFromTop(top + 24),
+    y: textYFromTop(top + 26),
     text: card.title.toUpperCase(),
     size: 9,
     bold: true,
     color: theme.muted,
   });
 
-  let cursorTop = top + 50;
+  let cursorTop = top + 48;
   card.rows.forEach((row, index) => {
     elements.push({
       type: 'text',
@@ -125,14 +170,14 @@ function addInfoCard(
       x: left + 18,
       y: textYFromTop(cursorTop + 16),
       text: row.value,
-      size: 12,
+      size: 11,
       bold: index === 0,
       color: theme.text,
       maxWidth: width - 36,
-      lineHeight: 15,
+      lineHeight: 14,
     });
 
-    cursorTop += 42;
+    cursorTop += 44;
   });
 }
 
@@ -150,6 +195,8 @@ function buildCertificatePage(options: {
   theme: CertificateTheme;
 }) {
   const { theme } = options;
+  const titleStyle = getAdaptiveTitleStyle(options.title);
+  const recipientStyle = getAdaptiveRecipientStyle(options.recipient);
   const elements: PdfElement[] = [
     {
       type: 'rect',
@@ -164,34 +211,24 @@ function buildCertificatePage(options: {
     {
       type: 'rect',
       x: 34,
-      y: 784,
+      y: rectYFromTop(34, 82),
       width: 527,
-      height: 24,
+      height: 82,
       fillColor: theme.accent,
     },
     {
-      type: 'rect',
-      x: 54,
-      y: 616,
-      width: 487,
-      height: 150,
-      fillColor: theme.accentSoft,
-      strokeColor: theme.border,
-      strokeWidth: 1,
-    },
-    {
       type: 'text',
-      x: 56,
-      y: textYFromTop(66),
+      x: 60,
+      y: textYFromTop(62),
       text: 'DivineConnect',
-      size: 13,
+      size: 14,
       bold: true,
       color: theme.panel,
     },
     {
       type: 'text',
-      x: 540,
-      y: textYFromTop(66),
+      x: 536,
+      y: textYFromTop(62),
       text: options.footerLabel.toUpperCase(),
       size: 9,
       bold: true,
@@ -201,9 +238,9 @@ function buildCertificatePage(options: {
     {
       type: 'text',
       x: 297.5,
-      y: textYFromTop(120),
+      y: textYFromTop(136),
       text: options.subtitle.toUpperCase(),
-      size: 10,
+      size: 9,
       bold: true,
       color: theme.muted,
       align: 'center',
@@ -211,29 +248,29 @@ function buildCertificatePage(options: {
     {
       type: 'text',
       x: 297.5,
-      y: textYFromTop(154),
+      y: textYFromTop(166),
       text: options.title,
-      size: 24,
+      size: titleStyle.size,
       bold: true,
       color: theme.text,
       align: 'center',
-      maxWidth: 420,
-      lineHeight: 28,
+      maxWidth: 430,
+      lineHeight: titleStyle.lineHeight,
     },
     {
       type: 'rect',
-      x: 184,
-      y: rectYFromTop(188, 28),
-      width: 227,
-      height: 28,
-      fillColor: theme.panel,
+      x: 176,
+      y: rectYFromTop(204, 30),
+      width: 243,
+      height: 30,
+      fillColor: theme.accentSoft,
       strokeColor: theme.border,
       strokeWidth: 1,
     },
     {
       type: 'text',
       x: 297.5,
-      y: textYFromTop(207),
+      y: textYFromTop(224),
       text: options.documentId,
       size: 10,
       bold: true,
@@ -243,9 +280,9 @@ function buildCertificatePage(options: {
     {
       type: 'text',
       x: 297.5,
-      y: textYFromTop(254),
+      y: textYFromTop(264),
       text: options.recipientLabel.toUpperCase(),
-      size: 10,
+      size: 9,
       bold: true,
       color: theme.muted,
       align: 'center',
@@ -253,24 +290,24 @@ function buildCertificatePage(options: {
     {
       type: 'text',
       x: 297.5,
-      y: textYFromTop(286),
+      y: textYFromTop(292),
       text: options.recipient,
-      size: 23,
+      size: recipientStyle.size,
       bold: true,
       color: theme.text,
       align: 'center',
-      maxWidth: 360,
-      lineHeight: 27,
+      maxWidth: 400,
+      lineHeight: recipientStyle.lineHeight,
     },
     {
       type: 'text',
       x: 297.5,
-      y: textYFromTop(330),
+      y: textYFromTop(332),
       text: options.summary,
       size: 11,
       color: theme.text,
       align: 'center',
-      maxWidth: 390,
+      maxWidth: 410,
       lineHeight: 16,
     },
   ];
@@ -283,18 +320,18 @@ function buildCertificatePage(options: {
     });
   }
 
-  addInfoCard(elements, 58, 394, 220, 112, cards[0], theme);
-  addInfoCard(elements, 316, 394, 220, 112, cards[1], theme);
-  addInfoCard(elements, 58, 526, 220, 112, cards[2], theme);
-  addInfoCard(elements, 316, 526, 220, 112, cards[3], theme);
+  addInfoCard(elements, 58, 392, 220, 112, cards[0], theme);
+  addInfoCard(elements, 316, 392, 220, 112, cards[1], theme);
+  addInfoCard(elements, 58, 520, 220, 112, cards[2], theme);
+  addInfoCard(elements, 316, 520, 220, 112, cards[3], theme);
 
   elements.push(
     {
       type: 'rect',
       x: 58,
-      y: rectYFromTop(660, 78),
+      y: rectYFromTop(652, 86),
       width: 478,
-      height: 78,
+      height: 86,
       fillColor: theme.panel,
       strokeColor: theme.border,
       strokeWidth: 1,
@@ -302,7 +339,7 @@ function buildCertificatePage(options: {
     {
       type: 'text',
       x: 74,
-      y: textYFromTop(684),
+      y: textYFromTop(676),
       text: 'Blessing Note',
       size: 9,
       bold: true,
@@ -311,7 +348,7 @@ function buildCertificatePage(options: {
     {
       type: 'text',
       x: 74,
-      y: textYFromTop(706),
+      y: textYFromTop(700),
       text: options.footerNote,
       size: 11,
       color: theme.text,
@@ -380,16 +417,11 @@ function buildInvitationPage(
   const devoteeName = profile?.displayName || profile?.email || 'Devotee';
   const devoteeAddress = profile?.addresses?.[0] || 'Address will be shared during confirmation';
   const mode = formatStatus(booking.mode || 'online');
+  const invitationTitleStyle = getAdaptiveInvitationTitleStyle(
+    booking.serviceTitle || 'Puja Booking',
+  );
 
   const elements: PdfElement[] = [
-    {
-      type: 'rect',
-      x: 0,
-      y: 636,
-      width: 595,
-      height: 206,
-      fillColor: theme.hero,
-    },
     {
       type: 'rect',
       x: 34,
@@ -402,57 +434,62 @@ function buildInvitationPage(
     },
     {
       type: 'rect',
+      x: 34,
+      y: rectYFromTop(34, 96),
+      width: 527,
+      height: 96,
+      fillColor: theme.hero,
+    },
+    {
+      type: 'rect',
       x: 58,
-      y: 552,
+      y: rectYFromTop(154, 176),
       width: 479,
-      height: 198,
-      fillColor: theme.panel,
+      height: 176,
+      fillColor: [0.996, 0.981, 0.957],
       strokeColor: theme.border,
       strokeWidth: 1,
     },
     {
       type: 'text',
-      x: 297.5,
-      y: textYFromTop(70),
+      x: 60,
+      y: textYFromTop(66),
       text: 'DivineConnect',
       size: 14,
       bold: true,
       color: [1, 0.986, 0.955],
-      align: 'center',
     },
     {
       type: 'text',
-      x: 297.5,
-      y: textYFromTop(108),
+      x: 60,
+      y: textYFromTop(94),
       text: 'Sacred Puja Invitation',
-      size: 27,
+      size: 23,
       bold: true,
       color: [1, 0.986, 0.955],
-      align: 'center',
     },
     {
       type: 'text',
-      x: 297.5,
-      y: textYFromTop(140),
-      text: 'A devotional card designed for family sharing, event planning, and sacred remembrance.',
-      size: 11,
-      color: [1, 0.935, 0.846],
-      align: 'center',
-      maxWidth: 380,
-      lineHeight: 15,
+      x: 60,
+      y: textYFromTop(118),
+      text: 'Share this invitation with family and loved ones for a clear, devotional event summary.',
+      size: 10,
+      color: [1, 0.936, 0.852],
+      maxWidth: 320,
+      lineHeight: 14,
     },
     {
       type: 'rect',
-      x: 191,
-      y: rectYFromTop(168, 30),
-      width: 213,
+      x: 196,
+      y: rectYFromTop(186, 30),
+      width: 203,
       height: 30,
       fillColor: theme.heroSoft,
     },
     {
       type: 'text',
       x: 297.5,
-      y: textYFromTop(188),
+      y: textYFromTop(206),
       text: invitationId,
       size: 10,
       bold: true,
@@ -462,30 +499,30 @@ function buildInvitationPage(
     {
       type: 'text',
       x: 297.5,
-      y: textYFromTop(262),
+      y: textYFromTop(252),
       text: 'With blessings and devotion, you are warmly invited to join this sacred occasion.',
       size: 11,
       color: theme.muted,
       align: 'center',
-      maxWidth: 360,
+      maxWidth: 370,
       lineHeight: 15,
     },
     {
       type: 'text',
       x: 297.5,
-      y: textYFromTop(308),
+      y: textYFromTop(290),
       text: booking.serviceTitle || 'Puja Booking',
-      size: 24,
+      size: invitationTitleStyle.size,
       bold: true,
       color: theme.text,
       align: 'center',
       maxWidth: 360,
-      lineHeight: 28,
+      lineHeight: invitationTitleStyle.lineHeight,
     },
     {
       type: 'text',
       x: 297.5,
-      y: textYFromTop(340),
+      y: textYFromTop(320),
       text: `Hosted for ${devoteeName}`,
       size: 12,
       color: theme.muted,
@@ -539,7 +576,7 @@ function buildInvitationPage(
   addInfoCard(
     elements,
     58,
-    492,
+    490,
     228,
     124,
     {
@@ -563,7 +600,7 @@ function buildInvitationPage(
   addInfoCard(
     elements,
     308,
-    492,
+    490,
     228,
     124,
     {
@@ -588,9 +625,9 @@ function buildInvitationPage(
     {
       type: 'rect',
       x: 58,
-      y: rectYFromTop(644, 96),
+      y: rectYFromTop(642, 106),
       width: 478,
-      height: 96,
+      height: 106,
       fillColor: [0.994, 0.969, 0.925],
       strokeColor: theme.border,
       strokeWidth: 1,

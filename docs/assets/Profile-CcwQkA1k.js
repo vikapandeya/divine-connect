@@ -1,0 +1,280 @@
+import{r as z,j as e}from"./vendor-BLqV_m0t.js";import{P as je}from"./PageHero-BrxjeRi8.js";import{f as g,D as xe,e as pe,h as we,i as Ce,j as $e,k as De,m as ke,n as Se,o as Ie}from"./index-Cx1ISMZB.js";import{n as Re,P as Te,o as ze,m as Q,p as B,S as me,q as he,R as Ae,D as S,r as F,A as ue,s as Pe}from"./icons-dZXZzUTT.js";import{u as He,c as We}from"./router-BZJXDFZY.js";import"./motion-D5xlclFS.js";const K=595,Y=842;function Ee(t){return t.replace(/\\/g,"\\\\").replace(/\(/g,"\\(").replace(/\)/g,"\\)")}function Le(t,s){const i=t.split(/\s+/).filter(Boolean);if(i.length===0)return[""];const n=[];let r="";return i.forEach(a=>{const d=r?`${r} ${a}`:a;if(d.length<=s){r=d;return}r&&n.push(r),r=a}),r&&n.push(r),n}function H(t=[.16,.13,.11]){return t.map(s=>Number(s.toFixed(3)))}function Oe(t,s){return Math.max(1,t.length)*s*.52}function Me(t,s,i){const n=t.trim();if(!n)return[""];const r=n.split(/\n+/),a=s?Math.max(10,Math.floor(s/Math.max(4,i*.52))):Math.max(10,Math.floor(460/Math.max(4,i*.52)));return r.flatMap((d,c)=>{const x=Le(d,a);return c===0?x:["",...x]})}function Be(t){const s=[],i=t.width??K,n=t.height??Y;if(t.backgroundColor){const[r,a,d]=H(t.backgroundColor);s.push(`${r} ${a} ${d} rg`),s.push(`0 0 ${i} ${n} re f`)}return t.elements.forEach(r=>{if(r.type==="rect"){if(s.push("q"),r.fillColor){const[m,h,u]=H(r.fillColor);s.push(`${m} ${h} ${u} rg`)}if(r.strokeColor){const[m,h,u]=H(r.strokeColor);s.push(`${m} ${h} ${u} RG`),s.push(`${r.strokeWidth??1} w`)}s.push(`${r.x} ${r.y} ${r.width} ${r.height} re`),r.fillColor&&r.strokeColor?s.push("B"):r.fillColor?s.push("f"):r.strokeColor&&s.push("S"),s.push("Q");return}if(r.type==="line"){const[m,h,u]=H(r.color??[.8,.76,.7]);s.push("q"),s.push(`${m} ${h} ${u} RG`),s.push(`${r.width??1} w`),s.push(`${r.x1} ${r.y1} m ${r.x2} ${r.y2} l S`),s.push("Q");return}const a=r.size??12,d=r.lineHeight??a+5,[c,x,w]=H(r.color??[.16,.13,.11]),f=Me(r.text,r.maxWidth,a);s.push("BT"),s.push(`${c} ${x} ${w} rg`),f.forEach((m,h)=>{const u=r.bold?"F2":"F1",p=Oe(m,a);let I=r.x;r.align==="center"?I=r.x-p/2:r.align==="right"&&(I=r.x-p),s.push(`/${u} ${a} Tf`),s.push(`1 0 0 1 ${I.toFixed(2)} ${(r.y-h*d).toFixed(2)} Tm`),s.push(`(${Ee(m)}) Tj`)}),s.push("ET")}),s.join(`
+`)}function Fe(t,s=K,i=Y){const n=["1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj","2 0 obj << /Type /Pages /Kids [3 0 R] /Count 1 >> endobj",`3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 ${s} ${i}] /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> /Contents 4 0 R >> endobj`,`4 0 obj << /Length ${t.length} >> stream
+${t}
+endstream
+endobj`,"5 0 obj << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> endobj","6 0 obj << /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >> endobj"];let r=`%PDF-1.4
+`;const a=[0];n.forEach(c=>{a.push(r.length),r+=`${c}
+`});const d=r.length;return r+=`xref
+0 ${n.length+1}
+`,r+=`0000000000 65535 f 
+`,a.slice(1).forEach(c=>{r+=`${c.toString().padStart(10,"0")} 00000 n 
+`}),r+=`trailer << /Size ${n.length+1} /Root 1 0 R >>
+startxref
+${d}
+%%EOF`,new Blob([r],{type:"application/pdf"})}function Ue(t,s){if(typeof window>"u")return;const i=window.URL.createObjectURL(s),n=window.document.createElement("a");n.href=i,n.download=t.endsWith(".pdf")?t:`${t}.pdf`,n.click(),window.URL.revokeObjectURL(i)}function J(t,s){const i=s.width??K,n=s.height??Y,r=Fe(Be(s),i,n);Ue(t,r)}const ye=842;function b(t){return ye-t}function D(t,s){return ye-t-s}function Z(t){return t?new Date(t).toLocaleString("en-IN"):"Not available"}function W(t){return t?t.split(/[-_\s]+/).filter(Boolean).map(s=>s.charAt(0).toUpperCase()+s.slice(1).toLowerCase()).join(" "):"Pending"}function q(t,s){return`${t}-${s.replace(/[^A-Z0-9]/gi,"").toUpperCase().slice(-12)}`}function Ge(t){return t.length>48?{size:18,lineHeight:21}:t.length>34?{size:20,lineHeight:23}:{size:22,lineHeight:26}}function qe(t){return t.length>28?{size:18,lineHeight:21}:t.length>20?{size:21,lineHeight:24}:{size:24,lineHeight:27}}function _e(t){return t.length>36?{size:19,lineHeight:21}:t.length>24?{size:20,lineHeight:22}:{size:22,lineHeight:24}}function Ve(t){const s=t.items[0],i=t.items.length===1&&(t.itemCount||t.items.length)===1,n=i&&s?`${s.name} Certificate`:"Sacred Product Purchase Certificate",r=i?"Product purchase verification":"Multi-item purchase verification",a=i&&s?`This certificate confirms that ${s.name} was purchased through DivineConnect and recorded with payment details in your order history.`:"This certificate confirms that the listed sacred products were purchased through DivineConnect and recorded with payment details in your order history.";return{title:n,subtitle:r,summary:a,primaryItem:s,hasSingleItem:i}}function A(t,s,i,n,r,a,d){t.push({type:"rect",x:s,y:D(i,r),width:n,height:r,fillColor:d.accentSoft,strokeColor:d.border,strokeWidth:1}),t.push({type:"rect",x:s,y:D(i,6),width:n,height:6,fillColor:d.accent}),t.push({type:"text",x:s+18,y:b(i+26),text:a.title.toUpperCase(),size:9,bold:!0,color:d.muted});let c=i+48;a.rows.forEach((x,w)=>{t.push({type:"text",x:s+18,y:b(c),text:x.label,size:9,bold:!0,color:d.muted}),t.push({type:"text",x:s+18,y:b(c+16),text:x.value,size:11,bold:w===0,color:d.text,maxWidth:n-36,lineHeight:14}),c+=44})}function X(t){const{theme:s}=t,i=Ge(t.title),n=qe(t.recipient),r=[{type:"rect",x:34,y:34,width:527,height:774,fillColor:s.panel,strokeColor:s.border,strokeWidth:1.5},{type:"rect",x:34,y:D(34,82),width:527,height:82,fillColor:s.accent},{type:"text",x:60,y:b(62),text:"DivineConnect",size:14,bold:!0,color:s.panel},{type:"text",x:536,y:b(62),text:t.footerLabel.toUpperCase(),size:9,bold:!0,color:s.panel,align:"right"},{type:"text",x:297.5,y:b(136),text:t.subtitle.toUpperCase(),size:9,bold:!0,color:s.muted,align:"center"},{type:"text",x:297.5,y:b(166),text:t.title,size:i.size,bold:!0,color:s.text,align:"center",maxWidth:430,lineHeight:i.lineHeight},{type:"rect",x:176,y:D(204,30),width:243,height:30,fillColor:s.accentSoft,strokeColor:s.border,strokeWidth:1},{type:"text",x:297.5,y:b(224),text:t.documentId,size:10,bold:!0,color:s.text,align:"center"},{type:"text",x:297.5,y:b(264),text:t.recipientLabel.toUpperCase(),size:9,bold:!0,color:s.muted,align:"center"},{type:"text",x:297.5,y:b(292),text:t.recipient,size:n.size,bold:!0,color:s.text,align:"center",maxWidth:400,lineHeight:n.lineHeight},{type:"text",x:297.5,y:b(332),text:t.summary,size:11,color:s.text,align:"center",maxWidth:410,lineHeight:16}],a=t.cards.slice(0,4);for(;a.length<4;)a.push({title:"Information",rows:[{label:"Status",value:"Available in your DivineConnect profile"}]});A(r,58,392,220,112,a[0],s),A(r,316,392,220,112,a[1],s),A(r,58,520,220,112,a[2],s),A(r,316,520,220,112,a[3],s),r.push({type:"rect",x:58,y:D(652,86),width:478,height:86,fillColor:s.panel,strokeColor:s.border,strokeWidth:1},{type:"text",x:74,y:b(676),text:"Blessing Note",size:9,bold:!0,color:s.muted},{type:"text",x:74,y:b(700),text:t.footerNote,size:11,color:s.text,maxWidth:446,lineHeight:16},{type:"line",x1:74,y1:98,x2:214,y2:98,color:s.border,width:1},{type:"text",x:74,y:82,text:"Digital Verification Desk",size:9,bold:!0,color:s.muted},{type:"line",x1:382,y1:98,x2:522,y2:98,color:s.border,width:1},{type:"text",x:382,y:82,text:"DivineConnect Records",size:9,bold:!0,color:s.muted}),J(t.filename,{backgroundColor:s.background,elements:r})}function Qe(t,s,i){var f;const n={background:[.996,.978,.949],hero:[.745,.322,.125],heroSoft:[.973,.875,.741],panel:[1,.995,.986],text:[.247,.176,.122],muted:[.565,.435,.341],border:[.905,.753,.627]},r=(i==null?void 0:i.displayName)||(i==null?void 0:i.email)||"Devotee",a=((f=i==null?void 0:i.addresses)==null?void 0:f[0])||"Address will be shared during confirmation",d=W(s.mode||"online"),c=_e(s.serviceTitle||"Puja Booking"),x=[{type:"rect",x:34,y:34,width:527,height:774,fillColor:n.panel,strokeColor:n.border,strokeWidth:1.25},{type:"rect",x:34,y:D(34,96),width:527,height:96,fillColor:n.hero},{type:"rect",x:58,y:D(154,176),width:479,height:176,fillColor:[.996,.981,.957],strokeColor:n.border,strokeWidth:1},{type:"text",x:60,y:b(66),text:"DivineConnect",size:14,bold:!0,color:[1,.986,.955]},{type:"text",x:60,y:b(94),text:"Sacred Puja Invitation",size:23,bold:!0,color:[1,.986,.955]},{type:"text",x:60,y:b(118),text:"Share this invitation with family and loved ones for a clear, devotional event summary.",size:10,color:[1,.936,.852],maxWidth:320,lineHeight:14},{type:"rect",x:196,y:D(186,30),width:203,height:30,fillColor:n.heroSoft},{type:"text",x:297.5,y:b(206),text:t,size:10,bold:!0,color:n.text,align:"center"},{type:"text",x:297.5,y:b(252),text:"With blessings and devotion, you are warmly invited to join this sacred occasion.",size:11,color:n.muted,align:"center",maxWidth:370,lineHeight:15},{type:"text",x:297.5,y:b(290),text:s.serviceTitle||"Puja Booking",size:c.size,bold:!0,color:n.text,align:"center",maxWidth:360,lineHeight:c.lineHeight},{type:"text",x:297.5,y:b(320),text:`Hosted for ${r}`,size:12,color:n.muted,align:"center"}];[{label:"Puja Date",value:s.date,left:84},{label:"Puja Time",value:s.timeSlot,left:223},{label:"Mode",value:d,left:362}].forEach(m=>{x.push({type:"rect",x:m.left,y:D(378,82),width:112,height:82,fillColor:n.heroSoft,strokeColor:n.border,strokeWidth:1},{type:"text",x:m.left+56,y:b(402),text:m.label.toUpperCase(),size:9,bold:!0,color:n.muted,align:"center"},{type:"text",x:m.left+56,y:b(434),text:m.value,size:12,bold:!0,color:n.text,align:"center",maxWidth:88,lineHeight:15})}),A(x,58,490,228,124,{title:"Invitation Details",rows:[{label:"Devotee Name",value:r},{label:"Booking Reference",value:s.bookingReference||s.id}]},{border:n.border,accent:n.hero,accentSoft:[.994,.969,.925],text:n.text,muted:n.muted}),A(x,308,490,228,124,{title:"Venue and Presence",rows:[{label:"Address",value:a},{label:"Attendance",value:"Family, friends, and close well-wishers are welcome"}]},{border:n.border,accent:n.hero,accentSoft:[.994,.969,.925],text:n.text,muted:n.muted}),x.push({type:"rect",x:58,y:D(642,106),width:478,height:106,fillColor:[.994,.969,.925],strokeColor:n.border,strokeWidth:1},{type:"text",x:74,y:b(668),text:"Blessings and Note",size:9,bold:!0,color:n.muted},{type:"text",x:74,y:b(692),text:"May this sacred gathering bring peace, blessings, and spiritual strength to the devotee, the family, and every invited guest. Please keep this card for sharing and event coordination.",size:11,color:n.text,maxWidth:446,lineHeight:16},{type:"text",x:74,y:86,text:"Presented with care by DivineConnect",size:10,bold:!0,color:n.muted},{type:"text",x:520,y:86,text:"Sacred service invitation",size:10,color:n.muted,align:"right"}),J(`${t.toLowerCase()}-invitation`,{backgroundColor:n.background,elements:x})}function Ke(t,s){const i=q(t.type==="puja"?"PUJA":"DARSHAN",t.bookingReference||t.id),n=(s==null?void 0:s.displayName)||(s==null?void 0:s.email)||"Devotee";X({filename:`${i.toLowerCase()}-certificate`,title:t.type==="puja"?"Sacred Service Certificate":"Darshan Participation Certificate",subtitle:t.type==="puja"?"Verified booking record":"Verified darshan record",documentId:i,recipientLabel:"Issued To",recipient:n,summary:"This digital certificate confirms that the requested sacred service has been successfully reserved through DivineConnect and recorded in your activity history.",cards:[{title:"Service Overview",rows:[{label:"Service",value:t.serviceTitle||`${W(t.type)} booking`},{label:"Mode",value:W(t.mode||"online")}]},{title:"Schedule",rows:[{label:"Booking Date",value:t.date},{label:"Time Slot",value:t.timeSlot}]},{title:"Verification",rows:[{label:"Reference",value:t.bookingReference||t.id},{label:"Status",value:W(t.status)}]},{title:"Amount Summary",rows:[{label:"Amount",value:`Rs. ${g(t.totalAmount)}`},{label:"Issued On",value:Z(t.updatedAt||t.createdAt)}]}],footerNote:"Keep this certificate for support follow-up, service check-in, and future reference inside your DivineConnect profile.",footerLabel:"Digital certificate",theme:{background:[.988,.969,.937],panel:[1,.997,.988],border:[.898,.812,.702],accent:[.812,.357,.118],accentSoft:[.982,.933,.867],text:[.231,.176,.122],muted:[.545,.439,.333]}})}function Ye(t,s){const i=q("INVITE",t.bookingReference||t.id);Qe(i,t,s)}function be(t){var a,d,c,x,w,f;const s=q("ORDER",t.orderNumber||t.id),i=Ve(t),n=t.items.slice(0,2).map(m=>m.name).join(", "),r=t.items.length>2?` +${t.items.length-2} more`:"";X({filename:`${s.toLowerCase()}-certificate`,title:i.title,subtitle:i.subtitle,documentId:s,recipientLabel:"Issued To",recipient:((a=t.customerDetails)==null?void 0:a.fullName)||"DivineConnect Customer",summary:i.summary,cards:[{title:"Product Details",rows:[{label:i.hasSingleItem?"Product Name":"Products",value:i.hasSingleItem&&i.primaryItem?i.primaryItem.name:`${n}${r}`},{label:"Category / Quantity",value:i.hasSingleItem&&i.primaryItem?`${i.primaryItem.category} | Qty ${i.primaryItem.quantity}`:`${t.items.length} items in this purchase`}]},{title:"Source and Pricing",rows:[{label:"Temple / Source",value:((d=i.primaryItem)==null?void 0:d.templeName)||((c=i.primaryItem)==null?void 0:c.category)||"DivineConnect marketplace selection"},{label:"Total Amount",value:`Rs. ${g(t.totalAmount)}`}]},{title:"Payment Snapshot",rows:[{label:"Payment Method",value:((x=t.receipt)==null?void 0:x.paymentMethod)||"Secure checkout"},{label:"Payment Status",value:W(((w=t.receipt)==null?void 0:w.paymentStatus)||"Paid")}]},{title:"Order Trace",rows:[{label:"Order Number",value:t.orderNumber||t.id.slice(-6).toUpperCase()},{label:"Issued On",value:Z(((f=t.receipt)==null?void 0:f.issuedAt)||t.createdAt)}]}],footerNote:"Use this certificate together with the invoice for recordkeeping, product verification, customer support, and delivery reconciliation.",footerLabel:"Product certificate",theme:{background:[.958,.978,.975],panel:[.994,.998,.997],border:[.741,.843,.816],accent:[.09,.451,.408],accentSoft:[.903,.957,.944],text:[.101,.2,.196],muted:[.314,.427,.408]}})}function Je(t){const s=q("KUNDALI",t.id);X({filename:`${s.toLowerCase()}-certificate`,title:"Kundali Match Certificate",subtitle:"Compatibility reading record",documentId:s,recipientLabel:"Primary Profile",recipient:t.name,summary:"This certificate confirms that a compatibility reading was generated in the DivineConnect Kundali Match experience and stored as a devotional reference.",cards:[{title:"Primary Details",rows:[{label:"Birth Details",value:`${t.dob} | ${t.tob} | ${t.pob}`},{label:"Reading Type",value:t.readingType==="kundali-match"?"Kundali Match":"Astrology Reading"}]},{title:"Partner Details",rows:[{label:"Partner Name",value:t.partnerName||"Not provided"},{label:"Partner Birth",value:`${t.partnerDob||"N/A"} | ${t.partnerTob||"N/A"} | ${t.partnerPob||"N/A"}`}]},{title:"Reading Log",rows:[{label:"Issued On",value:Z(t.createdAt)},{label:"Reference",value:s}]},{title:"Use Case",rows:[{label:"Document Type",value:"Digital compatibility certificate"},{label:"Storage",value:"Saved inside the DivineConnect astrology profile"}]}],footerNote:"This certificate is intended for personal reference and devotional recordkeeping inside the DivineConnect experience.",footerLabel:"Astrology certificate",theme:{background:[.969,.96,.988],panel:[.996,.994,1],border:[.815,.788,.902],accent:[.337,.255,.639],accentSoft:[.937,.921,.988],text:[.176,.153,.286],muted:[.396,.357,.525]}})}const ve=842;function l(t){return ve-t}function $(t,s){return ve-t-s}function v(t){return t.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;")}function ge(t,s){return t.length<=s?t:`${t.slice(0,Math.max(0,s-1)).trimEnd()}...`}function fe(t){return t?t.split(/[-_\s]+/).filter(Boolean).map(s=>s.charAt(0).toUpperCase()+s.slice(1).toLowerCase()).join(" "):"Pending"}function Ze(t){const s=t.customerDetails||{addressLine1:"",city:"",state:"",pincode:""};return[s.addressLine1,s.addressLine2,`${s.city}, ${s.state} - ${s.pincode}`].filter(Boolean).join(", ")}function Ne(t){const s=t.orderNumber||`ORDER-${t.id.slice(-6).toUpperCase()}`,i=t.receipt||{orderNumber:s,issuedAt:t.createdAt,paymentMethod:"Secure checkout",paymentStatus:"Paid",transactionId:"Generated at checkout",subtotal:t.totalAmount,shippingFee:0,totalAmount:t.totalAmount},n=t.customerDetails||{fullName:"DivineConnect Customer",email:"Not provided",phoneNumber:"Not provided",addressLine1:t.shippingAddress||"Address not available",city:"",state:"",pincode:""};return{orderNumber:s,receipt:i,customerDetails:n,invoiceDate:new Date(i.issuedAt||t.createdAt).toLocaleString("en-IN"),shippingAddress:Ze(t)||t.shippingAddress||"Address not available"}}function Xe(t){const{orderNumber:s,receipt:i,customerDetails:n,invoiceDate:r,shippingAddress:a}=Ne(t),d=t.items.map(c=>`
+        <tr>
+          <td>
+            <div class="item-name">${v(c.name)}</div>
+            <div class="item-meta">${v(c.templeName||c.category)}</div>
+          </td>
+          <td>${v(c.category)}</td>
+          <td>${c.quantity}</td>
+          <td>Rs. ${g(c.price)}</td>
+          <td>Rs. ${g(c.price*c.quantity)}</td>
+        </tr>`).join("");return`<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>DivineConnect Invoice ${v(s)}</title>
+    <style>
+      :root {
+        --ink: #18212b;
+        --muted: #5b6773;
+        --line: #d8dee6;
+        --panel: #ffffff;
+        --bg: #f4f7fb;
+        --brand: #0f3d63;
+        --brand-soft: #dce8f4;
+        --accent: #c87a21;
+      }
+
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        padding: 28px;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: "Segoe UI", Arial, sans-serif;
+      }
+
+      .sheet {
+        max-width: 920px;
+        margin: 0 auto;
+      }
+
+      .hero {
+        background: linear-gradient(135deg, var(--brand), #174d7b);
+        color: #fff;
+        border-radius: 28px;
+        padding: 28px 32px;
+        display: grid;
+        grid-template-columns: 1.2fr 0.8fr;
+        gap: 24px;
+        box-shadow: 0 18px 40px rgba(15, 61, 99, 0.16);
+      }
+
+      .hero h1 {
+        margin: 10px 0 6px;
+        font-size: 34px;
+        letter-spacing: -0.02em;
+      }
+
+      .eyebrow {
+        text-transform: uppercase;
+        letter-spacing: 0.18em;
+        font-size: 11px;
+        opacity: 0.78;
+        font-weight: 700;
+      }
+
+      .hero-meta {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 22px;
+        padding: 20px;
+      }
+
+      .status-chip {
+        display: inline-block;
+        padding: 8px 14px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.14);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .summary-grid,
+      .detail-grid {
+        display: grid;
+        gap: 18px;
+        margin-top: 22px;
+      }
+
+      .summary-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .detail-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .panel {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 22px;
+        padding: 22px;
+        box-shadow: 0 8px 24px rgba(18, 33, 49, 0.05);
+      }
+
+      .panel h3 {
+        margin: 0 0 14px;
+        font-size: 13px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .summary-value {
+        font-size: 26px;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        margin-bottom: 8px;
+      }
+
+      .muted {
+        color: var(--muted);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      thead th {
+        text-align: left;
+        padding: 14px 16px;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--muted);
+        border-bottom: 1px solid var(--line);
+      }
+
+      tbody td {
+        padding: 16px;
+        border-bottom: 1px solid #edf1f6;
+        vertical-align: top;
+        font-size: 14px;
+      }
+
+      .item-name {
+        font-weight: 700;
+        margin-bottom: 4px;
+      }
+
+      .item-meta {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .totals {
+        margin-top: 16px;
+        margin-left: auto;
+        width: 320px;
+        background: var(--brand-soft);
+        border-radius: 20px;
+        padding: 18px 20px;
+      }
+
+      .totals-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 8px 0;
+      }
+
+      .totals-row.grand {
+        border-top: 1px solid rgba(15, 61, 99, 0.14);
+        margin-top: 6px;
+        padding-top: 14px;
+        font-size: 18px;
+        font-weight: 800;
+      }
+
+      .footer-note {
+        margin-top: 18px;
+        font-size: 13px;
+        color: var(--muted);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="sheet">
+      <section class="hero">
+        <div>
+          <div class="eyebrow">DivineConnect Finance Desk</div>
+          <h1>Tax Invoice / Order Receipt</h1>
+          <p class="muted" style="color: rgba(255,255,255,0.82); margin: 0;">
+            Structured billing document for sacred commerce orders, payment tracking, and support verification.
+          </p>
+        </div>
+        <div class="hero-meta">
+          <div class="status-chip">${v(t.status)}</div>
+          <p><strong>Invoice:</strong> ${v(s)}</p>
+          <p><strong>Issued On:</strong> ${v(r)}</p>
+          <p><strong>Transaction ID:</strong> ${v(i.transactionId||"Generated at checkout")}</p>
+          <p><strong>Payment:</strong> ${v(i.paymentMethod)} (${v(i.paymentStatus||"Paid")})</p>
+        </div>
+      </section>
+
+      <section class="summary-grid">
+        <div class="panel">
+          <h3>Grand Total</h3>
+          <div class="summary-value">Rs. ${g(i.totalAmount)}</div>
+          <div class="muted">Including shipping and recorded payment status.</div>
+        </div>
+        <div class="panel">
+          <h3>Line Items</h3>
+          <div class="summary-value">${t.itemCount||t.items.length}</div>
+          <div class="muted">Products captured in this invoice.</div>
+        </div>
+        <div class="panel">
+          <h3>Payment Status</h3>
+          <div class="summary-value">${v(i.paymentStatus||"Paid")}</div>
+          <div class="muted">${v(i.paymentMethod||"Secure checkout")}</div>
+        </div>
+      </section>
+
+      <section class="detail-grid">
+        <div class="panel">
+          <h3>Bill To</h3>
+          <p><strong>${v(n.fullName)}</strong></p>
+          <p>${v(n.email)}</p>
+          <p>${v(n.phoneNumber)}</p>
+        </div>
+        <div class="panel">
+          <h3>Delivery Address</h3>
+          <p>${v(a)}</p>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h3>Order Items</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Category</th>
+              <th>Qty</th>
+              <th>Rate</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>${d}</tbody>
+        </table>
+        <div class="totals">
+          <div class="totals-row"><span>Subtotal</span><strong>Rs. ${g(i.subtotal)}</strong></div>
+          <div class="totals-row"><span>Shipping</span><strong>Rs. ${g(i.shippingFee)}</strong></div>
+          <div class="totals-row grand"><span>Grand Total</span><span>Rs. ${g(i.totalAmount)}</span></div>
+        </div>
+        <div class="footer-note">
+          This invoice is generated by DivineConnect for order support, print records, and payment reconciliation.
+        </div>
+      </section>
+    </div>
+  </body>
+</html>`}function et(t){const{orderNumber:s,receipt:i,customerDetails:n,invoiceDate:r,shippingAddress:a}=Ne(t),d=t.items.length>8?7:8,c=t.items.slice(0,d),x=Math.max(0,t.items.length-c.length),w=c.length+(x>0?1:0),f=86+Math.max(1,w)*34,m=304,u=m+f+22,p=fe(i.paymentStatus||t.status||"Paid"),I=i.paymentMethod||"Secure checkout",_=i.transactionId||"Generated at checkout",C=t.itemCount||t.items.length,R=[{type:"rect",x:0,y:0,width:595,height:842,fillColor:[.965,.976,.992]},{type:"rect",x:34,y:34,width:527,height:774,fillColor:[1,1,1],strokeColor:[.835,.878,.929],strokeWidth:1.2},{type:"rect",x:34,y:$(34,136),width:527,height:136,fillColor:[.059,.239,.388]},{type:"text",x:58,y:l(60),text:"DivineConnect Finance Desk",size:10,bold:!0,color:[.867,.914,.965]},{type:"text",x:58,y:l(92),text:"Tax Invoice / Order Receipt",size:24,bold:!0,color:[1,1,1],maxWidth:270,lineHeight:27},{type:"text",x:58,y:l(126),text:"Clear billing proof for support, delivery reconciliation, and payment verification inside the DivineConnect experience.",size:10,color:[.875,.922,.969],maxWidth:258,lineHeight:14},{type:"rect",x:356,y:$(50,108),width:181,height:108,fillColor:[.114,.314,.482],strokeColor:[.247,.451,.608],strokeWidth:1},{type:"text",x:372,y:l(66),text:"INVOICE SNAPSHOT",size:8,bold:!0,color:[1,.934,.78],maxWidth:149},{type:"text",x:372,y:l(88),text:s,size:11,bold:!0,color:[1,1,1],maxWidth:149,lineHeight:14},{type:"text",x:372,y:l(108),text:`Issued on ${r}`,size:9,color:[.922,.953,.984],maxWidth:149,lineHeight:12},{type:"text",x:372,y:l(126),text:`${I} | ${p}`,size:9,color:[.922,.953,.984],maxWidth:149,lineHeight:12},{type:"text",x:372,y:l(144),text:`Txn ID ${_}`,size:9,color:[.922,.953,.984],maxWidth:149,lineHeight:12},{type:"rect",x:58,y:$(184,94),width:228,height:94,fillColor:[1,1,1],strokeColor:[.825,.866,.92],strokeWidth:1},{type:"rect",x:308,y:$(184,94),width:229,height:94,fillColor:[1,1,1],strokeColor:[.825,.866,.92],strokeWidth:1},{type:"text",x:76,y:l(208),text:"Bill To",size:9,bold:!0,color:[.353,.404,.463]},{type:"text",x:76,y:l(234),text:n.fullName||"DivineConnect Customer",size:15,bold:!0,color:[.114,.145,.18],maxWidth:192},{type:"text",x:76,y:l(258),text:`${n.email||"Not provided"}
+${n.phoneNumber||"Not provided"}`,size:10,color:[.353,.404,.463],maxWidth:192,lineHeight:13},{type:"text",x:326,y:l(208),text:"Payment Details",size:9,bold:!0,color:[.353,.404,.463]},{type:"text",x:326,y:l(234),text:I,size:14,bold:!0,color:[.114,.145,.18],maxWidth:194},{type:"text",x:326,y:l(258),text:`Status: ${p}
+Items: ${C} | Order: ${fe(t.status)}`,size:10,color:[.353,.404,.463],maxWidth:194,lineHeight:13},{type:"rect",x:58,y:$(m,f),width:479,height:f,fillColor:[1,1,1],strokeColor:[.825,.866,.92],strokeWidth:1},{type:"text",x:76,y:l(m+22),text:"Order Items",size:9,bold:!0,color:[.353,.404,.463]},{type:"rect",x:58,y:$(m+40,30),width:479,height:30,fillColor:[.925,.949,.976]}],V=l(m+60);[{x:72,text:"Item",align:"left"},{x:280,text:"Category",align:"left"},{x:381,text:"Qty",align:"center"},{x:448,text:"Rate",align:"right"},{x:519,text:"Total",align:"right"}].forEach(N=>{R.push({type:"text",x:N.x,y:V,text:N.text,size:9,bold:!0,color:[.353,.404,.463],align:N.align})});const E=m+92;if(c.forEach((N,T)=>{const k=E+T*34,P=l(k+22);R.push({type:"text",x:72,y:l(k),text:ge(N.name,34),size:11,bold:!0,color:[.114,.145,.18],maxWidth:184},{type:"text",x:280,y:l(k),text:ge(N.category,16),size:10,color:[.353,.404,.463],maxWidth:80},{type:"text",x:381,y:l(k),text:String(N.quantity),size:10,color:[.114,.145,.18],align:"center"},{type:"text",x:448,y:l(k),text:`Rs. ${g(N.price)}`,size:10,color:[.114,.145,.18],align:"right"},{type:"text",x:519,y:l(k),text:`Rs. ${g(N.price*N.quantity)}`,size:10,bold:!0,color:[.114,.145,.18],align:"right"},{type:"line",x1:72,y1:P,x2:519,y2:P,color:[.911,.933,.957],width:1})}),x>0){const N=E+c.length*34,T=l(N+22);R.push({type:"text",x:72,y:l(N),text:`${x} more item${x>1?"s":""} available in full order history`,size:10,color:[.353,.404,.463],maxWidth:240},{type:"line",x1:72,y1:T,x2:519,y2:T,color:[.911,.933,.957],width:1})}return R.push({type:"rect",x:58,y:$(u,118),width:282,height:118,fillColor:[1,1,1],strokeColor:[.825,.866,.92],strokeWidth:1},{type:"text",x:76,y:l(u+24),text:"Delivery and Notes",size:9,bold:!0,color:[.353,.404,.463]},{type:"text",x:76,y:l(u+48),text:a,size:11,color:[.114,.145,.18],maxWidth:246,lineHeight:15},{type:"text",x:76,y:l(u+88),text:"Use this invoice for customer support, payment proof, and delivery reconciliation.",size:9,color:[.353,.404,.463],maxWidth:246,lineHeight:13},{type:"rect",x:360,y:$(u,118),width:177,height:118,fillColor:[.862,.914,.969],strokeColor:[.705,.792,.878],strokeWidth:1},{type:"text",x:378,y:l(u+24),text:"Amount Summary",size:9,bold:!0,color:[.208,.29,.38]},{type:"text",x:378,y:l(u+50),text:"Subtotal",size:11,color:[.114,.145,.18]},{type:"text",x:519,y:l(u+50),text:`Rs. ${g(i.subtotal)}`,size:11,color:[.114,.145,.18],align:"right"},{type:"text",x:378,y:l(u+74),text:"Shipping",size:11,color:[.114,.145,.18]},{type:"text",x:519,y:l(u+74),text:`Rs. ${g(i.shippingFee)}`,size:11,color:[.114,.145,.18],align:"right"},{type:"line",x1:378,y1:$(u+88,0),x2:519,y2:$(u+88,0),color:[.627,.718,.812],width:1},{type:"text",x:378,y:l(u+104),text:"Grand Total",size:13,bold:!0,color:[.059,.239,.388]},{type:"text",x:519,y:l(u+104),text:`Rs. ${g(i.totalAmount)}`,size:13,bold:!0,color:[.059,.239,.388],align:"right"},{type:"text",x:58,y:52,text:"Generated by DivineConnect for sacred commerce records.",size:9,color:[.353,.404,.463]},{type:"text",x:537,y:52,text:`${p} payment record`,size:9,color:[.353,.404,.463],align:"right"}),R}function U(t){J(`${(t.orderNumber||`order-${t.id.slice(-6)}`).toLowerCase()}-invoice`,{elements:et(t)})}function G(t){if(typeof window>"u")return;const s=window.open("","_blank","noopener,noreferrer,width=960,height=720");s&&(s.document.write(Xe(t)),s.document.close(),s.focus(),s.print())}function at(){var T,k,P,ee;const t=He(),[s,i]=We(),n=xe,[r,a]=z.useState(null),[d,c]=z.useState([]),[x,w]=z.useState([]),[f,m]=z.useState([]),[h,u]=z.useState("bookings"),p=x[0]||null;z.useEffect(()=>{const o=s.get("tab");(o==="profile"||o==="bookings"||o==="orders"||o==="readings")&&u(o)},[s]),z.useEffect(()=>{(async()=>{try{const[y,L,O,M]=await Promise.all([$e(n.uid),De(n.uid),ke(n.uid),Se(n.uid)]);a(y),c(L),w(O),m(M)}catch(y){console.error("Error fetching profile data:",y)}})()},[n]);const I=o=>{Ie(o.items.map(y=>({id:y.productId,name:y.name,price:y.price,image:y.image||"https://picsum.photos/seed/reorder/400/400",quantity:y.quantity,category:y.category,templeName:y.templeName,weight:y.weight,size:y.size}))),t("/cart")},_=o=>{if(o.type==="darshan"){t("/services/darshan");return}t(`/services/puja/${o.serviceId}`)},C=o=>{u(o),i({tab:o})},R=o=>o.serviceTitle?o.serviceTitle:o.type==="darshan"?"Darshan Support":"Puja Booking",V=h==="bookings"?"Service Bookings":h==="orders"?"Order History":h==="readings"?"Astrology History":"Account Settings",E=h==="bookings"?d.length:h==="orders"?x.length:h==="readings"?f.length:"Security",N=[{key:"bookings",label:"Bookings",value:d.length},{key:"orders",label:"Orders",value:x.length},{key:"readings",label:"Readings",value:f.length}];return e.jsxs("div",{className:"mx-auto max-w-7xl space-y-10 px-4 py-12 sm:px-6 lg:px-8",children:[e.jsx(je,{tone:"stone",eyebrow:"My DivineConnect",title:"A clearer account space for bookings, orders, certificates, and spiritual history.",description:"This profile area is organized to reduce switching friction between service records, invoices, astrology outputs, and personal account details.",stats:[{label:"Bookings",value:`${d.length}`},{label:"Orders",value:`${x.length}`},{label:"Readings",value:`${f.length}`},{label:"Latest Order",value:p?`Rs. ${g(p.totalAmount)}`:"No orders"}],aside:e.jsxs("div",{className:"rounded-[2rem] border border-stone-200 bg-white p-6 shadow-sm",children:[e.jsx("p",{className:"text-xs font-bold uppercase tracking-[0.24em] text-orange-600",children:"Account Workspace"}),e.jsxs("div",{className:"mt-5 space-y-3 text-sm text-stone-600",children:[e.jsx("div",{className:"rounded-2xl bg-stone-50 px-4 py-3",children:"Faster switching between bookings, orders, readings, and profile settings."}),e.jsx("div",{className:"rounded-2xl bg-stone-50 px-4 py-3",children:"Certificates, invoices, and reorder actions stay close to the related record."})]})]})}),e.jsxs("div",{className:"grid grid-cols-1 lg:grid-cols-4 gap-8",children:[e.jsxs("div",{className:"lg:col-span-1 space-y-6",children:[e.jsxs("div",{className:"bg-white p-8 rounded-[2rem] border border-stone-200 text-center",children:[e.jsx("img",{src:n.photoURL||"",alt:"",className:"w-24 h-24 rounded-full mx-auto mb-4 border-4 border-orange-100"}),e.jsx("h2",{className:"text-xl font-bold text-stone-900",children:n.displayName}),e.jsx("p",{className:"text-stone-500 text-sm mb-6 capitalize",children:(r==null?void 0:r.role)||"Devotee"}),e.jsxs("div",{className:"space-y-3 text-left",children:[e.jsxs("div",{className:"flex items-center text-sm text-stone-600",children:[e.jsx(Re,{className:"w-4 h-4 mr-2 text-stone-400"}),e.jsx("span",{className:"truncate",children:n.email})]}),(r==null?void 0:r.phoneNumber)&&e.jsxs("div",{className:"flex items-center text-sm text-stone-600",children:[e.jsx(Te,{className:"w-4 h-4 mr-2 text-stone-400"}),e.jsx("span",{children:r.phoneNumber})]})]}),e.jsx("div",{className:"grid grid-cols-3 gap-3 mt-6 text-left",children:N.map(o=>e.jsxs("button",{type:"button",onClick:()=>C(o.key),className:`rounded-2xl border p-4 text-left transition-colors ${h===o.key?"border-orange-200 bg-orange-50":"border-stone-100 bg-stone-50 hover:border-orange-100 hover:bg-orange-50/40"}`,children:[e.jsx("p",{className:`text-[11px] uppercase tracking-wider font-bold mb-1 ${h===o.key?"text-orange-500":"text-stone-400"}`,children:o.label}),e.jsx("p",{className:"text-xl font-bold text-stone-900",children:o.value})]},o.key))})]}),e.jsxs("nav",{className:"bg-white rounded-[2rem] border border-stone-200 overflow-hidden",children:[e.jsxs("button",{onClick:()=>C("profile"),className:`w-full flex items-center px-6 py-4 text-sm font-bold transition-colors ${h==="profile"?"bg-orange-50 text-orange-600":"text-stone-600 hover:bg-stone-50"}`,children:[e.jsx(ze,{className:"w-5 h-5 mr-3"}),"My Profile"]}),e.jsxs("button",{onClick:()=>C("bookings"),className:`w-full flex items-center px-6 py-4 text-sm font-bold transition-colors ${h==="bookings"?"bg-orange-50 text-orange-600":"text-stone-600 hover:bg-stone-50"}`,children:[e.jsx(Q,{className:"w-5 h-5 mr-3"}),"My Bookings"]}),e.jsxs("button",{onClick:()=>C("orders"),className:`w-full flex items-center px-6 py-4 text-sm font-bold transition-colors ${h==="orders"?"bg-orange-50 text-orange-600":"text-stone-600 hover:bg-stone-50"}`,children:[e.jsx(B,{className:"w-5 h-5 mr-3"}),"My Orders"]}),e.jsxs("button",{onClick:()=>C("readings"),className:`w-full flex items-center px-6 py-4 text-sm font-bold transition-colors ${h==="readings"?"bg-orange-50 text-orange-600":"text-stone-600 hover:bg-stone-50"}`,children:[e.jsx(me,{className:"w-5 h-5 mr-3"}),"Astrology History"]}),e.jsxs("button",{onClick:()=>t("/vendor"),className:"w-full flex items-center px-6 py-4 text-sm font-bold text-stone-600 hover:bg-stone-50 transition-colors",children:[e.jsx(he,{className:"w-5 h-5 mr-3"}),"Vendor Dashboard"]}),e.jsxs("button",{onClick:()=>t("/admin"),className:"w-full flex items-center px-6 py-4 text-sm font-bold text-stone-600 hover:bg-stone-50 transition-colors",children:[e.jsx(he,{className:"w-5 h-5 mr-3"}),"Admin Dashboard"]})]})]}),e.jsx("div",{className:"lg:col-span-3",children:e.jsxs("div",{className:"bg-white rounded-[2.5rem] border border-stone-200 min-h-[600px] overflow-hidden",children:[e.jsxs("div",{className:"px-8 py-6 border-b border-stone-100 flex justify-between items-center",children:[e.jsx("h3",{className:"text-xl font-serif font-bold text-stone-900",children:V}),e.jsxs("div",{className:"flex items-center gap-3",children:[p?e.jsxs("button",{type:"button",onClick:()=>C("orders"),className:"hidden md:inline-flex items-center rounded-full border border-orange-200 bg-orange-50 px-4 py-2 text-xs font-bold text-orange-600 hover:bg-orange-100 transition-colors",children:[e.jsx(Ae,{className:"w-4 h-4 mr-2"}),"Invoice Ready"]}):null,e.jsx("span",{className:"bg-stone-100 text-stone-600 px-3 py-1 rounded-full text-xs font-bold",children:E})]})]}),e.jsxs("div",{className:"p-8",children:[p&&h!=="orders"?e.jsx("div",{className:"mb-8 rounded-[2rem] border border-orange-100 bg-gradient-to-r from-orange-50 via-white to-stone-50 p-6",children:e.jsxs("div",{className:"flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5",children:[e.jsxs("div",{children:[e.jsx("p",{className:"text-xs font-bold uppercase tracking-[0.24em] text-orange-500 mb-2",children:"Latest Invoice"}),e.jsxs("h4",{className:"text-lg font-bold text-stone-900",children:["Order #",p.orderNumber]}),e.jsxs("p",{className:"text-sm text-stone-600 mt-1",children:[p.items.length," items, ",(T=p.customerDetails)==null?void 0:T.fullName,","," ",(k=p.customerDetails)==null?void 0:k.phoneNumber]}),e.jsxs("p",{className:"text-sm text-stone-500 mt-1",children:["Total: Rs. ",g(p.totalAmount)," | Issued:"," ",new Date(((P=p.receipt)==null?void 0:P.issuedAt)||p.createdAt).toLocaleString()]})]}),e.jsxs("div",{className:"flex flex-wrap gap-3",children:[e.jsxs("button",{type:"button",onClick:()=>C("orders"),className:"inline-flex items-center px-4 py-3 rounded-2xl border border-orange-200 bg-white text-sm font-bold text-orange-600 hover:bg-orange-100 transition-colors",children:[e.jsx(B,{className:"w-4 h-4 mr-2"}),"View Order"]}),e.jsxs("button",{type:"button",onClick:()=>U(p),className:"inline-flex items-center px-4 py-3 rounded-2xl border border-orange-200 bg-white text-sm font-bold text-orange-600 hover:bg-orange-100 transition-colors",children:[e.jsx(S,{className:"w-4 h-4 mr-2"}),"Download Invoice"]}),e.jsxs("button",{type:"button",onClick:()=>G(p),className:"inline-flex items-center px-4 py-3 rounded-2xl border border-orange-200 bg-white text-sm font-bold text-orange-600 hover:bg-orange-100 transition-colors",children:[e.jsx(F,{className:"w-4 h-4 mr-2"}),"Print Invoice"]})]})]})}):null,h==="profile"?e.jsxs("div",{className:"space-y-8",children:[e.jsxs("div",{className:"grid grid-cols-1 md:grid-cols-2 gap-8",children:[e.jsxs("div",{className:"space-y-2",children:[e.jsx("label",{className:"text-xs font-bold text-stone-400 uppercase tracking-wider",children:"Full Name"}),e.jsx("div",{className:"p-4 bg-stone-50 rounded-2xl border border-stone-100 font-bold text-stone-900",children:n.displayName})]}),e.jsxs("div",{className:"space-y-2",children:[e.jsx("label",{className:"text-xs font-bold text-stone-400 uppercase tracking-wider",children:"Email Address"}),e.jsx("div",{className:"p-4 bg-stone-50 rounded-2xl border border-stone-100 font-bold text-stone-900",children:n.email})]})]}),e.jsxs("div",{className:"grid grid-cols-1 md:grid-cols-3 gap-4",children:[e.jsxs("div",{className:"rounded-2xl border border-stone-100 p-5",children:[e.jsx("p",{className:"text-sm font-bold text-stone-900 mb-2",children:"Quick Reorder"}),e.jsx("p",{className:"text-sm text-stone-500",children:"Rebuild past prasad and spiritual offering orders directly into your cart."})]}),e.jsxs("div",{className:"rounded-2xl border border-stone-100 p-5",children:[e.jsx("p",{className:"text-sm font-bold text-stone-900 mb-2",children:"Book Again"}),e.jsx("p",{className:"text-sm text-stone-500",children:"Repeat past puja or darshan flows without manually searching again."})]}),e.jsxs("div",{className:"rounded-2xl border border-stone-100 p-5",children:[e.jsx("p",{className:"text-sm font-bold text-stone-900 mb-2",children:"Saved Readings"}),e.jsx("p",{className:"text-sm text-stone-500",children:"Review recent astrology insights and continue into remedies when needed."})]})]}),p?e.jsx("div",{className:"rounded-[2rem] border border-orange-100 bg-orange-50 p-6",children:e.jsxs("div",{className:"flex flex-col md:flex-row md:items-center md:justify-between gap-4",children:[e.jsxs("div",{children:[e.jsx("p",{className:"text-xs font-bold uppercase tracking-[0.24em] text-orange-500 mb-2",children:"Latest Invoice"}),e.jsxs("h4",{className:"text-lg font-bold text-stone-900",children:["Order #",p.orderNumber]}),e.jsxs("p",{className:"text-sm text-stone-600 mt-1",children:[p.items.length," items | Rs. ",g(p.totalAmount)]}),e.jsxs("p",{className:"text-xs text-stone-500 mt-1",children:["Transaction ID: ",((ee=p.receipt)==null?void 0:ee.transactionId)||"Generated at checkout"]})]}),e.jsxs("div",{className:"flex flex-wrap gap-3",children:[e.jsxs("button",{type:"button",onClick:()=>C("orders"),className:"inline-flex items-center px-4 py-3 rounded-2xl border border-orange-200 bg-white text-sm font-bold text-orange-600 hover:bg-orange-100 transition-colors",children:[e.jsx(B,{className:"w-4 h-4 mr-2"}),"Open Orders"]}),e.jsxs("button",{type:"button",onClick:()=>U(p),className:"inline-flex items-center px-4 py-3 rounded-2xl border border-orange-200 bg-white text-sm font-bold text-orange-600 hover:bg-orange-100 transition-colors",children:[e.jsx(S,{className:"w-4 h-4 mr-2"}),"Download Invoice"]}),e.jsxs("button",{type:"button",onClick:()=>G(p),className:"inline-flex items-center px-4 py-3 rounded-2xl border border-orange-200 bg-white text-sm font-bold text-orange-600 hover:bg-orange-100 transition-colors",children:[e.jsx(F,{className:"w-4 h-4 mr-2"}),"Print Invoice"]}),e.jsxs("button",{type:"button",onClick:()=>be(p),className:"inline-flex items-center px-4 py-3 rounded-2xl border border-orange-200 bg-white text-sm font-bold text-orange-600 hover:bg-orange-100 transition-colors",children:[e.jsx(S,{className:"w-4 h-4 mr-2"}),"Product Certificate"]})]})]})}):null,e.jsxs("div",{className:"pt-8 border-t border-stone-100",children:[e.jsx("h4",{className:"text-lg font-bold text-stone-900 mb-6",children:"Demo Access"}),e.jsxs("div",{className:"max-w-md space-y-4",children:[e.jsxs("p",{className:"text-sm text-stone-600",children:["This static demo does not require sign-in. If you want sample credentials for presentations, use"," ",e.jsx("span",{className:"font-bold text-stone-900",children:pe.email})," /"," ",e.jsx("span",{className:"font-bold text-stone-900",children:pe.password}),"."]}),e.jsxs("div",{className:"grid grid-cols-1 gap-3 text-sm text-stone-600",children:[e.jsxs("div",{className:"rounded-2xl border border-stone-100 p-4",children:["Devotee demo: ",e.jsx("span",{className:"font-bold text-stone-900",children:xe.email})]}),e.jsxs("div",{className:"rounded-2xl border border-stone-100 p-4",children:["Vendor demo: ",e.jsx("span",{className:"font-bold text-stone-900",children:we.email})]}),e.jsxs("div",{className:"rounded-2xl border border-stone-100 p-4",children:["Admin demo: ",e.jsx("span",{className:"font-bold text-stone-900",children:Ce.email})]})]})]})]})]}):h==="bookings"?e.jsx("div",{className:"space-y-4",children:d.length===0?e.jsxs("div",{className:"text-center py-20",children:[e.jsx(Q,{className:"w-12 h-12 text-stone-200 mx-auto mb-4"}),e.jsx("p",{className:"text-stone-400",children:"No bookings found."})]}):d.map(o=>e.jsxs("div",{className:"flex items-center justify-between p-6 rounded-2xl border border-stone-100 hover:border-orange-100 transition-colors",children:[e.jsxs("div",{className:"flex items-center space-x-4",children:[e.jsx("div",{className:"w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center shrink-0",children:e.jsx(Q,{className:"w-6 h-6 text-orange-600"})}),e.jsxs("div",{children:[e.jsx("h4",{className:"font-bold text-stone-900",children:R(o)}),e.jsxs("p",{className:"text-xs text-stone-500",children:[o.date," at ",o.timeSlot]}),e.jsxs("p",{className:"text-xs text-stone-500",children:["Certificate Ref: ",o.bookingReference||o.id.slice(-8).toUpperCase()]}),o.mode&&e.jsxs("p",{className:"text-xs text-stone-500 capitalize",children:[o.mode," pandit ji service"]})]})]}),e.jsxs("div",{className:"text-right space-y-3",children:[e.jsxs("p",{className:"font-bold text-stone-900",children:["Rs. ",g(o.totalAmount)]}),e.jsx("span",{className:`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full ${o.status==="confirmed"?"bg-emerald-100 text-emerald-700":o.status==="pending"?"bg-amber-100 text-amber-700":o.status==="completed"?"bg-blue-100 text-blue-700":"bg-stone-100 text-stone-500"}`,children:o.status}),e.jsx("div",{children:e.jsxs("button",{type:"button",onClick:()=>_(o),className:"inline-flex items-center text-sm font-bold text-orange-600 hover:text-orange-500 transition-colors",children:["Book Again",e.jsx(ue,{className:"w-4 h-4 ml-1"})]})}),e.jsx("div",{children:e.jsxs("button",{type:"button",onClick:()=>Ke(o,r),className:"inline-flex items-center text-sm font-bold text-stone-700 hover:text-orange-600 transition-colors",children:[e.jsx(S,{className:"w-4 h-4 mr-1.5"}),"Download Certificate"]})}),o.type==="puja"?e.jsx("div",{children:e.jsxs("button",{type:"button",onClick:()=>Ye(o,r),className:"inline-flex items-center text-sm font-bold text-stone-700 hover:text-orange-600 transition-colors",children:[e.jsx(S,{className:"w-4 h-4 mr-1.5"}),"Download Invitation"]})}):null]})]},o.id))}):h==="orders"?e.jsx("div",{className:"space-y-4",children:x.length===0?e.jsxs("div",{className:"text-center py-20",children:[e.jsx(B,{className:"w-12 h-12 text-stone-200 mx-auto mb-4"}),e.jsx("p",{className:"text-stone-400",children:"No orders found."})]}):x.map(o=>{var y,L,O,M,te,se,oe,re,ne,ie,ae,le,ce,de;return e.jsxs("div",{className:"p-6 rounded-2xl border border-stone-100",children:[e.jsx("div",{className:"mb-4 rounded-2xl border border-orange-100 bg-orange-50 px-4 py-3",children:e.jsxs("div",{className:"flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3",children:[e.jsxs("div",{children:[e.jsx("p",{className:"text-xs font-bold uppercase tracking-[0.24em] text-orange-500",children:"Invoice Ready"}),e.jsx("p",{className:"text-sm font-medium text-stone-600 mt-1",children:"Full invoice includes order number, customer details, payment method, price breakup, and delivery address."})]}),e.jsxs("div",{className:"flex flex-wrap gap-2",children:[e.jsxs("button",{type:"button",onClick:()=>U(o),className:"inline-flex items-center px-3 py-2 rounded-xl border border-orange-200 bg-white text-sm font-bold text-orange-600 hover:bg-orange-100 transition-colors",children:[e.jsx(S,{className:"w-4 h-4 mr-2"}),"Download Invoice"]}),e.jsxs("button",{type:"button",onClick:()=>G(o),className:"inline-flex items-center px-3 py-2 rounded-xl border border-orange-200 bg-white text-sm font-bold text-orange-600 hover:bg-orange-100 transition-colors",children:[e.jsx(F,{className:"w-4 h-4 mr-2"}),"Print Invoice"]}),e.jsxs("button",{type:"button",onClick:()=>be(o),className:"inline-flex items-center px-3 py-2 rounded-xl border border-orange-200 bg-white text-sm font-bold text-orange-600 hover:bg-orange-100 transition-colors",children:[e.jsx(S,{className:"w-4 h-4 mr-2"}),"Product Certificate"]})]})]})}),e.jsxs("div",{className:"flex flex-col md:flex-row md:justify-between md:items-start gap-4 mb-4",children:[e.jsxs("div",{children:[e.jsxs("span",{className:"text-xs font-bold text-stone-400",children:["Order #",o.orderNumber||o.id.slice(-6).toUpperCase()]}),e.jsx("p",{className:"text-xs text-stone-500 mt-1",children:new Date(o.createdAt).toLocaleDateString()}),e.jsxs("p",{className:"text-xs text-stone-500 mt-1",children:["Receipt issued: ",new Date(((y=o.receipt)==null?void 0:y.issuedAt)||o.createdAt).toLocaleString()]})]}),e.jsxs("div",{className:"flex flex-wrap gap-2",children:[e.jsxs("button",{type:"button",onClick:()=>I(o),className:"inline-flex items-center px-3 py-2 rounded-xl border border-stone-200 text-sm font-bold text-stone-700 hover:border-orange-200 hover:text-orange-600 transition-colors",children:[e.jsx(Pe,{className:"w-4 h-4 mr-2"}),"Reorder"]}),e.jsxs("button",{type:"button",onClick:()=>U(o),className:"inline-flex items-center px-3 py-2 rounded-xl border border-stone-200 text-sm font-bold text-stone-700 hover:border-orange-200 hover:text-orange-600 transition-colors",children:[e.jsx(S,{className:"w-4 h-4 mr-2"}),"Download Invoice"]}),e.jsxs("button",{type:"button",onClick:()=>G(o),className:"inline-flex items-center px-3 py-2 rounded-xl border border-stone-200 text-sm font-bold text-stone-700 hover:border-orange-200 hover:text-orange-600 transition-colors",children:[e.jsx(F,{className:"w-4 h-4 mr-2"}),"Print Invoice"]})]})]}),e.jsxs("div",{className:"grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-6 items-end",children:[e.jsxs("div",{className:"space-y-3",children:[e.jsxs("div",{className:"rounded-2xl border border-stone-100 bg-white p-4",children:[e.jsx("p",{className:"text-xs font-bold text-stone-400 uppercase tracking-wider mb-3",children:"Receipt Details"}),e.jsxs("div",{className:"grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-stone-600",children:[e.jsxs("p",{children:["Order No: ",e.jsx("span",{className:"font-bold text-stone-900",children:o.orderNumber})]}),e.jsxs("p",{children:["Payment: ",e.jsx("span",{className:"font-bold text-stone-900",children:(L=o.receipt)==null?void 0:L.paymentMethod})]}),e.jsxs("p",{children:["Payment Status:"," ",e.jsx("span",{className:"font-bold text-stone-900",children:((O=o.receipt)==null?void 0:O.paymentStatus)||"Paid"})]}),e.jsxs("p",{children:["Customer: ",e.jsx("span",{className:"font-bold text-stone-900",children:(M=o.customerDetails)==null?void 0:M.fullName})]}),e.jsxs("p",{children:["Contact: ",e.jsx("span",{className:"font-bold text-stone-900",children:(te=o.customerDetails)==null?void 0:te.phoneNumber})]}),e.jsxs("p",{className:"md:col-span-2",children:["Email: ",e.jsx("span",{className:"font-bold text-stone-900",children:(se=o.customerDetails)==null?void 0:se.email})]}),e.jsxs("p",{className:"md:col-span-2",children:["Transaction ID:"," ",e.jsx("span",{className:"font-bold text-stone-900",children:((oe=o.receipt)==null?void 0:oe.transactionId)||"Generated at checkout"})]})]})]}),e.jsxs("p",{className:"text-sm font-bold text-stone-900",children:[o.items.length," Items"]}),e.jsx("div",{className:"flex flex-wrap gap-2",children:o.items.slice(0,3).map(j=>e.jsxs("span",{className:"px-3 py-1 rounded-full bg-orange-50 text-orange-700 text-xs font-bold",children:[j.name," x ",j.quantity]},`${o.id}-${j.productId}`))}),e.jsx("p",{className:"text-sm text-stone-500",children:o.shippingAddress}),e.jsxs("div",{className:"text-xs text-stone-500 space-y-1",children:[e.jsxs("p",{children:[(re=o.customerDetails)==null?void 0:re.fullName," | ",(ne=o.customerDetails)==null?void 0:ne.phoneNumber]}),e.jsx("p",{children:(ie=o.customerDetails)==null?void 0:ie.email})]}),o.estimatedDeliveryDate?e.jsxs("div",{className:"rounded-2xl bg-emerald-50 border border-emerald-100 p-4",children:[e.jsx("p",{className:"text-xs font-bold text-emerald-700 uppercase tracking-wider mb-1",children:"Estimated Delivery"}),e.jsx("p",{className:"text-sm font-bold text-stone-900",children:new Date(o.estimatedDeliveryDate).toLocaleDateString()})]}):null,e.jsxs("div",{className:"rounded-2xl bg-stone-50 border border-stone-100 p-4",children:[e.jsx("p",{className:"text-xs font-bold text-stone-400 uppercase tracking-wider mb-2",children:"Receipt Summary"}),e.jsxs("div",{className:"space-y-1 text-sm text-stone-600",children:[o.items.map(j=>e.jsxs("p",{children:[j.name," x ",j.quantity,":"," ",e.jsxs("span",{className:"font-bold text-stone-900",children:["Rs. ",g(j.price*j.quantity)]})]},`${o.id}-${j.productId}-line`)),e.jsxs("p",{children:["Subtotal:"," ",e.jsxs("span",{className:"font-bold text-stone-900",children:["Rs. ",g(((ae=o.receipt)==null?void 0:ae.subtotal)||o.totalAmount)]})]}),e.jsxs("p",{children:["Shipping:"," ",e.jsxs("span",{className:"font-bold text-stone-900",children:["Rs. ",g(((le=o.receipt)==null?void 0:le.shippingFee)||0)]})]}),e.jsxs("p",{children:["Payment:"," ",e.jsx("span",{className:"font-bold text-stone-900",children:((ce=o.receipt)==null?void 0:ce.paymentMethod)||"Secure checkout"})]})]})]}),(de=o.statusTimeline)!=null&&de.length?e.jsxs("div",{className:"rounded-2xl border border-stone-100 p-4",children:[e.jsx("p",{className:"text-xs font-bold text-stone-400 uppercase tracking-wider mb-3",children:"Order Journey"}),e.jsx("div",{className:"space-y-3",children:o.statusTimeline.map(j=>e.jsxs("div",{className:"flex items-start justify-between gap-4",children:[e.jsxs("div",{children:[e.jsx("p",{className:"text-sm font-bold text-stone-900",children:j.label}),e.jsx("p",{className:"text-xs text-stone-500",children:j.note})]}),e.jsx("span",{className:"text-[11px] font-medium text-stone-400 whitespace-nowrap",children:new Date(j.completedAt).toLocaleDateString()})]},`${o.id}-${j.status}`))})]}):null]}),e.jsxs("div",{className:"text-right",children:[e.jsxs("p",{className:"font-bold text-stone-900",children:["Rs. ",g(o.totalAmount)]}),e.jsx("span",{className:"text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700",children:o.status})]})]})]},o.id)})}):e.jsx("div",{className:"space-y-4",children:f.length===0?e.jsxs("div",{className:"text-center py-20",children:[e.jsx(me,{className:"w-12 h-12 text-stone-200 mx-auto mb-4"}),e.jsx("p",{className:"text-stone-400",children:"No astrology readings found yet."})]}):f.map(o=>e.jsxs("div",{className:"p-6 rounded-2xl border border-stone-100",children:[e.jsxs("div",{className:"flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-4",children:[e.jsxs("div",{children:[e.jsx("p",{className:"text-xs font-bold text-orange-500 uppercase tracking-wider",children:o.readingType==="kundali-match"?"Kundali Match":o.readingType==="rashi-phal"?"Rashi Phal":"Astrology Reading"}),e.jsx("h4",{className:"text-lg font-bold text-stone-900 mt-1",children:o.name}),e.jsxs("p",{className:"text-xs text-stone-500 mt-1",children:[new Date(o.createdAt).toLocaleDateString()," | ",o.pob]}),o.partnerName?e.jsxs("p",{className:"text-xs text-stone-500 mt-1",children:["Match with ",o.partnerName]}):null,o.rashi?e.jsxs("p",{className:"text-xs text-stone-500 mt-1",children:["Rashi: ",o.rashi]}):null]}),e.jsxs("button",{type:"button",onClick:()=>t("/astrology"),className:"inline-flex items-center text-sm font-bold text-orange-600 hover:text-orange-500 transition-colors",children:["Open AI Astrology",e.jsx(ue,{className:"w-4 h-4 ml-1"})]})]}),o.userQuery?e.jsxs("div",{className:"rounded-2xl bg-orange-50 border border-orange-100 p-4 mb-4",children:[e.jsx("p",{className:"text-xs font-bold text-orange-600 uppercase tracking-wider mb-2",children:"Your Question"}),e.jsx("p",{className:"text-sm text-stone-700",children:o.userQuery})]}):null,e.jsx("div",{className:"rounded-2xl bg-stone-50 border border-stone-100 p-4",children:e.jsx("p",{className:"text-sm text-stone-700 whitespace-pre-wrap line-clamp-6",children:o.reading})}),o.readingType==="kundali-match"?e.jsx("div",{className:"mt-4",children:e.jsxs("button",{type:"button",onClick:()=>Je(o),className:"inline-flex items-center text-sm font-bold text-stone-700 hover:text-orange-600 transition-colors",children:[e.jsx(S,{className:"w-4 h-4 mr-1.5"}),"Download Match Certificate"]})}):null]},o.id))})]})]})})]})]})}export{at as default};
