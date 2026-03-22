@@ -167,13 +167,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
         <div className="border-b border-stone-200/80 bg-white/88 backdrop-blur-xl shadow-[0_12px_40px_rgba(28,25,23,0.06)]">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="flex h-20 items-center gap-3 xl:gap-4">
-              <Link to="/" className="flex min-w-0 shrink-0 items-center gap-3 pr-1 xl:pr-3">
+            <div className="flex h-20 items-center gap-3 xl:grid xl:grid-cols-[minmax(208px,228px)_minmax(0,1fr)_auto] xl:gap-4 2xl:grid-cols-[minmax(228px,272px)_minmax(0,1fr)_auto]">
+              <Link to="/" className="flex min-w-0 items-center gap-3 overflow-hidden xl:max-w-[228px] 2xl:max-w-[272px]">
                 <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-orange-50 ring-1 ring-orange-100">
                   <img src={logoMark} alt="DivineConnect logo" className="h-8 w-8" />
                 </div>
                 <div className="min-w-0">
-                  <p className="truncate text-xl font-serif font-bold tracking-tight text-stone-900">
+                  <p className="truncate text-lg font-serif font-bold tracking-tight text-stone-900 2xl:text-xl">
                     DivineConnect
                   </p>
                   <p className="hidden text-xs text-stone-500 2xl:block">
@@ -182,7 +182,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 </div>
               </Link>
 
-              <nav className="hidden min-w-0 flex-1 items-center justify-center gap-1 xl:flex">
+              <nav className="hidden min-w-0 items-center justify-center gap-1 xl:flex">
                 {navLinks.map((link) => (
                   <NavLink
                     key={link.to}
@@ -190,7 +190,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                     end={link.end}
                     className={({ isActive }) =>
                       cn(
-                        'whitespace-nowrap rounded-full px-3 py-2 text-sm font-semibold transition-all 2xl:px-4',
+                        'whitespace-nowrap rounded-full px-2.5 py-2 text-sm font-semibold transition-all 2xl:px-4',
                         isActive
                           ? 'bg-stone-900 text-white shadow-lg shadow-stone-900/10'
                           : 'text-stone-600 hover:bg-orange-50 hover:text-orange-600',
@@ -202,10 +202,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 ))}
               </nav>
 
-              <div className="ml-auto flex min-w-0 shrink-0 items-center gap-2 sm:gap-3">
+              <div className="ml-auto flex min-w-0 shrink-0 items-center gap-2 sm:gap-3 xl:ml-0">
                 <form
                   onSubmit={handleSearch}
-                  className="hidden min-w-0 items-center rounded-full border border-stone-200 bg-stone-50 px-3 py-2 shadow-inner shadow-white/80 xl:flex xl:w-44 2xl:w-60"
+                  className="hidden min-w-0 items-center rounded-full border border-stone-200 bg-stone-50 px-3 py-2 shadow-inner shadow-white/80 xl:flex xl:w-36 2xl:w-52"
                 >
                   <Search className="h-4 w-4 text-stone-400" />
                   <input
