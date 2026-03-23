@@ -11,6 +11,8 @@ interface State {
 }
 
 export class ErrorBoundary extends React.Component<Props, State> {
+  private readonly recoveryStorageKey = 'divine-connect-chunk-recovery';
+
   constructor(props: Props) {
     super(props);
     this.state = { hasError: false, error: null };
@@ -22,6 +24,66 @@ export class ErrorBoundary extends React.Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error('ErrorBoundary caught an error', error, errorInfo);
+    if (this.isChunkLoadError(error)) {
+      void this.recoverFromChunkError();
+    }
+  }
+
+  private isChunkLoadError(error: Error | null) {
+    const message = error?.message?.toLowerCase() ?? '';
+    return (
+      message.includes('failed to fetch dynamically imported module') ||
+      message.includes('importing a module script failed') ||
+      message.includes('failed to load module script') ||
+      message.includes('chunkloaderror')
+    );
+  }
+
+  private async resetAppRuntime() {
+    if ('serviceWorker' in navigator) {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(
+        registrations.map(async (registration) => {
+          await registration.update().catch(() => undefined);
+          await registration.unregister().catch(() => undefined);
+        }),
+      );
+    }
+
+    if ('caches' in window) {
+      const cacheKeys = await caches.keys();
+      await Promise.all(
+        cacheKeys
+          .filter((key) => key.startsWith('divine-connect-'))
+          .map((key) => caches.delete(key)),
+      );
+    }
+  }
+
+  private async recoverFromChunkError() {
+    if (typeof window === 'undefined' || typeof sessionStorage === 'undefined') {
+      return;
+    }
+
+    if (sessionStorage.getItem(this.recoveryStorageKey) === 'done') {
+      return;
+    }
+
+    sessionStorage.setItem(this.recoveryStorageKey, 'done');
+    await this.resetAppRuntime();
+    window.location.reload();
+  }
+
+  private handleRetry = async () => {
+    if (this.isChunkLoadError(this.state.error)) {
+      await this.resetAppRuntime();
+    }
+
+    if (typeof sessionStorage !== 'undefined') {
+      sessionStorage.removeItem(this.recoveryStorageKey);
+    }
+
+    window.location.reload();
   }
 
   render() {
@@ -43,7 +105,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
               The page can usually be restored by refreshing the experience. If the issue persists, reopen the affected route from the main navigation.
             </div>
             <button
-              onClick={() => window.location.reload()}
+              onClick={() => void this.handleRetry()}
               className="mt-6 rounded-full bg-orange-500 px-6 py-3 font-bold text-white hover:bg-orange-600 transition-colors"
             >
               Retry Connection
