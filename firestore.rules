@@ -134,7 +134,7 @@ service cloud.firestore {
         data.userId is string &&
         data.serviceId is string &&
         data.vendorId is string &&
-        data.type in ['puja', 'darshan'] &&
+        data.type in ['puja', 'darshan', 'yatra'] &&
         data.mode in ['online', 'offline'] &&
         data.date is string &&
         data.timeSlot is string &&

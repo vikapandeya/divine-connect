@@ -884,6 +884,14 @@ app.post(['/bookings', '/api/bookings'], async (req, res) => {
     assert(payload.userId === requester.uid, 'You can only create bookings for your own account.', 403);
     assert(typeof payload.serviceId === 'string' && payload.serviceId, 'Service ID is required.');
     assert(typeof payload.vendorId === 'string' && payload.vendorId, 'Vendor ID is required.');
+    assert(
+      ['puja', 'darshan', 'yatra'].includes(payload.type || 'puja'),
+      'Booking type must be puja, darshan, or yatra.',
+    );
+    assert(
+      ['online', 'offline'].includes(payload.mode || 'online'),
+      'Booking mode must be online or offline.',
+    );
     assert(typeof payload.date === 'string' && payload.date, 'Booking date is required.');
     assert(typeof payload.timeSlot === 'string' && payload.timeSlot, 'Booking time slot is required.');
 
