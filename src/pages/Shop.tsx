@@ -7,6 +7,7 @@ import PageHero from '../components/PageHero';
 import { addToCart } from '../lib/cart';
 import { formatIndianRupees, getProductPlaceholderImage } from '../lib/utils';
 import { listProductsDirect } from '../lib/firestore-data';
+import { getProductSpiritualImage } from '../lib/spiritual-images';
 import {
   getReviewCount,
   getSearchSuggestions,
@@ -34,7 +35,7 @@ const fallbackProducts: Product[] = [
     price: 699,
     category: 'Prasad',
     rating: 4.9,
-    image: 'https://picsum.photos/seed/kashi-prasad/400/400',
+    image: getProductSpiritualImage('Prasad', 'Kashi Vishwanath Mahaprasad Box').src,
     templeName: 'Kashi Vishwanath Mandir',
     weight: '500 g',
     size: 'Family Box',
@@ -49,7 +50,7 @@ const fallbackProducts: Product[] = [
     price: 899,
     category: 'Prasad',
     rating: 5,
-    image: 'https://picsum.photos/seed/tirupati-prasad/400/400',
+    image: getProductSpiritualImage('Prasad', 'Tirupati Srivari Laddu Prasadam').src,
     templeName: 'Tirumala Tirupati Devasthanam',
     weight: '750 g',
     size: 'Temple Gift Pack',
@@ -64,7 +65,7 @@ const fallbackProducts: Product[] = [
     price: 1299,
     category: 'Idols',
     rating: 4.8,
-    image: 'https://picsum.photos/seed/ganesha/400/400',
+    image: getProductSpiritualImage('Idols', 'Brass Ganesha Idol').src,
     description: 'Handcrafted brass murti for home altar and festive puja spaces.',
     stock: 18,
   },
@@ -75,7 +76,7 @@ const fallbackProducts: Product[] = [
     price: 250,
     category: 'Incense',
     rating: 4.5,
-    image: 'https://picsum.photos/seed/incense/400/400',
+    image: getProductSpiritualImage('Incense', 'Sandalwood Incense').src,
     description: 'Classic devotional fragrance for daily aarti, meditation, and prayer.',
     stock: 60,
   },
@@ -86,7 +87,7 @@ const fallbackProducts: Product[] = [
     price: 599,
     category: 'Mala',
     rating: 4.9,
-    image: 'https://picsum.photos/seed/mala/400/400',
+    image: getProductSpiritualImage('Mala', 'Rudraksha Mala').src,
     size: '108 + 1 beads',
     description: 'Traditional japa mala selected for chanting, meditation, and gifting.',
     stock: 33,
@@ -98,7 +99,7 @@ const fallbackProducts: Product[] = [
     price: 450,
     category: 'Books',
     rating: 5,
-    image: 'https://picsum.photos/seed/gita/400/400',
+    image: getProductSpiritualImage('Books', 'Bhagavad Gita').src,
     size: 'Hardbound',
     description: 'Devotional reading edition for daily study, family satsang, and gifting.',
     stock: 21,
@@ -110,7 +111,7 @@ const fallbackProducts: Product[] = [
     price: 899,
     category: 'Yantras',
     rating: 4.7,
-    image: 'https://picsum.photos/seed/yantra/400/400',
+    image: getProductSpiritualImage('Yantras', 'Shree Yantra').src,
     size: '4 x 4 inch',
     description: 'Copper yantra designed for worship space placement and prosperity rituals.',
     stock: 11,
@@ -122,7 +123,7 @@ const fallbackProducts: Product[] = [
     price: 1500,
     category: 'Puja Essentials',
     rating: 4.6,
-    image: 'https://picsum.photos/seed/diya/400/400',
+    image: getProductSpiritualImage('Puja Essentials', 'Silver Diya').src,
     size: 'Set of 2',
     description: 'Elegant diya set for daily deepam, festivals, and spiritual gifting.',
     stock: 17,
@@ -405,10 +406,10 @@ export default function Shop() {
             >
               <div className="aspect-square overflow-hidden relative">
                 <img
-                  src={product.image || 'https://picsum.photos/400/400'}
-                  alt={product.name}
+                  src={product.image || getProductSpiritualImage(product.category, product.name).src}
+                  alt={`${product.name} spiritual product image`}
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                  referrerPolicy="no-referrer"
+                  loading="lazy"
                   onError={(event) => {
                     if (event.currentTarget.dataset.fallbackApplied === 'true') {
                       return;

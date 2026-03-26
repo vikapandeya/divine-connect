@@ -21,6 +21,7 @@ import { getTodayDateInputValue } from '../lib/utils';
 import { createBookingDirect, DEMO_DEVOTEE_PROFILE, getPujaDirect } from '../lib/firestore-data';
 import { getLiveSessionInfo } from '../lib/platform';
 import { checkPanditAvailability, PanditAvailabilityResult } from '../lib/pandit-availability';
+import { getPujaSpiritualImage } from '../lib/spiritual-images';
 
 const fallbackPujas: Record<string, Puja> = {
   'puja-ganesh': {
@@ -382,10 +383,10 @@ export default function PujaDetail() {
         >
           <div className="aspect-video rounded-[2rem] overflow-hidden border border-stone-200 shadow-sm">
             <img 
-              src={`https://picsum.photos/seed/${id}/1200/800`} 
-              alt={puja.title} 
+              src={getPujaSpiritualImage(puja.title).src}
+              alt={`${puja.title} Hindu puja spiritual image`}
               className="w-full h-full object-cover"
-              referrerPolicy="no-referrer"
+              loading="eager"
             />
           </div>
           

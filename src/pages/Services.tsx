@@ -15,6 +15,7 @@ import PageHero from '../components/PageHero';
 import { formatIndianRupees } from '../lib/utils';
 import { listPujasDirect } from '../lib/firestore-data';
 import { getTempleSpotlights } from '../lib/platform';
+import { getPujaSpiritualImage } from '../lib/spiritual-images';
 
 export default function Services() {
   const [pujas, setPujas] = useState<Puja[]>([]);
@@ -276,10 +277,10 @@ export default function Services() {
           >
             <div className="h-48 bg-orange-100 relative overflow-hidden">
               <img
-                src={`https://picsum.photos/seed/${puja.id}/800/400`}
-                alt={puja.title}
+                src={getPujaSpiritualImage(puja.title).src}
+                alt={`${puja.title} puja ritual spiritual image`}
                 className="w-full h-full object-cover opacity-80"
-                referrerPolicy="no-referrer"
+                loading="lazy"
               />
               <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full flex items-center space-x-1">
                 <Flame className="w-4 h-4 text-orange-500" />

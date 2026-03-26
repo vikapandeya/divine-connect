@@ -1,5 +1,6 @@
 import { Booking, Order, Product } from '../types';
 import { knowledgeHighlights } from './knowledge';
+import { getReviewSpiritualImage } from './spiritual-images';
 
 export type AppLocale = 'en' | 'hi' | 'sa';
 
@@ -181,21 +182,21 @@ const reviewMedia: ReviewMedia[] = [
     productId: 'prod-kashi-vishwanath-prasad',
     devotee: 'Ananya Sharma',
     caption: 'Freshly packed and beautifully presented for our family sankalp.',
-    image: 'https://picsum.photos/seed/review-kashi/320/240',
+    image: getReviewSpiritualImage('prod-kashi-vishwanath-prasad').src,
   },
   {
     id: 'review-tirupati-1',
     productId: 'prod-tirupati-laddu',
     devotee: 'Rajesh Iyer',
     caption: 'The prasadam box felt authentic and arrived in perfect condition.',
-    image: 'https://picsum.photos/seed/review-tirupati/320/240',
+    image: getReviewSpiritualImage('prod-tirupati-laddu').src,
   },
   {
     id: 'review-rudraksha-1',
     productId: 'prod-rudraksha-mala',
     devotee: 'Meera Joshi',
     caption: 'The mala quality and finish were exactly right for daily japa.',
-    image: 'https://picsum.photos/seed/review-rudraksha/320/240',
+    image: getReviewSpiritualImage('prod-rudraksha-mala').src,
   },
 ];
 

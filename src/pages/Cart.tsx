@@ -232,8 +232,9 @@ export default function Cart() {
             >
               <img
                 src={item.image}
-                alt={item.name}
+                alt={`${item.name} spiritual product image`}
                 className="w-20 h-20 rounded-2xl object-cover border border-stone-100"
+                loading="lazy"
                 onError={(event) => {
                   if (event.currentTarget.dataset.fallbackApplied === 'true') {
                     return;

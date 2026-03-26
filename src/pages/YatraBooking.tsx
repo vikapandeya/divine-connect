@@ -231,9 +231,9 @@ export default function YatraBooking() {
                 <div className="relative min-h-[250px] overflow-hidden lg:min-h-full">
                   <img
                     src={yatraPackage.image}
-                    alt={yatraPackage.title}
+                    alt={`${yatraPackage.title} pilgrimage yatra image`}
                     className="h-full w-full object-cover"
-                    referrerPolicy="no-referrer"
+                    loading="lazy"
                     onError={(event) => {
                       if (event.currentTarget.dataset.fallbackApplied === 'true') {
                         return;

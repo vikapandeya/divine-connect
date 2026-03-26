@@ -29,6 +29,7 @@ import {
 import { downloadReceipt, printReceipt } from '../lib/receipts';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { addItemsToCart } from '../lib/cart';
+import { getProductSpiritualImage } from '../lib/spiritual-images';
 import {
   DEMO_ADMIN_PROFILE,
   DEMO_CREDENTIALS,
@@ -94,7 +95,7 @@ export default function Profile() {
         id: item.productId,
         name: item.name,
         price: item.price,
-        image: item.image || 'https://picsum.photos/seed/reorder/400/400',
+        image: item.image || getProductSpiritualImage(item.category, item.name).src,
         quantity: item.quantity,
         category: item.category,
         templeName: item.templeName,

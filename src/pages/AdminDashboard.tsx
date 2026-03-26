@@ -363,9 +363,9 @@ export default function AdminDashboard() {
                       <div className="flex items-center space-x-4">
                         <img
                           src={product.image}
-                          alt={product.name}
+                          alt={`${product.name} spiritual product image`}
                           className="w-10 h-10 rounded-lg object-cover"
-                          referrerPolicy="no-referrer"
+                          loading="lazy"
                           onError={(event) => {
                             if (event.currentTarget.dataset.fallbackApplied === 'true') {
                               return;

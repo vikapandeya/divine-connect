@@ -458,9 +458,9 @@ export default function VendorDashboard() {
                         <div className="flex items-center space-x-3">
                           <img
                             src={p.image}
-                            alt={p.name}
+                            alt={`${p.name} spiritual product image`}
                             className="w-10 h-10 rounded-lg object-cover"
-                            referrerPolicy="no-referrer"
+                            loading="lazy"
                             onError={(event) => {
                               if (event.currentTarget.dataset.fallbackApplied === 'true') {
                                 return;

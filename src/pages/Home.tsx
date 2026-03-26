@@ -21,6 +21,7 @@ import InlineNotice from '../components/InlineNotice';
 import { addToCart } from '../lib/cart';
 import { formatIndianRupees } from '../lib/utils';
 import { createFeedbackDirect, DEMO_DEVOTEE_PROFILE } from '../lib/firestore-data';
+import { getProductSpiritualImage, getSpiritualImage } from '../lib/spiritual-images';
 import {
   getDailyHoroscope,
   getDailyPanchang,
@@ -94,7 +95,7 @@ const featuredProducts = [
     id: 'prod-kashi-vishwanath-prasad',
     name: 'Kashi Vishwanath Mahaprasad Box',
     price: 699,
-    image: 'https://picsum.photos/seed/kashi-prasad/400/400',
+    image: getProductSpiritualImage('Prasad', 'Kashi Vishwanath Mahaprasad Box').src,
     rating: 4.9,
     category: 'Prasad',
     templeName: 'Kashi Vishwanath Mandir',
@@ -104,7 +105,7 @@ const featuredProducts = [
     id: 'prod-tirupati-laddu',
     name: 'Tirupati Srivari Laddu Prasadam',
     price: 899,
-    image: 'https://picsum.photos/seed/tirupati-prasad/400/400',
+    image: getProductSpiritualImage('Prasad', 'Tirupati Srivari Laddu Prasadam').src,
     rating: 5,
     category: 'Prasad',
     templeName: 'Tirumala Tirupati Devasthanam',
@@ -114,7 +115,7 @@ const featuredProducts = [
     id: 'prod-rudraksha-mala',
     name: 'Rudraksha Mala (108 Beads)',
     price: 599,
-    image: 'https://picsum.photos/seed/mala/400/400',
+    image: getProductSpiritualImage('Mala', 'Rudraksha Mala (108 Beads)').src,
     rating: 4.9,
     category: 'Mala',
     templeName: 'Nepal Selection',
@@ -124,7 +125,7 @@ const featuredProducts = [
     id: 'prod-puja-thali',
     name: 'Handcrafted Puja Thali',
     price: 850,
-    image: 'https://picsum.photos/seed/thali/400/400',
+    image: getProductSpiritualImage('Puja Essentials', 'Handcrafted Puja Thali').src,
     rating: 4.7,
     category: 'Puja Essentials',
     templeName: 'Artisan Offering',
@@ -209,10 +210,10 @@ export default function Home() {
       <section className="relative h-[80vh] flex items-center overflow-hidden">
         <div className="absolute inset-0 z-0">
           <img
-            src="https://picsum.photos/seed/temple/1920/1080?blur=2"
-            alt="Spiritual Background"
+            src={getSpiritualImage('mandir').src}
+            alt="Hindu temple mandir spiritual hero image"
             className="w-full h-full object-cover"
-            referrerPolicy="no-referrer"
+            loading="eager"
           />
           <div className="absolute inset-0 bg-stone-950/50 backdrop-blur-[2px]" />
         </div>
@@ -604,9 +605,9 @@ export default function Home() {
                 <div className="aspect-square overflow-hidden relative">
                   <img
                     src={product.image}
-                    alt={product.name}
+                    alt={`${product.name} devotional spiritual product image`}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                    referrerPolicy="no-referrer"
+                    loading="lazy"
                   />
                   <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-lg flex items-center space-x-1 shadow-sm">
                     <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
