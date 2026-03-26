@@ -207,7 +207,7 @@ export default function Home() {
 
   return (
     <div className="space-y-20 pb-20">
-      <section className="relative h-[80vh] flex items-center overflow-hidden">
+      <section className="relative flex min-h-[72svh] items-center overflow-hidden py-14 sm:min-h-[80vh] sm:py-0">
         <div className="absolute inset-0 z-0">
           <img
             src={getSpiritualImage('mandir').src}
@@ -225,11 +225,11 @@ export default function Home() {
             transition={{ duration: 0.8 }}
             className="max-w-3xl"
           >
-            <h1 className="text-5xl md:text-7xl font-serif font-bold text-white leading-tight mb-6">
+            <h1 className="mb-6 text-4xl font-serif font-bold leading-tight text-white sm:text-5xl md:text-7xl">
               Connect with the <span className="text-orange-400">Divine</span> from
               Anywhere
             </h1>
-            <p className="text-xl text-stone-100 mb-8 leading-relaxed">
+            <p className="mb-8 text-base leading-relaxed text-stone-100 sm:text-xl">
               Experience sacred rituals, online live darshan, and temple offerings on
               a platform built for trust, clarity, devotional ease, and reliable delivery.
             </p>

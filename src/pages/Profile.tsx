@@ -211,7 +211,7 @@ export default function Profile() {
           <div className="bg-white p-8 rounded-[2rem] border border-stone-200 text-center">
             <img
               src={currentUser.photoURL || ''}
-              alt=""
+              alt={`${currentUser.displayName || 'Devotee'} profile`}
               className="w-24 h-24 rounded-full mx-auto mb-4 border-4 border-orange-100"
             />
             <h2 className="text-xl font-bold text-stone-900">{currentUser.displayName}</h2>
@@ -552,13 +552,13 @@ export default function Profile() {
                     bookings.map((booking) => (
                       <div
                         key={booking.id}
-                        className="flex items-start justify-between gap-6 p-6 rounded-2xl border border-stone-100 hover:border-orange-100 transition-colors"
+                        className="flex flex-col gap-5 p-6 rounded-2xl border border-stone-100 hover:border-orange-100 transition-colors md:flex-row md:items-start md:justify-between md:gap-6"
                       >
-                        <div className="flex items-center space-x-4">
+                        <div className="flex items-start space-x-4">
                           <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center shrink-0">
                             <Calendar className="w-6 h-6 text-orange-600" />
                           </div>
-                          <div>
+                          <div className="min-w-0">
                             <h4 className="font-bold text-stone-900">{resolveBookingTitle(booking)}</h4>
                             <p className="text-xs text-stone-500">
                               {booking.date} at {booking.timeSlot}
@@ -572,9 +572,9 @@ export default function Profile() {
                               </p>
                             )}
                             {booking.mode === 'offline' && booking.offlineLocationLabel ? (
-                              <p className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-stone-100 px-3 py-1 text-[11px] font-bold text-stone-700">
+                              <p className="mt-2 inline-flex max-w-full items-center gap-1.5 rounded-full bg-stone-100 px-3 py-1 text-[11px] font-bold text-stone-700">
                                 <MapPin className="h-3.5 w-3.5 text-orange-500" />
-                                {booking.offlineLocationLabel}
+                                <span className="truncate">{booking.offlineLocationLabel}</span>
                               </p>
                             ) : null}
                             {booking.mode === 'offline' && booking.panditAvailabilityStatus ? (
@@ -602,7 +602,7 @@ export default function Profile() {
                             ) : null}
                           </div>
                         </div>
-                        <div className="text-right space-y-3">
+                        <div className="space-y-3 md:min-w-[180px] md:text-right">
                           <p className="font-bold text-stone-900">
                             Rs. {formatIndianRupees(booking.totalAmount)}
                           </p>

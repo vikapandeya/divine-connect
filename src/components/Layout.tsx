@@ -360,7 +360,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
                 <button
                   type="button"
-                  className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-stone-200 bg-white text-stone-700 shadow-sm lg:hidden"
+                  className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-stone-200 bg-white text-stone-700 shadow-sm xl:hidden"
                   onClick={() => setIsMenuOpen((current) => !current)}
                   aria-label={isMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
                 >
@@ -377,7 +377,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               initial={{ opacity: 0, y: -6 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="border-b border-stone-200 bg-white/96 backdrop-blur-xl shadow-xl shadow-stone-900/5 lg:hidden"
+              className="border-b border-stone-200 bg-white/96 backdrop-blur-xl shadow-xl shadow-stone-900/5 xl:hidden"
             >
               <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6">
                 <form
@@ -427,6 +427,24 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                     >
                       {link.label}
                     </NavLink>
+                  ))}
+                </div>
+
+                <div className="mt-5 grid gap-2">
+                  {[
+                    { to: '/profile', label: 'My Profile', hint: 'Bookings, certificates, and account history' },
+                    { to: '/profile?tab=orders', label: 'My Orders', hint: 'Receipts, invoices, and reorder actions' },
+                    { to: '/vendor', label: 'Vendor Dashboard', hint: 'Manage products, pujas, and bookings' },
+                    { to: '/admin', label: 'Admin Panel', hint: 'Platform operations and catalog control' },
+                  ].map((item) => (
+                    <Link
+                      key={item.to}
+                      to={item.to}
+                      className="rounded-[1.25rem] border border-stone-200 bg-white px-4 py-3 shadow-sm"
+                    >
+                      <p className="text-sm font-bold text-stone-900">{item.label}</p>
+                      <p className="mt-1 text-xs text-stone-500">{item.hint}</p>
+                    </Link>
                   ))}
                 </div>
 

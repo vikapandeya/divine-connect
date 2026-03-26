@@ -465,7 +465,7 @@ export default function PujaDetail() {
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
-          className="bg-white p-8 md:p-12 rounded-[2.5rem] border border-stone-200 shadow-xl shadow-stone-200/50 h-fit sticky top-24"
+          className="bg-white p-8 md:p-12 rounded-[2.5rem] border border-stone-200 shadow-xl shadow-stone-200/50 h-fit lg:sticky lg:top-24"
         >
           <div className="mb-8 rounded-[2rem] border border-orange-100 bg-orange-50/60 p-5">
             <div className="flex items-center justify-between">
