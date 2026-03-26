@@ -12,12 +12,15 @@ import {
   Video,
   MapPin,
   Radio,
+  LocateFixed,
+  Navigation,
 } from 'lucide-react';
 import InlineNotice from '../components/InlineNotice';
 import { formatIndianRupees } from '../lib/utils';
 import { getTodayDateInputValue } from '../lib/utils';
 import { createBookingDirect, DEMO_DEVOTEE_PROFILE, getPujaDirect } from '../lib/firestore-data';
 import { getLiveSessionInfo } from '../lib/platform';
+import { checkPanditAvailability, PanditAvailabilityResult } from '../lib/pandit-availability';
 
 const fallbackPujas: Record<string, Puja> = {
   'puja-ganesh': {
@@ -107,6 +110,9 @@ export default function PujaDetail() {
   const [bookingTime, setBookingTime] = useState('');
   const [bookingMode, setBookingMode] = useState<'online' | 'offline'>('online');
   const [isBooking, setIsBooking] = useState(false);
+  const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
+  const [offlineLocationInput, setOfflineLocationInput] = useState('');
+  const [availabilityResult, setAvailabilityResult] = useState<PanditAvailabilityResult | null>(null);
   const [bookingNotice, setBookingNotice] = useState<{
     tone: 'success' | 'error' | 'info';
     title: string;
@@ -139,6 +145,16 @@ export default function PujaDetail() {
         ? puja.offlineTimings
         : puja?.onlineTimings || [];
   const liveSession = getLiveSessionInfo(puja?.title || 'sacred-puja');
+  const travelSurcharge = bookingMode === 'offline' ? availabilityResult?.travelSurcharge || 0 : 0;
+  const bookingTotal = (puja?.price || 0) + travelSurcharge;
+  const isOfflineBookingBlocked =
+    bookingMode === 'offline' && (!availabilityResult || availabilityResult.status === 'unavailable');
+  const availabilityTone =
+    availabilityResult?.status === 'unavailable'
+      ? 'error'
+      : availabilityResult?.status === 'limited'
+        ? 'info'
+        : 'success';
 
   useEffect(() => {
     if (availableSlots.length === 0) {
@@ -151,12 +167,128 @@ export default function PujaDetail() {
     }
   }, [availableSlots, bookingTime]);
 
+  useEffect(() => {
+    if (bookingMode === 'online') {
+      setOfflineLocationInput('');
+      setAvailabilityResult(null);
+    }
+  }, [bookingMode]);
+
+  const handleManualAvailabilityCheck = async () => {
+    if (!offlineLocationInput.trim()) {
+      setBookingNotice({
+        tone: 'error',
+        title: 'Enter your area or city',
+        message: 'Please share your locality, area, or city so we can check pandit ji availability.',
+      });
+      return;
+    }
+
+    setIsCheckingAvailability(true);
+    setBookingNotice(null);
+
+    try {
+      const result = checkPanditAvailability({
+        locationSource: 'manual',
+        locationLabel: offlineLocationInput,
+      });
+
+      setAvailabilityResult(result);
+      setBookingNotice({
+        tone: result.status === 'unavailable' ? 'error' : result.status === 'limited' ? 'info' : 'success',
+        title:
+          result.status === 'available'
+            ? 'Pandit ji available'
+            : result.status === 'limited'
+              ? 'Limited offline availability'
+              : 'Offline visit not available yet',
+        message: result.summary,
+      });
+    } finally {
+      setIsCheckingAvailability(false);
+    }
+  };
+
+  const handleLiveLocationCheck = async () => {
+    if (!navigator.geolocation) {
+      setBookingNotice({
+        tone: 'error',
+        title: 'Live location unavailable',
+        message: 'Your browser does not support live location. Please enter your area manually.',
+      });
+      return;
+    }
+
+    setIsCheckingAvailability(true);
+    setBookingNotice(null);
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const latitude = position.coords.latitude;
+        const longitude = position.coords.longitude;
+        const liveLocationLabel = `Lat ${latitude.toFixed(4)}, Lng ${longitude.toFixed(4)}`;
+        const result = checkPanditAvailability({
+          locationSource: 'live',
+          locationLabel: liveLocationLabel,
+          latitude,
+          longitude,
+        });
+
+        setOfflineLocationInput(liveLocationLabel);
+        setAvailabilityResult(result);
+        setBookingNotice({
+          tone: result.status === 'unavailable' ? 'error' : result.status === 'limited' ? 'info' : 'success',
+          title:
+            result.status === 'available'
+              ? 'Live location verified'
+              : result.status === 'limited'
+                ? 'Location serviceable with coordination'
+                : 'Location outside current service zone',
+          message: result.summary,
+        });
+        setIsCheckingAvailability(false);
+      },
+      (error) => {
+        console.error('Live location error:', error);
+        setBookingNotice({
+          tone: 'error',
+          title: 'Location access denied',
+          message: 'Please allow live location access or enter your place manually to continue.',
+        });
+        setIsCheckingAvailability(false);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      },
+    );
+  };
+
   const handleBooking = async () => {
     if (!bookingDate || !bookingTime) {
       setBookingNotice({
         tone: 'error',
         title: 'Choose a date and time',
         message: 'Please select your puja date and preferred slot before continuing.',
+      });
+      return;
+    }
+
+    if (bookingMode === 'offline' && !availabilityResult) {
+      setBookingNotice({
+        tone: 'error',
+        title: 'Check location availability first',
+        message: 'Share your live location or enter your place so we can confirm pandit ji coverage before booking.',
+      });
+      return;
+    }
+
+    if (bookingMode === 'offline' && availabilityResult.status === 'unavailable') {
+      setBookingNotice({
+        tone: 'error',
+        title: 'Offline visit unavailable',
+        message: 'This location is outside the active service network. Please switch to online puja or try another address.',
       });
       return;
     }
@@ -174,12 +306,27 @@ export default function PujaDetail() {
         date: bookingDate,
         timeSlot: bookingTime,
         status: 'confirmed',
-        totalAmount: puja?.price || 0,
+        totalAmount: bookingTotal,
+        offlineLocationLabel: bookingMode === 'offline' ? availabilityResult?.locationLabel : undefined,
+        offlineLocationSource: bookingMode === 'offline' ? availabilityResult?.locationSource : undefined,
+        offlineLocationCity: bookingMode === 'offline' ? availabilityResult?.city : undefined,
+        offlineLocationState: bookingMode === 'offline' ? availabilityResult?.state : undefined,
+        offlineLocationLatitude: bookingMode === 'offline' ? availabilityResult?.latitude : undefined,
+        offlineLocationLongitude: bookingMode === 'offline' ? availabilityResult?.longitude : undefined,
+        panditAvailabilityStatus: bookingMode === 'offline' ? availabilityResult?.status : undefined,
+        panditAvailabilitySummary: bookingMode === 'offline' ? availabilityResult?.summary : undefined,
+        panditAvailabilityNote: bookingMode === 'offline' ? availabilityResult?.note : undefined,
+        serviceZoneLabel: bookingMode === 'offline' ? availabilityResult?.zoneLabel : undefined,
+        travelSurcharge: bookingMode === 'offline' ? availabilityResult?.travelSurcharge : undefined,
+        availabilityCheckedAt: bookingMode === 'offline' ? availabilityResult?.checkedAt : undefined,
       });
       setBookingNotice({
         tone: 'success',
         title: 'Puja booked successfully',
-        message: 'Pandit ji will be available in your selected slot, and your certificate plus invitation card are ready in your profile.',
+        message:
+          bookingMode === 'offline'
+            ? 'Pandit ji coverage has been saved with your booking, and the visit details will appear in your profile history.'
+            : 'Pandit ji will be available in your selected slot, and your certificate plus invitation card are ready in your profile.',
       });
       window.setTimeout(() => navigate('/profile?tab=bookings'), 700);
     } catch (error) {
@@ -319,13 +466,29 @@ export default function PujaDetail() {
           animate={{ opacity: 1, x: 0 }}
           className="bg-white p-8 md:p-12 rounded-[2.5rem] border border-stone-200 shadow-xl shadow-stone-200/50 h-fit sticky top-24"
         >
-            <div className="flex items-center justify-between mb-8">
+          <div className="mb-8 rounded-[2rem] border border-orange-100 bg-orange-50/60 p-5">
+            <div className="flex items-center justify-between">
               <span className="text-stone-500 font-medium">Service Price</span>
               <div className="flex items-center text-3xl font-serif font-bold text-orange-600">
                 <IndianRupee className="w-6 h-6" />
                 <span>{formatIndianRupees(puja.price)}</span>
               </div>
             </div>
+            {bookingMode === 'offline' ? (
+              <div className="mt-4 space-y-2 border-t border-orange-100 pt-4">
+                <div className="flex items-center justify-between text-sm text-stone-600">
+                  <span>Travel coordination</span>
+                  <span className="font-bold text-stone-900">
+                    {travelSurcharge > 0 ? formatIndianRupees(travelSurcharge) : 'Included'}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-sm font-bold text-stone-900">
+                  <span>Offline total</span>
+                  <span>{formatIndianRupees(bookingTotal)}</span>
+                </div>
+              </div>
+            ) : null}
+          </div>
 
           <div className="space-y-6">
             {bookingNotice ? (
@@ -366,6 +529,113 @@ export default function PujaDetail() {
               </div>
             </div>
 
+            {bookingMode === 'offline' ? (
+              <div className="rounded-[2rem] border border-stone-200 bg-stone-50 p-5">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-bold text-stone-900">Check pandit ji availability</p>
+                    <p className="mt-1 text-sm text-stone-600">
+                      Share live location or enter your area so we can verify whether offline puja service is available there.
+                    </p>
+                  </div>
+                  <div className="rounded-full bg-orange-100 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-orange-700">
+                    Offline only
+                  </div>
+                </div>
+
+                <div className="mt-5 grid gap-3 sm:grid-cols-[1fr_auto]">
+                  <button
+                    type="button"
+                    onClick={handleLiveLocationCheck}
+                    disabled={isCheckingAvailability}
+                    className="inline-flex items-center justify-center rounded-2xl border border-orange-200 bg-white px-4 py-3 text-sm font-bold text-orange-600 transition-colors hover:bg-orange-50 disabled:opacity-60"
+                  >
+                    <LocateFixed className="mr-2 h-4 w-4" />
+                    {isCheckingAvailability ? 'Checking location...' : 'Use Live Location'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleManualAvailabilityCheck}
+                    disabled={isCheckingAvailability}
+                    className="rounded-2xl bg-stone-900 px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-stone-800 disabled:opacity-60"
+                  >
+                    Check Availability
+                  </button>
+                </div>
+
+                <div className="mt-3">
+                  <label className="block text-sm font-bold text-stone-700 mb-2">
+                    Area, locality, or city
+                  </label>
+                  <input
+                    type="text"
+                    value={offlineLocationInput}
+                    onChange={(event) => {
+                      setOfflineLocationInput(event.target.value);
+                      if (availabilityResult?.locationSource === 'manual') {
+                        setAvailabilityResult(null);
+                      }
+                    }}
+                    placeholder="Example: Sigra, Varanasi"
+                    className="w-full rounded-xl border border-stone-200 px-4 py-3 outline-none transition-all focus:border-transparent focus:ring-2 focus:ring-orange-500"
+                  />
+                </div>
+
+                {availabilityResult ? (
+                  <div className="mt-4">
+                    <InlineNotice
+                      tone={availabilityTone}
+                      title={
+                        availabilityResult.status === 'available'
+                          ? 'Pandit ji is available for this address'
+                          : availabilityResult.status === 'limited'
+                            ? 'Pandit ji can visit with route coordination'
+                            : 'This address is outside the active offline network'
+                      }
+                      message={availabilityResult.summary}
+                    />
+                    <div className="mt-3 rounded-2xl border border-stone-200 bg-white p-4 text-sm text-stone-600">
+                      <div className="flex items-center gap-2 font-bold text-stone-900">
+                        <Navigation className="h-4 w-4 text-orange-500" />
+                        {availabilityResult.zoneLabel}
+                      </div>
+                      <p className="mt-3">
+                        Location source: <span className="font-bold text-stone-900">{availabilityResult.locationSource === 'live' ? 'Live location' : 'Manual place entry'}</span>
+                      </p>
+                      <p className="mt-2">
+                        Checked location: <span className="font-bold text-stone-900">{availabilityResult.locationLabel}</span>
+                      </p>
+                      {availabilityResult.city ? (
+                        <p className="mt-2">
+                          Dispatch city: <span className="font-bold text-stone-900">{availabilityResult.city}{availabilityResult.state ? `, ${availabilityResult.state}` : ''}</span>
+                        </p>
+                      ) : null}
+                      {typeof availabilityResult.distanceKm === 'number' ? (
+                        <p className="mt-2">
+                          Distance from nearest seva zone: <span className="font-bold text-stone-900">{availabilityResult.distanceKm} km</span>
+                        </p>
+                      ) : null}
+                      <p className="mt-2">
+                        Travel coordination: <span className="font-bold text-stone-900">
+                          {availabilityResult.travelSurcharge > 0
+                            ? formatIndianRupees(availabilityResult.travelSurcharge)
+                            : 'Included in service price'}
+                        </span>
+                      </p>
+                      <p className="mt-2">
+                        Next availability: <span className="font-bold text-stone-900">{availabilityResult.nextAvailableWindow}</span>
+                      </p>
+                      <p className="mt-2">{availabilityResult.note}</p>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="mt-4 text-xs text-stone-500">
+                    Offline bookings need a location check so we can confirm the nearest pandit ji service zone before assigning the slot.
+                  </p>
+                )}
+              </div>
+            ) : null}
+
             <div>
               <label className="block text-sm font-bold text-stone-700 mb-2 flex items-center">
                 <Calendar className="w-4 h-4 mr-2" />
@@ -405,7 +675,7 @@ export default function PujaDetail() {
             <div className="pt-4">
               <button 
                 onClick={handleBooking}
-                disabled={isBooking}
+                disabled={isBooking || isCheckingAvailability || isOfflineBookingBlocked}
                 className="w-full bg-orange-500 text-white py-4 rounded-2xl font-bold text-lg hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/20 disabled:opacity-50"
               >
                 {isBooking ? 'Processing...' : 'Confirm Booking'}
@@ -420,9 +690,18 @@ export default function PujaDetail() {
                     and notification updates for your puja slot.
                   </p>
                 </div>
-              ) : null}
+              ) : (
+                <div className="mt-4 rounded-2xl border border-orange-100 bg-orange-50 p-4 text-left">
+                  <p className="text-xs font-bold uppercase tracking-[0.22em] text-orange-700">
+                    Offline verification
+                  </p>
+                  <p className="mt-2 text-sm text-stone-600">
+                    We confirm the serviceable area, travel coordination, and nearest pandit ji network before placing an offline booking.
+                  </p>
+                </div>
+              )}
               <p className="text-center text-xs text-stone-400 mt-4">
-                Secure booking powered by DivineConnect. Pandit ji is available online and offline. No hidden charges.
+                Secure booking powered by DivineConnect. Offline bookings may include a location-based travel coordination charge after availability is checked.
               </p>
             </div>
           </div>

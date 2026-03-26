@@ -881,31 +881,63 @@ app.post(['/bookings', '/api/bookings'], async (req, res) => {
     }
 
     const payload = req.body || {};
+    const bookingType = payload.type || 'puja';
+    const bookingMode = payload.mode === 'offline' ? 'offline' : 'online';
     assert(payload.userId === requester.uid, 'You can only create bookings for your own account.', 403);
     assert(typeof payload.serviceId === 'string' && payload.serviceId, 'Service ID is required.');
     assert(typeof payload.vendorId === 'string' && payload.vendorId, 'Vendor ID is required.');
     assert(
-      ['puja', 'darshan', 'yatra'].includes(payload.type || 'puja'),
+      ['puja', 'darshan', 'yatra'].includes(bookingType),
       'Booking type must be puja, darshan, or yatra.',
     );
     assert(
-      ['online', 'offline'].includes(payload.mode || 'online'),
+      ['online', 'offline'].includes(bookingMode),
       'Booking mode must be online or offline.',
     );
     assert(typeof payload.date === 'string' && payload.date, 'Booking date is required.');
     assert(typeof payload.timeSlot === 'string' && payload.timeSlot, 'Booking time slot is required.');
 
+    if (bookingType === 'puja' && bookingMode === 'offline') {
+      assert(
+        typeof payload.offlineLocationLabel === 'string' && payload.offlineLocationLabel.trim(),
+        'Offline location is required for offline puja booking.',
+      );
+      assert(
+        ['live', 'manual'].includes(payload.offlineLocationSource),
+        'Offline location source must be live or manual.',
+      );
+      assert(
+        ['available', 'limited'].includes(payload.panditAvailabilityStatus),
+        'Offline puja booking requires a serviceable pandit availability check.',
+      );
+    }
+
     const bookingRef = db.collection('bookings').doc();
     await bookingRef.set({
       userId: payload.userId,
       serviceId: payload.serviceId,
+      serviceTitle: payload.serviceTitle || '',
       vendorId: payload.vendorId,
-      type: payload.type || 'puja',
-      mode: payload.mode === 'offline' ? 'offline' : 'online',
+      type: bookingType,
+      mode: bookingMode,
       date: payload.date,
       timeSlot: payload.timeSlot,
       status: payload.status || 'confirmed',
       totalAmount: Number(payload.totalAmount || 0),
+      offlineLocationLabel: payload.offlineLocationLabel?.trim() || '',
+      offlineLocationSource: payload.offlineLocationSource || '',
+      offlineLocationCity: payload.offlineLocationCity || '',
+      offlineLocationState: payload.offlineLocationState || '',
+      offlineLocationLatitude:
+        typeof payload.offlineLocationLatitude === 'number' ? payload.offlineLocationLatitude : null,
+      offlineLocationLongitude:
+        typeof payload.offlineLocationLongitude === 'number' ? payload.offlineLocationLongitude : null,
+      panditAvailabilityStatus: payload.panditAvailabilityStatus || '',
+      panditAvailabilitySummary: payload.panditAvailabilitySummary || '',
+      panditAvailabilityNote: payload.panditAvailabilityNote || '',
+      serviceZoneLabel: payload.serviceZoneLabel || '',
+      travelSurcharge: Number(payload.travelSurcharge || 0),
+      availabilityCheckedAt: payload.availabilityCheckedAt || '',
       createdAt: FieldValue.serverTimestamp(),
       updatedAt: FieldValue.serverTimestamp(),
     });

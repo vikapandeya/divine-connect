@@ -94,6 +94,18 @@ export interface Booking {
   status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
   totalAmount: number;
   bookingReference?: string;
+  offlineLocationLabel?: string;
+  offlineLocationSource?: 'live' | 'manual';
+  offlineLocationCity?: string;
+  offlineLocationState?: string;
+  offlineLocationLatitude?: number;
+  offlineLocationLongitude?: number;
+  panditAvailabilityStatus?: 'available' | 'limited' | 'unavailable';
+  panditAvailabilitySummary?: string;
+  panditAvailabilityNote?: string;
+  serviceZoneLabel?: string;
+  travelSurcharge?: number;
+  availabilityCheckedAt?: string;
   createdAt?: string;
   updatedAt?: string;
 }

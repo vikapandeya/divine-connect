@@ -41,6 +41,10 @@ service cloud.firestore {
       return !(field in data) || data[field] is bool;
     }
 
+    function isOptionalNumber(data, field) {
+      return !(field in data) || data[field] is number;
+    }
+
     function isOptionalTimestamp(data, field) {
       return !(field in data) || data[field] is timestamp;
     }
@@ -129,7 +133,14 @@ service cloud.firestore {
     function isValidBooking(data) {
       return hasOnlyAllowedFields(
           data,
-          ['userId', 'serviceId', 'vendorId', 'type', 'mode', 'date', 'timeSlot', 'status', 'totalAmount', 'bookingReference', 'createdAt', 'updatedAt']
+          [
+            'userId', 'serviceId', 'serviceTitle', 'vendorId', 'type', 'mode', 'date', 'timeSlot', 'status',
+            'totalAmount', 'bookingReference', 'offlineLocationLabel', 'offlineLocationSource',
+            'offlineLocationCity', 'offlineLocationState', 'offlineLocationLatitude',
+            'offlineLocationLongitude', 'panditAvailabilityStatus', 'panditAvailabilitySummary',
+            'panditAvailabilityNote', 'serviceZoneLabel', 'travelSurcharge', 'availabilityCheckedAt',
+            'createdAt', 'updatedAt'
+          ]
         ) &&
         data.userId is string &&
         data.serviceId is string &&
@@ -141,7 +152,21 @@ service cloud.firestore {
         data.status in ['pending', 'confirmed', 'completed', 'cancelled'] &&
         data.totalAmount is number &&
         data.totalAmount >= 0 &&
+        isOptionalString(data, 'serviceTitle') &&
         isOptionalString(data, 'bookingReference') &&
+        isOptionalString(data, 'offlineLocationLabel') &&
+        (!( 'offlineLocationSource' in data ) || data.offlineLocationSource in ['live', 'manual']) &&
+        isOptionalString(data, 'offlineLocationCity') &&
+        isOptionalString(data, 'offlineLocationState') &&
+        isOptionalNumber(data, 'offlineLocationLatitude') &&
+        isOptionalNumber(data, 'offlineLocationLongitude') &&
+        (!( 'panditAvailabilityStatus' in data ) || data.panditAvailabilityStatus in ['available', 'limited', 'unavailable']) &&
+        isOptionalString(data, 'panditAvailabilitySummary') &&
+        isOptionalString(data, 'panditAvailabilityNote') &&
+        isOptionalString(data, 'serviceZoneLabel') &&
+        isOptionalNumber(data, 'travelSurcharge') &&
+        (!( 'travelSurcharge' in data ) || data.travelSurcharge >= 0) &&
+        isOptionalString(data, 'availabilityCheckedAt') &&
         isOptionalTimestamp(data, 'createdAt') &&
         isOptionalTimestamp(data, 'updatedAt');
     }

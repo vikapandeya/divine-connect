@@ -15,6 +15,8 @@ import {
   Receipt,
   Heart,
   Bell,
+  MapPin,
+  Navigation,
 } from 'lucide-react';
 import PageHero from '../components/PageHero';
 import { formatIndianRupees } from '../lib/utils';
@@ -549,7 +551,7 @@ export default function Profile() {
                     bookings.map((booking) => (
                       <div
                         key={booking.id}
-                        className="flex items-center justify-between p-6 rounded-2xl border border-stone-100 hover:border-orange-100 transition-colors"
+                        className="flex items-start justify-between gap-6 p-6 rounded-2xl border border-stone-100 hover:border-orange-100 transition-colors"
                       >
                         <div className="flex items-center space-x-4">
                           <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center shrink-0">
@@ -568,6 +570,35 @@ export default function Profile() {
                                 {booking.mode} pandit ji service
                               </p>
                             )}
+                            {booking.mode === 'offline' && booking.offlineLocationLabel ? (
+                              <p className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-stone-100 px-3 py-1 text-[11px] font-bold text-stone-700">
+                                <MapPin className="h-3.5 w-3.5 text-orange-500" />
+                                {booking.offlineLocationLabel}
+                              </p>
+                            ) : null}
+                            {booking.mode === 'offline' && booking.panditAvailabilityStatus ? (
+                              <div className="mt-3 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-xs text-stone-600">
+                                <p className="inline-flex items-center gap-1.5 font-bold text-stone-900">
+                                  <Navigation className="h-3.5 w-3.5 text-orange-500" />
+                                  {booking.serviceZoneLabel || 'Offline seva zone'}
+                                </p>
+                                <p className="mt-2 capitalize">
+                                  Availability: <span className="font-bold text-stone-900">{booking.panditAvailabilityStatus}</span>
+                                </p>
+                                {booking.panditAvailabilitySummary ? (
+                                  <p className="mt-1">{booking.panditAvailabilitySummary}</p>
+                                ) : null}
+                                {typeof booking.travelSurcharge === 'number' ? (
+                                  <p className="mt-1">
+                                    Travel coordination: <span className="font-bold text-stone-900">
+                                      {booking.travelSurcharge > 0
+                                        ? `Rs. ${formatIndianRupees(booking.travelSurcharge)}`
+                                        : 'Included'}
+                                    </span>
+                                  </p>
+                                ) : null}
+                              </div>
+                            ) : null}
                           </div>
                         </div>
                         <div className="text-right space-y-3">
