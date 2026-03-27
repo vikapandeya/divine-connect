@@ -12,8 +12,14 @@ admin.initializeApp();
 const db = getFirestore();
 const app = express();
 const geminiApiKey = defineSecret('GEMINI_API_KEY');
+const tathaastuApiKey = defineSecret('TATHAASTU_API_KEY');
 const FUNCTIONS_REGION = 'asia-south1';
 const ADMIN_EMAIL = 'pg2331427@gmail.com';
+const DEFAULT_PANCHANG_LOCATION = {
+  latitude: 25.3176,
+  longitude: 82.9739,
+  label: 'Varanasi, Uttar Pradesh',
+};
 
 let aiClient = null;
 let seedPromise = null;
@@ -341,6 +347,119 @@ function assert(condition, message, statusCode = 400) {
   }
 }
 
+function getIstDateString(date = new Date()) {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Kolkata',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(date);
+}
+
+function formatDisplayDate(dateString) {
+  const displayDate = new Date(`${dateString}T12:00:00+05:30`);
+  return new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Kolkata',
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  }).format(displayDate);
+}
+
+function normalizeCoordinate(value, fallback) {
+  const parsedValue = Number(value);
+  return Number.isFinite(parsedValue) ? parsedValue : fallback;
+}
+
+async function fetchJsonOrThrow(url, options = {}) {
+  const response = await fetch(url, options);
+  const text = await response.text();
+
+  let payload = {};
+
+  if (text) {
+    try {
+      payload = JSON.parse(text);
+    } catch (error) {
+      payload = { raw: text };
+    }
+  }
+
+  assert(
+    response.ok,
+    payload.message || payload.error || `Request failed with status ${response.status}.`,
+    response.status,
+  );
+
+  return payload;
+}
+
+function formatTithiLabel(tithi = {}, hinduCalendar = {}) {
+  const monthLabel = hinduCalendar.amanta || hinduCalendar.purnimanta || '';
+  const pakshaLabel = tithi.paksha || '';
+  const tithiName = tithi.name || '';
+  return [monthLabel, pakshaLabel, tithiName].filter(Boolean).join(' ').trim();
+}
+
+function extractFestivalName(payload) {
+  if (!Array.isArray(payload?.festivals) || payload.festivals.length === 0) {
+    return null;
+  }
+
+  const primaryFestival = payload.festivals[0];
+
+  if (typeof primaryFestival === 'string') {
+    return primaryFestival;
+  }
+
+  if (primaryFestival && typeof primaryFestival === 'object') {
+    return primaryFestival.name || primaryFestival.title || primaryFestival.code || null;
+  }
+
+  return null;
+}
+
+function formatAbhijitLabel(timingsPayload) {
+  const abhijitCandidates = [
+    timingsPayload?.abhijit,
+    timingsPayload?.abhijit_muhurat,
+    timingsPayload?.muhurta?.abhijit,
+    timingsPayload?.timings?.abhijit,
+    timingsPayload?.timings?.abhijit_muhurat,
+  ].filter(Boolean);
+
+  for (const candidate of abhijitCandidates) {
+    if (typeof candidate === 'string' && candidate.trim()) {
+      return `Abhijit Muhurat: ${candidate.trim()}`;
+    }
+
+    if (candidate && typeof candidate === 'object') {
+      const startLabel = candidate.start || candidate.start_time || candidate.from || null;
+      const endLabel = candidate.end || candidate.end_time || candidate.to || null;
+
+      if (startLabel && endLabel) {
+        return `Abhijit Muhurat: ${startLabel} - ${endLabel}`;
+      }
+    }
+  }
+
+  return 'Abhijit Muhurat: check local noon window for the selected city.';
+}
+
+function buildPanchangFocus(payload) {
+  const festivalName = extractFestivalName(payload);
+
+  if (festivalName) {
+    return `${festivalName} is highlighted today, making it a strong day for prayer, family sankalp, and devotional observances.`;
+  }
+
+  const tithiName = payload?.tithi?.name || 'today';
+  const nakshatraName = payload?.nakshatra?.name || 'the current nakshatra';
+
+  return `Auspicious focus for ${tithiName}: align your prayers with ${nakshatraName}, keep the sankalp simple, and use the day for calm devotional practice.`;
+}
+
 async function ensureSeedData() {
   if (!seedPromise) {
     seedPromise = (async () => {
@@ -411,6 +530,69 @@ app.get(['/health', '/api/health'], async (req, res) => {
   res.json({
     ...apiWelcomePayload,
   });
+});
+
+app.get(['/panchang/today', '/api/panchang/today'], async (req, res) => {
+  try {
+    const apiKey = tathaastuApiKey.value();
+    assert(apiKey && apiKey.trim(), 'Panchang API key is not configured.', 503);
+
+    const date =
+      typeof req.query.date === 'string' && req.query.date.trim()
+        ? req.query.date.trim()
+        : getIstDateString();
+    const latitude = normalizeCoordinate(req.query.lat, DEFAULT_PANCHANG_LOCATION.latitude);
+    const longitude = normalizeCoordinate(req.query.lon, DEFAULT_PANCHANG_LOCATION.longitude);
+    const locationLabel =
+      typeof req.query.location === 'string' && req.query.location.trim()
+        ? req.query.location.trim()
+        : DEFAULT_PANCHANG_LOCATION.label;
+
+    const baseUrl = 'https://api.tathaastuapi.com/v1';
+    const headers = {
+      'X-API-Key': apiKey,
+    };
+
+    const [panchangPayload, timingsPayload] = await Promise.all([
+      fetchJsonOrThrow(
+        `${baseUrl}/panchang?date=${date}&lat=${latitude}&lon=${longitude}&include=festivals`,
+        { headers },
+      ),
+      fetchJsonOrThrow(
+        `${baseUrl}/timings?date=${date}&lat=${latitude}&lon=${longitude}`,
+        { headers },
+      ),
+    ]);
+
+    res.json({
+      success: true,
+      source: 'tathaastu',
+      fetchedAt: new Date().toISOString(),
+      location: {
+        label: locationLabel,
+        latitude,
+        longitude,
+      },
+      panchang: {
+        date,
+        dateLabel: formatDisplayDate(date),
+        tithi:
+          formatTithiLabel(panchangPayload.tithi, panchangPayload.hindu_calendar)
+          || panchangPayload.tithi?.name
+          || 'Tithi unavailable',
+        nakshatra: panchangPayload.nakshatra?.name || 'Nakshatra unavailable',
+        muhurat: formatAbhijitLabel(timingsPayload),
+        focus: buildPanchangFocus(panchangPayload),
+        festivalName: extractFestivalName(panchangPayload),
+      },
+      engine: panchangPayload.engine || null,
+    });
+  } catch (error) {
+    console.error('Panchang API error:', error);
+    res.status(error.statusCode || 500).json({
+      error: error.message || 'Failed to fetch daily panchang.',
+    });
+  }
 });
 
 app.get(['/users/:uid', '/api/users/:uid'], async (req, res) => {
@@ -1263,7 +1445,7 @@ exports.api = onRequest(
   {
     region: FUNCTIONS_REGION,
     timeoutSeconds: 60,
-    secrets: [geminiApiKey],
+    secrets: [geminiApiKey, tathaastuApiKey],
   },
   app,
 );

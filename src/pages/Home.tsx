@@ -19,11 +19,11 @@ import {
 import { Link } from 'react-router-dom';
 import InlineNotice from '../components/InlineNotice';
 import { addToCart } from '../lib/cart';
+import { fetchDailyPanchang, getFallbackPanchangCard } from '../lib/panchang';
 import { formatIndianRupees } from '../lib/utils';
 import { createFeedbackDirect, DEMO_DEVOTEE_PROFILE } from '../lib/firestore-data';
 import { getProductSpiritualImage, getSpiritualImage } from '../lib/spiritual-images';
 import {
-  getCurrentDailyPanchang,
   getDailyHoroscope,
   getLocale,
   getLocaleCopy,
@@ -141,6 +141,8 @@ const ratingStats = [
 
 export default function Home() {
   const [locale, setLocale] = useState<AppLocale>(getLocale());
+  const [panchang, setPanchang] = useState(() => getFallbackPanchangCard(getLocale()));
+  const [isPanchangLoading, setIsPanchangLoading] = useState(true);
   const [formState, setFormState] = useState({
     name: DEMO_DEVOTEE_PROFILE.displayName || '',
     email: DEMO_DEVOTEE_PROFILE.email || '',
@@ -161,12 +163,37 @@ export default function Home() {
     [],
   );
   const copy = getLocaleCopy(locale);
-  const panchang = getCurrentDailyPanchang(locale);
   const horoscopes = getDailyHoroscope(locale);
   const temples = getTempleSpotlights();
   const articles = getSpiritualArticles();
 
   useEffect(() => subscribeToLocale(() => setLocale(getLocale())), []);
+
+  useEffect(() => {
+    let isActive = true;
+
+    setPanchang(getFallbackPanchangCard(locale));
+    setIsPanchangLoading(true);
+
+    fetchDailyPanchang(locale)
+      .then((nextPanchang) => {
+        if (isActive) {
+          setPanchang(nextPanchang);
+        }
+      })
+      .catch((error) => {
+        console.error('Panchang fetch failed, using fallback:', error);
+      })
+      .finally(() => {
+        if (isActive) {
+          setIsPanchangLoading(false);
+        }
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, [locale]);
 
   const handleFeedbackSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -260,14 +287,32 @@ export default function Home() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1.05fr_0.95fr]">
           <div className="rounded-[2.75rem] border border-orange-200 bg-[linear-gradient(135deg,#fff7ed_0%,#ffffff_55%,#f8fafc_100%)] p-8 shadow-sm">
-            <p className="text-xs font-bold uppercase tracking-[0.24em] text-orange-600">
-              {copy.panchangTitle}
-            </p>
-            <h2 className="mt-4 text-3xl font-serif font-bold text-stone-900">
-              {panchang.dateLabel}
-            </h2>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.24em] text-orange-600">
+                  {copy.panchangTitle}
+                </p>
+                <h2 className="mt-4 text-3xl font-serif font-bold text-stone-900">
+                  {panchang.dateLabel}
+                </h2>
+              </div>
+              <div
+                className={`inline-flex w-fit items-center rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] ${
+                  panchang.source === 'live'
+                    ? 'bg-emerald-50 text-emerald-700'
+                    : 'bg-stone-100 text-stone-600'
+                }`}
+              >
+                {panchang.source === 'live' ? 'Live Panchang' : 'Fallback Snapshot'}
+              </div>
+            </div>
             <p className="mt-3 max-w-2xl text-sm leading-relaxed text-stone-600">
               {copy.panchangDescription}
+            </p>
+            <p className="mt-3 text-xs text-stone-500">
+              {isPanchangLoading
+                ? 'Refreshing today\'s Panchang from the configured source...'
+                : `${panchang.sourceName} • ${panchang.locationLabel}${panchang.festivalName ? ` • ${panchang.festivalName}` : ''}`}
             </p>
             <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-3">
               {[
