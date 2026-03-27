@@ -337,6 +337,36 @@ export function getReviewCount(productId: string) {
   return getReviewMedia(productId).length;
 }
 
+export function getCurrentDailyPanchang(locale = getLocale()): PanchangInsight {
+  if (locale === 'hi') {
+    return {
+      dateLabel: 'शुक्रवार, 27 मार्च 2026',
+      tithi: 'चैत्र शुक्ल नवमी',
+      nakshatra: 'पुनर्वसु',
+      muhurat: 'अभिजित मुहूर्त: लगभग 12:00 PM - 12:48 PM (स्थानानुसार भिन्न)',
+      focus: 'राम नवमी पूजन, रामायण पाठ, दान और पारिवारिक संकल्प के लिए अत्यंत शुभ दिन।',
+    };
+  }
+
+  if (locale === 'sa') {
+    return {
+      dateLabel: 'शुक्रवासरः, 27 मार्च 2026',
+      tithi: 'चैत्र-शुक्ल-नवमी',
+      nakshatra: 'पुनर्वसू',
+      muhurat: 'अभिजित् मुहूर्तम्: प्रायः 12:00 PM - 12:48 PM (स्थानभेदेन परिवर्तते)',
+      focus: 'रामनवमी-पूजनाय, रामायण-पाठाय, दानाय, पारिवारिक-संकल्पाय च अयं दिनः शुभः।',
+    };
+  }
+
+  return {
+    dateLabel: 'Friday, March 27, 2026',
+    tithi: 'Chaitra Shukla Navami',
+    nakshatra: 'Punarvasu',
+    muhurat: 'Abhijit Muhurat: around 12:00 PM - 12:48 PM (varies by city)',
+    focus: 'An especially auspicious day for Rama Navami worship, Ramayana recitation, charity, and fresh family sankalp.',
+  };
+}
+
 export function getDailyPanchang(locale = getLocale()): PanchangInsight {
   if (locale === 'hi') {
     return {

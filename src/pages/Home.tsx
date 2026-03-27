@@ -23,8 +23,8 @@ import { formatIndianRupees } from '../lib/utils';
 import { createFeedbackDirect, DEMO_DEVOTEE_PROFILE } from '../lib/firestore-data';
 import { getProductSpiritualImage, getSpiritualImage } from '../lib/spiritual-images';
 import {
+  getCurrentDailyPanchang,
   getDailyHoroscope,
-  getDailyPanchang,
   getLocale,
   getLocaleCopy,
   getSpiritualArticles,
@@ -161,7 +161,7 @@ export default function Home() {
     [],
   );
   const copy = getLocaleCopy(locale);
-  const panchang = getDailyPanchang(locale);
+  const panchang = getCurrentDailyPanchang(locale);
   const horoscopes = getDailyHoroscope(locale);
   const temples = getTempleSpotlights();
   const articles = getSpiritualArticles();
