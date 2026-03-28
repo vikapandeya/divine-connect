@@ -13,8 +13,10 @@ import {
   saveProductDirect,
 } from '../lib/firestore-data';
 import { buildAdminNotifications, getPwaReadinessSummary } from '../lib/platform';
+import { translateText, useAppLocale } from '../lib/i18n';
 
 export default function AdminDashboard() {
+  const locale = useAppLocale();
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -196,15 +198,15 @@ export default function AdminDashboard() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="flex justify-between items-center mb-12">
         <div>
-          <h1 className="text-4xl font-serif font-bold text-stone-900 mb-2">Admin Dashboard</h1>
-          <p className="text-stone-600">Manage your spiritual marketplace inventory.</p>
+          <h1 className="text-4xl font-serif font-bold text-stone-900 mb-2">{translateText(locale, 'Admin Dashboard')}</h1>
+          <p className="text-stone-600">{translateText(locale, 'Manage your spiritual marketplace inventory.')}</p>
         </div>
         <button 
           onClick={() => handleOpenModal()}
           className="flex items-center space-x-2 bg-orange-500 text-white px-6 py-3 rounded-2xl hover:bg-orange-600 transition-colors shadow-lg shadow-orange-500/20"
         >
           <Plus className="w-5 h-5" />
-          <span className="font-bold">Add Product</span>
+          <span className="font-bold">{translateText(locale, 'Add Product')}</span>
         </button>
       </div>
 
@@ -457,7 +459,7 @@ export default function AdminDashboard() {
             >
               <div className="p-8 border-b border-stone-100 flex justify-between items-center">
                 <h2 className="text-2xl font-serif font-bold text-stone-900">
-                  {editingProduct ? 'Edit Product' : 'Add New Product'}
+                  {editingProduct ? translateText(locale, 'Edit Product') : translateText(locale, 'Add New Product')}
                 </h2>
                 <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-stone-100 rounded-full transition-colors">
                   <X className="w-6 h-6 text-stone-400" />
@@ -630,7 +632,7 @@ export default function AdminDashboard() {
                     className="flex-1 px-6 py-4 bg-stone-900 text-white font-bold rounded-2xl hover:bg-orange-500 transition-colors flex items-center justify-center space-x-2"
                   >
                     <Save className="w-5 h-5" />
-                    <span>{editingProduct ? 'Update Product' : 'Save Product'}</span>
+                    <span>{editingProduct ? translateText(locale, 'Update Product') : translateText(locale, 'Save Product')}</span>
                   </button>
                 </div>
               </form>

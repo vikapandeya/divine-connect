@@ -16,8 +16,10 @@ import { formatIndianRupees } from '../lib/utils';
 import { listPujasDirect } from '../lib/firestore-data';
 import { getTempleSpotlights } from '../lib/platform';
 import { getPujaSpiritualImage } from '../lib/spiritual-images';
+import { translateText, useAppLocale } from '../lib/i18n';
 
 export default function Services() {
+  const locale = useAppLocale();
   const [pujas, setPujas] = useState<Puja[]>([]);
   const templeSpotlights = getTempleSpotlights();
 
@@ -98,13 +100,13 @@ export default function Services() {
   return (
     <div className="mx-auto max-w-7xl space-y-10 px-4 py-12 sm:px-6 lg:px-8">
       <PageHero
-        eyebrow="Sacred Services"
-        title="Book puja services with clearer guidance, better timing context, and trusted delivery."
-        description="Choose from verified rituals, hybrid seva formats, live darshan support, and AI-guided next steps built to feel calm, practical, and dependable."
+        eyebrow={translateText(locale, 'Sacred Services')}
+        title={translateText(locale, 'Book puja services with clearer guidance, better timing context, and trusted delivery.')}
+        description={translateText(locale, 'Choose from verified rituals, hybrid seva formats, live darshan support, and AI-guided next steps built to feel calm, practical, and dependable.')}
         stats={[
-          { label: 'Service Formats', value: 'Online, Offline, Hybrid' },
-          { label: 'Popular Ritual Types', value: `${displayPujas.length}+` },
-          { label: 'Guidance Layers', value: 'Puja, Darshan, Astrology' },
+          { label: translateText(locale, 'Service Formats'), value: translateText(locale, 'Online, Offline, Hybrid') },
+          { label: translateText(locale, 'Popular Ritual Types'), value: `${displayPujas.length}+` },
+          { label: translateText(locale, 'Guidance Layers'), value: translateText(locale, 'Puja, Darshan, Astrology') },
         ]}
         actions={
           <>
@@ -112,36 +114,36 @@ export default function Services() {
               to="/services/darshan"
               className="inline-flex items-center rounded-full bg-white px-6 py-3 font-bold text-stone-900 hover:bg-stone-100"
             >
-              Book Darshan
+              {translateText(locale, 'Book Darshan')}
             </Link>
             <Link
               to="/services/yatra"
               className="inline-flex items-center rounded-full border border-white/15 bg-white/5 px-6 py-3 font-bold text-white hover:bg-white/10"
             >
-              Explore Yatra
+              {translateText(locale, 'Explore Yatra')}
             </Link>
             <Link
               to="/astrology"
               className="inline-flex items-center rounded-full border border-white/15 bg-white/5 px-6 py-3 font-bold text-white hover:bg-white/10"
             >
-              Open AI Astrology
+              {translateText(locale, 'Open AI Astrology')}
             </Link>
           </>
         }
         aside={
           <div className="rounded-[2rem] border border-white/10 bg-white/10 p-6 backdrop-blur-sm">
             <p className="text-xs font-bold uppercase tracking-[0.24em] text-orange-300">
-              Why this flow feels better
+              {translateText(locale, 'Why this flow feels better')}
             </p>
             <div className="mt-5 space-y-3 text-sm text-stone-200">
               <div className="rounded-2xl bg-white/5 px-4 py-3">
-                Clear duration, schedule, and samagri expectations.
+                {translateText(locale, 'Clear duration, schedule, and samagri expectations.')}
               </div>
               <div className="rounded-2xl bg-white/5 px-4 py-3">
-                Direct paths into darshan support and astrology remedies.
+                {translateText(locale, 'Direct paths into darshan support and astrology remedies.')}
               </div>
               <div className="rounded-2xl bg-white/5 px-4 py-3">
-                Stronger card hierarchy for faster comparison across services.
+                {translateText(locale, 'Stronger card hierarchy for faster comparison across services.')}
               </div>
             </div>
           </div>

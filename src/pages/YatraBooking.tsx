@@ -18,6 +18,7 @@ import InlineNotice from '../components/InlineNotice';
 import { createBookingDirect, DEMO_DEVOTEE_PROFILE, listYatraPackagesDirect } from '../lib/firestore-data';
 import { formatIndianRupees, getTodayDateInputValue, getYatraPlaceholderImage } from '../lib/utils';
 import { YatraPackage } from '../types';
+import { translateText, useAppLocale } from '../lib/i18n';
 
 const packageTypes: Array<{ value: 'all' | YatraPackage['packageType']; label: string }> = [
   { value: 'all', label: 'All Routes' },
@@ -28,6 +29,7 @@ const packageTypes: Array<{ value: 'all' | YatraPackage['packageType']; label: s
 ];
 
 export default function YatraBooking() {
+  const locale = useAppLocale();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [packages, setPackages] = useState<YatraPackage[]>([]);
@@ -123,8 +125,8 @@ export default function YatraBooking() {
     if (!selectedPackage || !departureDate || !departureCity || !travellers) {
       setBookingNotice({
         tone: 'error',
-        title: 'Complete your yatra details',
-        message: 'Please choose your package, departure date, city, and traveller count.',
+        title: translateText(locale, 'Complete your yatra details'),
+        message: translateText(locale, 'Please choose your package, departure date, city, and traveller count.'),
       });
       return;
     }
@@ -147,16 +149,16 @@ export default function YatraBooking() {
 
       setBookingNotice({
         tone: 'success',
-        title: 'Yatra package booked successfully',
-        message: 'Your pilgrimage booking is now visible in Profile with certificate-ready records.',
+        title: translateText(locale, 'Yatra package booked successfully'),
+        message: translateText(locale, 'Your pilgrimage booking is now visible in Profile with certificate-ready records.'),
       });
       window.setTimeout(() => navigate('/profile?tab=bookings'), 700);
     } catch (error) {
       console.error('Yatra booking error:', error);
       setBookingNotice({
         tone: 'error',
-        title: 'Yatra package could not be reserved',
-        message: error instanceof Error ? error.message : 'Unable to reserve this yatra package right now.',
+        title: translateText(locale, 'Yatra package could not be reserved'),
+        message: error instanceof Error ? error.message : translateText(locale, 'Unable to reserve this yatra package right now.'),
       });
     } finally {
       setIsSubmitting(false);
@@ -166,9 +168,9 @@ export default function YatraBooking() {
   return (
     <div className="mx-auto max-w-7xl space-y-10 px-4 py-12 sm:px-6 lg:px-8">
       <PageHero
-        eyebrow="Pilgrimage Packages"
-        title="Book full yatra packages for Char Dham, Jyotirlinga circuits, and major tirth sthals."
-        description="This new feature brings complete pilgrimage planning into DivineConnect with curated routes, temple-city stays, meal coverage, transfers, and a simpler booking flow for devotees and families."
+        eyebrow={translateText(locale, 'Pilgrimage Packages')}
+        title={translateText(locale, 'Book full yatra packages for Char Dham, Jyotirlinga circuits, and major tirth sthals.')}
+        description={translateText(locale, 'This new feature brings complete pilgrimage planning into DivineConnect with curated routes, temple-city stays, meal coverage, transfers, and a simpler booking flow for devotees and families.')}
         stats={[
           { label: 'Package Types', value: 'Char Dham, Jyotirlinga, Tirth' },
           { label: 'Booking Model', value: 'Full Package' },

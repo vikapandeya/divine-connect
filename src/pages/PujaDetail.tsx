@@ -22,6 +22,7 @@ import { createBookingDirect, DEMO_DEVOTEE_PROFILE, getPujaDirect } from '../lib
 import { getLiveSessionInfo } from '../lib/platform';
 import { checkPanditAvailability, PanditAvailabilityResult } from '../lib/pandit-availability';
 import { getPujaSpiritualImage } from '../lib/spiritual-images';
+import { translateText, useAppLocale } from '../lib/i18n';
 
 const fallbackPujas: Record<string, Puja> = {
   'puja-ganesh': {
@@ -103,6 +104,7 @@ function resolveFallbackPuja(requestedId: string) {
 }
 
 export default function PujaDetail() {
+  const locale = useAppLocale();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [puja, setPuja] = useState<Puja | null>(null);
@@ -347,7 +349,7 @@ export default function PujaDetail() {
       <div className="min-h-[60vh] flex items-center justify-center px-4">
         <div className="text-center">
           <div className="w-12 h-12 mx-auto mb-4 rounded-full border-4 border-orange-100 border-t-orange-500 animate-spin" />
-          <p className="text-sm font-medium text-stone-500">Loading puja details...</p>
+          <p className="text-sm font-medium text-stone-500">{translateText(locale, 'Loading puja details...')}</p>
         </div>
       </div>
     );
@@ -357,8 +359,8 @@ export default function PujaDetail() {
     return (
       <div className="min-h-[60vh] flex items-center justify-center px-4">
         <div className="text-center rounded-[2rem] border border-stone-200 bg-white px-8 py-10">
-          <p className="text-xl font-serif font-bold text-stone-900 mb-2">Puja not found</p>
-          <p className="text-sm text-stone-500">Please return to the services page and choose another ritual.</p>
+          <p className="text-xl font-serif font-bold text-stone-900 mb-2">{translateText(locale, 'Puja not found')}</p>
+          <p className="text-sm text-stone-500">{translateText(locale, 'Please return to the services page and choose another ritual.')}</p>
         </div>
       </div>
     );
@@ -371,7 +373,7 @@ export default function PujaDetail() {
         className="flex items-center text-stone-500 hover:text-stone-900 mb-8 transition-colors"
       >
         <ArrowLeft className="w-4 h-4 mr-2" />
-        Back to Services
+        {translateText(locale, 'Back to Services')}
       </button>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
@@ -679,7 +681,7 @@ export default function PujaDetail() {
                 disabled={isBooking || isCheckingAvailability || isOfflineBookingBlocked}
                 className="w-full bg-orange-500 text-white py-4 rounded-2xl font-bold text-lg hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/20 disabled:opacity-50"
               >
-                {isBooking ? 'Processing...' : 'Confirm Booking'}
+                {isBooking ? translateText(locale, 'Processing...') : translateText(locale, 'Confirm Booking')}
               </button>
               {bookingMode === 'online' ? (
                 <div className="mt-4 rounded-2xl border border-blue-100 bg-blue-50 p-4 text-left">

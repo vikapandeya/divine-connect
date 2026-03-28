@@ -25,8 +25,10 @@ import {
 } from '../lib/cart';
 import { formatIndianRupees, getProductPlaceholderImage } from '../lib/utils';
 import { createOrderDirect, DEMO_DEVOTEE_PROFILE } from '../lib/firestore-data';
+import { translateText, useAppLocale } from '../lib/i18n';
 
 export default function Cart() {
+  const locale = useAppLocale();
   const navigate = useNavigate();
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [items, setItems] = useState<CartItem[]>([]);
@@ -82,8 +84,8 @@ export default function Cart() {
     if (requiredFields.some((field) => !field.trim())) {
       setCheckoutNotice({
         tone: 'error',
-        title: 'Missing delivery details',
-        message: 'Please fill in full name, email, phone number, address, city, state, and pincode.',
+        title: translateText(locale, 'Missing delivery details'),
+        message: translateText(locale, 'Please fill in full name, email, phone number, address, city, state, and pincode.'),
       });
       return;
     }
@@ -91,8 +93,8 @@ export default function Cart() {
     if (!/^\S+@\S+\.\S+$/.test(customerDetails.email.trim())) {
       setCheckoutNotice({
         tone: 'error',
-        title: 'Invalid email address',
-        message: 'Please enter a valid email address before placing the order.',
+        title: translateText(locale, 'Invalid email address'),
+        message: translateText(locale, 'Please enter a valid email address before placing the order.'),
       });
       return;
     }
@@ -100,8 +102,8 @@ export default function Cart() {
     if (!/^\d{10}$/.test(customerDetails.phoneNumber.trim())) {
       setCheckoutNotice({
         tone: 'error',
-        title: 'Invalid contact number',
-        message: 'Please enter a valid 10-digit contact number.',
+        title: translateText(locale, 'Invalid contact number'),
+        message: translateText(locale, 'Please enter a valid 10-digit contact number.'),
       });
       return;
     }
@@ -109,8 +111,8 @@ export default function Cart() {
     if (!/^\d{6}$/.test(customerDetails.pincode.trim())) {
       setCheckoutNotice({
         tone: 'error',
-        title: 'Invalid pincode',
-        message: 'Please enter a valid 6-digit pincode.',
+        title: translateText(locale, 'Invalid pincode'),
+        message: translateText(locale, 'Please enter a valid 6-digit pincode.'),
       });
       return;
     }
@@ -150,16 +152,16 @@ export default function Cart() {
       clearCart();
       setCheckoutNotice({
         tone: 'success',
-        title: 'Order placed successfully',
-        message: 'Your PDF invoice, product certificate, automated receipt email, and order notifications are ready in this hardcoded demo.',
+        title: translateText(locale, 'Order placed successfully'),
+        message: translateText(locale, 'Your PDF invoice, product certificate, automated receipt email, and order notifications are ready in this hardcoded demo.'),
       });
       window.setTimeout(() => navigate('/profile?tab=orders'), 700);
     } catch (error) {
       console.error('Checkout error:', error);
       setCheckoutNotice({
         tone: 'error',
-        title: 'Order could not be placed',
-        message: 'Please try again. If the issue continues, review the delivery details and payment mode.',
+        title: translateText(locale, 'Order could not be placed'),
+        message: translateText(locale, 'Please try again. If the issue continues, review the delivery details and payment mode.'),
       });
     } finally {
       setIsCheckingOut(false);
@@ -173,17 +175,17 @@ export default function Cart() {
           <ShoppingBag className="w-10 h-10 text-stone-300" />
         </div>
         <h2 className="text-2xl font-serif font-bold text-stone-900 mb-2">
-          Your cart is empty
+          {translateText(locale, 'Your cart is empty')}
         </h2>
         <p className="text-stone-500 mb-8">
-          Looks like you haven&apos;t added any spiritual essentials yet.
+          {translateText(locale, "Looks like you haven't added any spiritual essentials yet.")}
         </p>
         <button
           type="button"
           onClick={() => navigate('/shop')}
           className="bg-orange-500 text-white px-8 py-3 rounded-full font-bold hover:bg-orange-600 transition-colors"
         >
-          Start Shopping
+          {translateText(locale, 'Start Shopping')}
         </button>
       </div>
     );
@@ -193,9 +195,9 @@ export default function Cart() {
     <div className="mx-auto max-w-7xl space-y-10 px-4 py-12 sm:px-6 lg:px-8">
       <PageHero
         tone="stone"
-        eyebrow="Checkout Flow"
-        title="Review your cart with clearer order context and calmer checkout spacing."
-        description="This screen is tuned to make product review, quantity changes, delivery details, and payment selection feel more readable before placing an order."
+        eyebrow={translateText(locale, 'Checkout Flow')}
+        title={translateText(locale, 'Review your cart with clearer order context and calmer checkout spacing.')}
+        description={translateText(locale, 'This screen is tuned to make product review, quantity changes, delivery details, and payment selection feel more readable before placing an order.')}
         stats={[
           { label: 'Items in Cart', value: `${items.length}` },
           { label: 'Estimated Delivery', value: estimatedDeliveryLabel },
@@ -297,9 +299,7 @@ export default function Cart() {
 
         <div className="lg:col-span-1">
           <div className="bg-white p-8 rounded-[2.5rem] border border-stone-200 shadow-xl shadow-stone-200/50 sticky top-24">
-            <h3 className="text-xl font-serif font-bold text-stone-900 mb-6">
-              Order Summary
-            </h3>
+            <h3 className="text-xl font-serif font-bold text-stone-900 mb-6">{translateText(locale, 'Order Summary')}</h3>
 
             <div className="space-y-4 mb-8">
               <div className="flex justify-between items-center text-stone-600">
@@ -501,7 +501,7 @@ export default function Cart() {
                 disabled={isCheckingOut}
                 className="w-full bg-stone-900 text-white py-4 rounded-2xl font-bold text-lg hover:bg-orange-500 transition-all flex items-center justify-center disabled:opacity-50"
               >
-                {isCheckingOut ? 'Processing...' : 'Place Order'}
+                {isCheckingOut ? translateText(locale, 'Processing...') : translateText(locale, 'Place Order')}
                 {!isCheckingOut && <ArrowRight className="w-5 h-5 ml-2" />}
               </button>
             </div>

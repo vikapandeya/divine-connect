@@ -15,6 +15,7 @@ import {
   subscribeToWishlist,
   toggleWishlist,
 } from '../lib/platform';
+import { translateText, useAppLocale } from '../lib/i18n';
 
 const categories = [
   'all',
@@ -143,6 +144,7 @@ function normalizeCategory(category: string | null) {
 }
 
 export default function Shop() {
+  const locale = useAppLocale();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchParams, setSearchParams] = useSearchParams();
@@ -250,18 +252,18 @@ export default function Shop() {
     <div className="mx-auto max-w-7xl space-y-8 px-4 py-12 sm:px-6 lg:px-8">
       <PageHero
         tone="stone"
-        eyebrow="Spiritual Shop"
-        title="Curated offerings with cleaner filtering, stronger hierarchy, and faster product scanning."
-        description="Browse prasad, idols, incense, books, malas, and puja essentials through a calmer commerce layout designed for trust and quick comparison."
+        eyebrow={translateText(locale, 'Spiritual Shop')}
+        title={translateText(locale, 'Curated offerings with cleaner filtering, stronger hierarchy, and faster product scanning.')}
+        description={translateText(locale, 'Browse prasad, idols, incense, books, malas, and puja essentials through a calmer commerce layout designed for trust and quick comparison.')}
         stats={[
-          { label: 'Catalog Categories', value: `${categories.length - 1}` },
-          { label: 'Temple-linked Picks', value: 'Prasad Focused' },
-          { label: 'Checkout Support', value: 'Invoice Ready' },
+          { label: translateText(locale, 'Catalog Categories'), value: `${categories.length - 1}` },
+          { label: translateText(locale, 'Temple-linked Picks'), value: translateText(locale, 'Prasad Focused') },
+          { label: translateText(locale, 'Checkout Support'), value: translateText(locale, 'Invoice Ready') },
         ]}
         aside={
           <div className="rounded-[2rem] border border-stone-200 bg-white p-6 shadow-sm">
             <p className="text-xs font-bold uppercase tracking-[0.24em] text-orange-600">
-              Smart Catalog Search
+              {translateText(locale, 'Smart Catalog Search')}
             </p>
             <div className="relative mt-5">
               <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400" />
@@ -269,7 +271,7 @@ export default function Shop() {
                 type="text"
                 value={searchInput}
                 onChange={(event) => handleSearchChange(event.target.value)}
-                placeholder="Search products, temples, or categories"
+                placeholder={translateText(locale, 'Search products, temples, or categories')}
                 className="w-full rounded-[1.5rem] border border-stone-200 bg-stone-50 py-3 pl-11 pr-10 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-orange-500"
               />
               {searchInput ? (
@@ -284,7 +286,7 @@ export default function Shop() {
               ) : null}
             </div>
             <p className="mt-3 text-xs leading-relaxed text-stone-500">
-              Search works across product names, categories, descriptions, and temple names.
+              {translateText(locale, 'Search works across product names, categories, descriptions, and temple names.')}
             </p>
             <div className="mt-4 flex flex-wrap gap-2">
               {suggestions.slice(0, 4).map((suggestion) => (

@@ -7,6 +7,7 @@ import type {
   UserProfile,
   YatraPackage,
 } from '../types';
+import { getLocale } from './platform';
 
 const STORAGE_KEYS = {
   products: 'divine-connect-demo-products',
@@ -1246,8 +1247,129 @@ export function generateDemoAstrologyReading(payload: {
   rashi?: string;
   query?: string;
 }) {
+  const locale = getLocale();
   const readingType = payload.readingType || 'vedic-reading';
   const focus = payload.query?.trim() || 'overall life guidance';
+
+  if (locale === 'hi') {
+    if (readingType === 'kundali-match') {
+      return [
+        `नमस्ते ${payload.name} और ${payload.partnerName || 'आपके साथी'}।`,
+        '',
+        `यह डेमो कुंडली मिलान ${payload.name} (${payload.dob}, ${payload.tob}, ${payload.pob}) और ${payload.partnerName || 'आपके साथी'} (${payload.partnerDob}, ${payload.partnerTob}, ${payload.partnerPob}) की तुलना करता है।`,
+        '',
+        'संगति सार:',
+        '- भावनात्मक सामंजस्य स्थिर रहेगा जब दोनों शांत संवाद बनाए रखें।',
+        '- पारिवारिक मूल्य और दीर्घकालिक प्रतिबद्धता इस मिलान को सहयोग देती है।',
+        '- वित्त और घरेलू जिम्मेदारियों की व्यावहारिक योजना सामंजस्य बढ़ाएगी।',
+        '',
+        'अनुशंसित उपाय:',
+        '- विवाह चर्चा या सगाई से पहले गणेश पूजा करें।',
+        '- गुरुवार को पीले पुष्प या मिठाई अर्पित करें।',
+        '- संवेदनशील समय में मौन के बजाय स्पष्ट संवाद रखें।',
+        '',
+        'यह DivineConnect के स्थिर डेमो हेतु ब्राउज़र में तैयार किया गया कुंडली मिलान है।',
+      ].join('\n');
+    }
+
+    if (readingType === 'rashi-phal') {
+      return [
+        `नमस्ते ${payload.name}।`,
+        '',
+        `यह DivineConnect डेमो के लिए ${payload.rashi || 'आपकी राशि'} का राशिफल है।`,
+        '',
+        'राशि मार्गदर्शन:',
+        '- कार्य: लंबित काम पूरा करके आगे बढ़ना लाभकारी रहेगा।',
+        '- संबंध: छोटी बातों पर अधिक सोचने के बजाय स्पष्ट संवाद रखें।',
+        '- धन: व्यय पर नियंत्रण और व्यावहारिक सोच रखें।',
+        '- स्वास्थ्य: नियमित नींद, जल और शांत सुबह उपयोगी रहेगी।',
+        '',
+        `विशेष संकेत: ${focus} में प्रगति अनुशासन और साधना से बढ़ेगी।`,
+        '',
+        'यह DivineConnect के स्थिर डेमो हेतु स्थानीय रूप से तैयार किया गया राशिफल है।',
+      ].join('\n');
+    }
+
+    return [
+      `नमस्ते ${payload.name}।`,
+      '',
+      `${payload.dob}, ${payload.tob}, ${payload.pob} के डेमो वैदिक विवरण के आधार पर यह रीडिंग एक व्यावहारिक और भक्तिपूर्ण जीवन-पथ दिखाती है।`,
+      '',
+      `${focus} में प्रगति तब अधिक होगी जब आप अनुशासन को प्रार्थना और साधना के साथ जोड़ेंगे।`,
+      '',
+      'मुख्य मार्गदर्शन:',
+      '- सुबह का समय शांत और व्यवस्थित रखें।',
+      '- पारिवारिक और वित्तीय निर्णयों में अनावश्यक विलंब न करें।',
+      '- सोमवार और गुरुवार संकल्प, मंत्र और मंदिर दर्शन के लिए शुभ हैं।',
+      '',
+      'सुझाए गए उपाय:',
+      '- महत्वपूर्ण कार्य से पहले दीपक या धूप अर्पित करें।',
+      '- स्पष्टता के लिए छोटा दैनिक मंत्र जप रखें।',
+      '- गणेश पूजा या लक्ष्मी पूजा बुक करना शुभ रहेगा।',
+      '',
+      'यह DivineConnect के डेमो संस्करण के लिए स्थानीय रूप से तैयार की गई रीडिंग है।',
+    ].join('\n');
+  }
+
+  if (locale === 'sa') {
+    if (readingType === 'kundali-match') {
+      return [
+        `नमस्ते ${payload.name} तथा ${payload.partnerName || 'भवतः सहचरः'}।`,
+        '',
+        `अयं प्रदर्शन-कुण्डली-मेलनः ${payload.name} (${payload.dob}, ${payload.tob}, ${payload.pob}) तथा ${payload.partnerName || 'भवतः सहचरः'} (${payload.partnerDob}, ${payload.partnerTob}, ${payload.partnerPob}) इत्येतयोः तुलनाम् करोति।`,
+        '',
+        'सामञ्जस्य-सारः:',
+        '- सौम्य-संवादेन भावनात्मक-सन्तुलनं स्थिरं भवति।',
+        '- कुलमूल्यानि तथा दीर्घकालिक-प्रतिबद्धता अस्य मेलस्य बलम् अस्ति।',
+        '- वित्तगृहकर्तव्ययोः युक्तियुक्त-योजना सौहार्दं वर्धयति।',
+        '',
+        'उपायाः:',
+        '- विवाह-विचारात् पूर्वं गणेश-पूजां कुरुत।',
+        '- गुरुवासरे पीतपुष्पाणि वा मिष्टान्नम् अर्पयत।',
+        '- सूक्ष्मकालेषु मौनस्य स्थाने स्पष्ट-संवादः श्रेयस्करः।',
+        '',
+        'अयं DivineConnect-प्रदर्शनाय स्थानीय-निर्मितः कुण्डली-मेलन-लेखः।',
+      ].join('\n');
+    }
+
+    if (readingType === 'rashi-phal') {
+      return [
+        `नमस्ते ${payload.name}।`,
+        '',
+        `अयं DivineConnect-प्रदर्शनार्थं ${payload.rashi || 'भवतः राशेः'} राशिफलम्।`,
+        '',
+        'राशि-मार्गदर्शनम्:',
+        '- कार्ये: आरब्धात् पूर्वं लंबितकार्यसमापनं हितकरम्।',
+        '- सम्बन्धेषु: स्पष्ट-वाक्येन लघु-विषयान् अतिक्रम्यन्ताम्।',
+        '- वित्ते: व्यय-नियन्त्रणं तथा यथार्थ-दृष्टिः आवश्यके।',
+        '- स्वास्थ्ये: नियमित-निद्रा, जलपानं, शान्त-प्रभातः च हितकराः।',
+        '',
+        `विशेष-सूचना: ${focus} विषये अनुशासन-साधनाभ्यां प्रगतिरेव।`,
+        '',
+        'अयं DivineConnect-स्थिर-प्रदर्शनार्थं स्थानीय-राशिफल-निर्माणम्।',
+      ].join('\n');
+    }
+
+    return [
+      `नमस्ते ${payload.name}।`,
+      '',
+      `${payload.dob}, ${payload.tob}, ${payload.pob} इत्येतत् प्रदर्शन-वैदिक-विवरणम् आश्रित्य अयं पाठः व्यावहारिकं भक्तिमयं च जीवनमार्गं सूचयति।`,
+      '',
+      `${focus} विषये प्रगति: अनुशासनं प्रार्थनां साधनां च संयुक्त्य भवति।`,
+      '',
+      'मुख्य-मार्गदर्शनम्:',
+      '- प्रातःकालः शान्तः सुव्यवस्थितश्च भवतु।',
+      '- कुल-वित्त-निर्णयेषु विलम्बं मा कुरुत।',
+      '- सोमवासरः गुरुवासरश्च संकल्प-मन्त्र-दर्शनार्थं शुभौ।',
+      '',
+      'उपायाः:',
+      '- महत्त्वकार्यपूर्वं दीपं वा धूपं समर्पयत।',
+      '- स्पष्टतायै लघु-दैनिक-मन्त्रजपः कुर्यात्।',
+      '- गणेश-पूजां वा लक्ष्मी-पूजां आरक्षतु।',
+      '',
+      'अयं DivineConnect-प्रदर्शन-रूपाय स्थानीयरूपेण निर्मितः पाठः।',
+    ].join('\n');
+  }
 
   if (readingType === 'kundali-match') {
     return [
@@ -1319,8 +1441,49 @@ export function generateDemoAstrologyReading(payload: {
 }
 
 export function generateDemoSupportReply(messages: Array<{ role: 'user' | 'assistant'; content: string }>) {
+  const locale = getLocale();
   const latestUserMessage =
     [...messages].reverse().find((message) => message.role === 'user')?.content.toLowerCase() || '';
+
+  if (locale === 'hi') {
+    if (latestUserMessage.includes('book') || latestUserMessage.includes('puja')) {
+      return 'डेमो बुकिंग के लिए सेवाएँ खोलें, कोई भी पूजा चुनें, तिथि और स्लॉट चुनें, और पुष्टि करें। बुकिंग तुरंत प्रोफ़ाइल पृष्ठ में दिखाई देगी।';
+    }
+
+    if (latestUserMessage.includes('order') || latestUserMessage.includes('track') || latestUserMessage.includes('prasad')) {
+      return 'डेमो ऑर्डर के लिए दुकान से कोई भी वस्तु कार्ट में जोड़ें, चेकआउट पूरा करें, फिर प्रोफ़ाइल > मेरे ऑर्डर में जाकर PDF चालान डाउनलोड करें, प्रिंट करें या प्रमाणपत्र देखें।';
+    }
+
+    if (latestUserMessage.includes('vendor')) {
+      return 'डेमो विक्रेता डैशबोर्ड बिना साइन-इन के खुला है। विक्रेता पृष्ठ पर जाकर अर्पण जोड़ें, पूजाएँ अपडेट करें और बुकिंग स्थिति प्रबंधित करें।';
+    }
+
+    if (latestUserMessage.includes('login') || latestUserMessage.includes('sign in')) {
+      return `इस डेमो में साइन-इन आवश्यक नहीं है। यदि आप नमूना क्रेडेंशियल चाहते हैं, तो ${DEMO_CREDENTIALS.email} / ${DEMO_CREDENTIALS.password} उपयोग करें।`;
+    }
+
+    return 'यह स्थिर DivineConnect डेमो पूरी तरह ब्राउज़र में स्थानीय डेमो डेटा के साथ चलता है। आप बिना साइन-इन के बुकिंग, कार्ट, चेकआउट, रसीद, ज्योतिष, विक्रेता और एडमिन प्रवाह देख सकते हैं।';
+  }
+
+  if (locale === 'sa') {
+    if (latestUserMessage.includes('book') || latestUserMessage.includes('puja')) {
+      return 'प्रदर्शन-आरक्षणाय सेवाः उद्घाट्य काचित् पूजां चिनुत, दिनाङ्कं कालखण्डं च निश्चित्य पुष्टि कुर्वन्तु। आरक्षणं तत्क्षणं प्रोफाइल्-पृष्ठे दृश्यते।';
+    }
+
+    if (latestUserMessage.includes('order') || latestUserMessage.includes('track') || latestUserMessage.includes('prasad')) {
+      return 'प्रदर्शन-आदेशाय क्रयागारात् किमपि वस्तु कार्टमध्ये स्थापयत, समापनं पूरयत, ततः प्रोफाइल् > मम आदेशाः इति स्थले PDF चलनपत्रं अवलोकयत।';
+    }
+
+    if (latestUserMessage.includes('vendor')) {
+      return 'प्रदर्शन-विक्रेता-फलकम् अनाहत्य एव उपलब्धम्। विक्रेता-पृष्ठे गत्वा समर्पणानि योजयत, पूजाः अद्यतनं कुरुत, आरक्षण-स्थितिं च व्यवस्थापयत।';
+    }
+
+    if (latestUserMessage.includes('login') || latestUserMessage.includes('sign in')) {
+      return `अस्मिन् प्रदर्शनरूपे प्रवेशः न अपेक्षितः। यदि उदाहरण-प्रवेश-विवरणं इच्छथ, ${DEMO_CREDENTIALS.email} / ${DEMO_CREDENTIALS.password} उपयोगयत।`;
+    }
+
+    return 'अयं DivineConnect-प्रदर्शनः पूर्णतया ब्राउजरमध्ये स्थानीय-दत्तांशेन चलति। भवन्तः आरक्षणम्, कार्ट्, समापनम्, रसीदाः, ज्योतिषम्, विक्रेता-प्रवाहम्, प्रशासक-प्रवाहम् च अनाहत्य अवलोकयितुं शक्नुवन्ति।';
+  }
 
   if (latestUserMessage.includes('book') || latestUserMessage.includes('puja')) {
     return 'For demo booking, open Services, choose any puja, select date and slot, and confirm. The booking will appear immediately in the demo Profile page.';

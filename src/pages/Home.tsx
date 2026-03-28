@@ -24,14 +24,10 @@ import { formatIndianRupees } from '../lib/utils';
 import { createFeedbackDirect, DEMO_DEVOTEE_PROFILE } from '../lib/firestore-data';
 import { getProductSpiritualImage, getSpiritualImage } from '../lib/spiritual-images';
 import {
-  getDailyHoroscope,
-  getLocale,
-  getLocaleCopy,
   getSpiritualArticles,
   getTempleSpotlights,
-  subscribeToLocale,
-  type AppLocale,
 } from '../lib/platform';
+import { translateText, useAppLocale } from '../lib/i18n';
 
 const services = [
   {
@@ -140,8 +136,8 @@ const ratingStats = [
 ];
 
 export default function Home() {
-  const [locale, setLocale] = useState<AppLocale>(getLocale());
-  const [panchang, setPanchang] = useState(() => getFallbackPanchangCard(getLocale()));
+  const locale = useAppLocale();
+  const [panchang, setPanchang] = useState(() => getFallbackPanchangCard(locale));
   const [isPanchangLoading, setIsPanchangLoading] = useState(true);
   const [formState, setFormState] = useState({
     name: DEMO_DEVOTEE_PROFILE.displayName || '',
@@ -158,16 +154,31 @@ export default function Home() {
   } | null>(null);
 
   const feedbackHint = useMemo(
-    () =>
+    () => translateText(
+      locale,
       'Tell us what felt trustworthy, where the flow can improve, or what sacred offering you want us to add next.',
-    [],
+    ),
+    [locale],
   );
-  const copy = getLocaleCopy(locale);
-  const horoscopes = getDailyHoroscope(locale);
+  const horoscopes = locale === 'hi'
+    ? [
+        { sign: 'मेष', guidance: 'नए कार्यों में गति मिलेगी, पर निर्णय संयम से लें।', remedy: 'सुबह दीपक जलाएँ।' },
+        { sign: 'वृषभ', guidance: 'परिवार और वित्त दोनों में संतुलन लाभ देगा।', remedy: 'शुक्रवार को सफेद पुष्प अर्पित करें।' },
+        { sign: 'मीन', guidance: 'आध्यात्मिक अभ्यास से मन की स्पष्टता बढ़ेगी।', remedy: 'गुरु मंत्र का जप करें।' },
+      ]
+    : locale === 'sa'
+      ? [
+          { sign: 'मेष', guidance: 'नवकार्येषु प्रगतिः भविष्यति, परं निर्णयः संयमेन कार्यः।', remedy: 'प्रातः दीपं प्रज्वालयन्तु।' },
+          { sign: 'वृषभ', guidance: 'कुटुम्ब-वित्तयोः समत्वं लाभकरं भविष्यति।', remedy: 'शुक्रवासरे श्वेतपुष्पाणि अर्पयन्तु।' },
+          { sign: 'मीन', guidance: 'आध्यात्मिकाभ्यासेन मनसः स्पष्टता वर्धते।', remedy: 'गुरुमन्त्रं जपन्तु।' },
+        ]
+      : [
+          { sign: 'Aries', guidance: 'Momentum improves for new work, but decisions should stay measured.', remedy: 'Light a diya before starting important tasks.' },
+          { sign: 'Taurus', guidance: 'Family and finances both benefit from calm practical planning.', remedy: 'Offer white flowers on Friday.' },
+          { sign: 'Pisces', guidance: 'Spiritual discipline brings better clarity than reactive decisions.', remedy: 'Keep a short guru mantra in your morning routine.' },
+        ];
   const temples = getTempleSpotlights();
   const articles = getSpiritualArticles();
-
-  useEffect(() => subscribeToLocale(() => setLocale(getLocale())), []);
 
   useEffect(() => {
     let isActive = true;
@@ -211,8 +222,8 @@ export default function Home() {
 
       setFeedbackNotice({
         tone: 'success',
-        title: 'Feedback shared',
-        message: 'Thank you. Your feedback has been shared with the DivineConnect team.',
+        title: translateText(locale, 'Feedback shared'),
+        message: translateText(locale, 'Thank you. Your feedback has been shared with the DivineConnect team.'),
       });
       setFormState((previous) => ({
         ...previous,
@@ -224,8 +235,8 @@ export default function Home() {
       console.error('Feedback error:', error);
       setFeedbackNotice({
         tone: 'error',
-        title: 'Feedback not submitted',
-        message: 'Unable to submit feedback right now. Please try again in a moment.',
+        title: translateText(locale, 'Feedback not submitted'),
+        message: translateText(locale, 'Unable to submit feedback right now. Please try again in a moment.'),
       });
     } finally {
       setIsSubmittingFeedback(false);
@@ -265,13 +276,13 @@ export default function Home() {
                 to="/services/puja"
                 className="bg-orange-500 text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/20 text-center"
               >
-                {copy.bookPuja}
+                {translateText(locale, 'Book Puja')}
               </Link>
               <Link
                 to="/shop?category=prasad"
                 className="bg-white/10 backdrop-blur-md border border-white/20 text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-white/20 transition-all text-center"
               >
-                {copy.templePrasad}
+                {translateText(locale, 'Temple Prasad')}
               </Link>
               <Link
                 to="/knowledge"
@@ -290,7 +301,7 @@ export default function Home() {
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div>
                 <p className="text-xs font-bold uppercase tracking-[0.24em] text-orange-600">
-                  {copy.panchangTitle}
+                  {translateText(locale, 'Daily Panchang')}
                 </p>
                 <h2 className="mt-4 text-3xl font-serif font-bold text-stone-900">
                   {panchang.dateLabel}
@@ -303,11 +314,13 @@ export default function Home() {
                     : 'bg-stone-100 text-stone-600'
                 }`}
               >
-                {panchang.source === 'live' ? 'Live Panchang' : 'Fallback Snapshot'}
+                {panchang.source === 'live'
+                  ? translateText(locale, 'Live Panchang')
+                  : translateText(locale, 'Fallback Snapshot')}
               </div>
             </div>
             <p className="mt-3 max-w-2xl text-sm leading-relaxed text-stone-600">
-              {copy.panchangDescription}
+              {translateText(locale, "Today's auspicious guidance, muhurat, and devotional timing highlights.")}
             </p>
             <p className="mt-3 text-xs text-stone-500">
               {isPanchangLoading
@@ -316,9 +329,9 @@ export default function Home() {
             </p>
             <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-3">
               {[
-                { label: 'Tithi', value: panchang.tithi },
-                { label: 'Nakshatra', value: panchang.nakshatra },
-                { label: 'Muhurat', value: panchang.muhurat },
+                { label: translateText(locale, 'Tithi'), value: panchang.tithi },
+                { label: translateText(locale, 'Nakshatra'), value: panchang.nakshatra },
+                { label: translateText(locale, 'Muhurat'), value: panchang.muhurat },
               ].map((item) => (
                 <div key={item.label} className="rounded-[1.75rem] border border-orange-100 bg-white p-5">
                   <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-stone-400">
@@ -329,17 +342,17 @@ export default function Home() {
               ))}
             </div>
             <div className="mt-6 rounded-[1.75rem] border border-orange-100 bg-white px-5 py-4">
-              <p className="text-sm font-bold text-stone-900">Devotional Focus</p>
+              <p className="text-sm font-bold text-stone-900">{translateText(locale, 'Devotional Focus')}</p>
               <p className="mt-2 text-sm leading-relaxed text-stone-600">{panchang.focus}</p>
             </div>
           </div>
 
           <div className="rounded-[2.75rem] border border-stone-200 bg-white p-8 shadow-sm">
             <p className="text-xs font-bold uppercase tracking-[0.24em] text-blue-600">
-              Daily Horoscope
+              {translateText(locale, 'Daily Horoscope')}
             </p>
             <h2 className="mt-4 text-3xl font-serif font-bold text-stone-900">
-              Return every day for auspicious guidance
+              {translateText(locale, 'Return every day for auspicious guidance')}
             </h2>
             <div className="mt-8 space-y-4">
               {horoscopes.map((item) => (
@@ -694,13 +707,13 @@ export default function Home() {
         <div className="flex items-end justify-between gap-6 mb-10">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.24em] text-orange-600">
-              {copy.blogTitle}
+              {translateText(locale, 'Spiritual Knowledge Base')}
             </p>
             <h2 className="mt-3 text-3xl font-serif font-bold text-stone-900">
               Spiritual knowledge content that keeps devotees returning daily
             </h2>
             <p className="mt-3 max-w-2xl text-stone-600">
-              {copy.blogDescription}
+              {translateText(locale, 'Hardcoded editorial cards for rituals, festivals, and family guidance.')}
             </p>
           </div>
           <Link

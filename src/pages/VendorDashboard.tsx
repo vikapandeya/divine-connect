@@ -17,12 +17,14 @@ import {
   updateBookingStatusDirect,
 } from '../lib/firestore-data';
 import { buildVendorFinanceSnapshot, buildVendorNotifications } from '../lib/platform';
+import { translateText, useAppLocale } from '../lib/i18n';
 
 type VendorBookingRow = Booking & {
   customerName: string;
 };
 
 export default function VendorDashboard() {
+  const locale = useAppLocale();
   const currentUser = DEMO_VENDOR_PROFILE;
   const [activeTab, setActiveTab] = useState<'products' | 'pujas' | 'bookings'>('products');
   const [products, setProducts] = useState<Product[]>([]);
@@ -299,27 +301,27 @@ export default function VendorDashboard() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-6">
         <div>
-          <h1 className="text-4xl font-serif font-bold text-stone-900 mb-2">Vendor Dashboard</h1>
-          <p className="text-stone-600">Manage your divine offerings and bookings.</p>
+          <h1 className="text-4xl font-serif font-bold text-stone-900 mb-2">{translateText(locale, 'Vendor Dashboard')}</h1>
+          <p className="text-stone-600">{translateText(locale, 'Manage your divine offerings and bookings.')}</p>
         </div>
         <div className="flex bg-stone-100 p-1.5 rounded-2xl">
           <button 
             onClick={() => setActiveTab('products')}
             className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === 'products' ? 'bg-white text-stone-900 shadow-sm' : 'text-stone-500 hover:text-stone-700'}`}
           >
-            Products
+            {translateText(locale, 'Products')}
           </button>
           <button 
             onClick={() => setActiveTab('pujas')}
             className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === 'pujas' ? 'bg-white text-stone-900 shadow-sm' : 'text-stone-500 hover:text-stone-700'}`}
           >
-            Pujas
+            {translateText(locale, 'Pujas')}
           </button>
           <button 
             onClick={() => setActiveTab('bookings')}
             className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === 'bookings' ? 'bg-white text-stone-900 shadow-sm' : 'text-stone-500 hover:text-stone-700'}`}
           >
-            Bookings
+            {translateText(locale, 'Bookings')}
           </button>
         </div>
       </div>
@@ -417,7 +419,7 @@ export default function VendorDashboard() {
             className="flex items-center space-x-2 bg-orange-500 text-white px-6 py-3 rounded-2xl hover:bg-orange-600 transition-colors shadow-lg shadow-orange-500/20"
           >
             <Plus className="w-5 h-5" />
-            <span className="font-bold">Add {activeTab === 'products' ? 'Product' : 'Puja'}</span>
+            <span className="font-bold">{activeTab === 'products' ? translateText(locale, 'Add Product') : translateText(locale, 'Add Puja')}</span>
           </button>
         )}
       </div>

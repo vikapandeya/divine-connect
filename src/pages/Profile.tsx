@@ -41,10 +41,12 @@ import {
   listOrdersByUserDirect,
 } from '../lib/firestore-data';
 import { buildUserNotifications, getWishlistIds, subscribeToWishlist, type PlatformNotification } from '../lib/platform';
+import { formatDateForLocale, formatDateTimeForLocale, translateText, useAppLocale } from '../lib/i18n';
 
 type ProfileTab = 'bookings' | 'orders' | 'readings' | 'profile';
 
 export default function Profile() {
+  const locale = useAppLocale();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const currentUser = DEMO_DEVOTEE_PROFILE;
@@ -143,12 +145,12 @@ export default function Profile() {
 
   const tabTitle =
     activeTab === 'bookings'
-      ? 'Service Bookings'
+      ? translateText(locale, 'Service Bookings')
       : activeTab === 'orders'
-        ? 'Order History'
+        ? translateText(locale, 'Order History')
         : activeTab === 'readings'
-          ? 'Astrology History'
-          : 'Account Settings';
+          ? translateText(locale, 'Astrology History')
+          : translateText(locale, 'Account Settings');
 
   const tabCount =
     activeTab === 'bookings'
@@ -173,23 +175,23 @@ export default function Profile() {
     <div className="mx-auto max-w-7xl space-y-10 px-4 py-12 sm:px-6 lg:px-8">
       <PageHero
         tone="stone"
-        eyebrow="My DivineConnect"
-        title="A clearer account space for bookings, orders, certificates, and spiritual history."
-        description="This profile area is organized to reduce switching friction between service records, invoices, astrology outputs, and personal account details."
+        eyebrow={translateText(locale, 'My DivineConnect')}
+        title={translateText(locale, 'A clearer account space for bookings, orders, certificates, and spiritual history.')}
+        description={translateText(locale, 'This profile area is organized to reduce switching friction between service records, invoices, astrology outputs, and personal account details.')}
         stats={[
-          { label: 'Bookings', value: `${bookings.length}` },
-          { label: 'Orders', value: `${orders.length}` },
-          { label: 'Readings', value: `${readings.length}` },
-          { label: 'Wishlist', value: `${wishlistIds.length}` },
+          { label: translateText(locale, 'Bookings'), value: `${bookings.length}` },
+          { label: translateText(locale, 'Orders'), value: `${orders.length}` },
+          { label: translateText(locale, 'Readings'), value: `${readings.length}` },
+          { label: translateText(locale, 'Wishlist'), value: `${wishlistIds.length}` },
           {
-            label: 'Latest Order',
-            value: latestOrder ? `Rs. ${formatIndianRupees(latestOrder.totalAmount)}` : 'No orders',
+            label: translateText(locale, 'Latest Order'),
+            value: latestOrder ? `Rs. ${formatIndianRupees(latestOrder.totalAmount)}` : translateText(locale, 'No orders'),
           },
         ]}
         aside={
           <div className="rounded-[2rem] border border-stone-200 bg-white p-6 shadow-sm">
             <p className="text-xs font-bold uppercase tracking-[0.24em] text-orange-600">
-              Account Workspace
+              {translateText(locale, 'Account Workspace')}
             </p>
             <div className="mt-5 space-y-3 text-sm text-stone-600">
               <div className="rounded-2xl bg-stone-50 px-4 py-3">
@@ -215,7 +217,7 @@ export default function Profile() {
               className="w-24 h-24 rounded-full mx-auto mb-4 border-4 border-orange-100"
             />
             <h2 className="text-xl font-bold text-stone-900">{currentUser.displayName}</h2>
-            <p className="text-stone-500 text-sm mb-6 capitalize">{profile?.role || 'Devotee'}</p>
+              <p className="text-stone-500 text-sm mb-6 capitalize">{profile?.role || translateText(locale, 'Devotee')}</p>
 
             <div className="space-y-3 text-left">
               <div className="flex items-center text-sm text-stone-600">
@@ -258,14 +260,14 @@ export default function Profile() {
               <div className="rounded-2xl border border-stone-100 bg-stone-50 p-4">
                 <div className="flex items-center gap-2 text-sm font-bold text-stone-900">
                   <Heart className="w-4 h-4 text-rose-500" />
-                  Wishlist
+                  {translateText(locale, 'Wishlist')}
                 </div>
                 <p className="mt-2 text-sm text-stone-600">{wishlistIds.length} saved items ready for later checkout.</p>
               </div>
               <div className="rounded-2xl border border-stone-100 bg-stone-50 p-4">
                 <div className="flex items-center gap-2 text-sm font-bold text-stone-900">
                   <Bell className="w-4 h-4 text-blue-500" />
-                  Alerts
+                  {translateText(locale, 'Alerts')}
                 </div>
                 <p className="mt-2 text-sm text-stone-600">{notifications.filter((item) => item.isUnread).length} unread activity updates.</p>
               </div>
@@ -282,7 +284,7 @@ export default function Profile() {
               }`}
             >
               <User className="w-5 h-5 mr-3" />
-              My Profile
+              {translateText(locale, 'My Profile')}
             </button>
             <button
               onClick={() => switchTab('bookings')}
@@ -293,7 +295,7 @@ export default function Profile() {
               }`}
             >
               <Calendar className="w-5 h-5 mr-3" />
-              My Bookings
+              {translateText(locale, 'My Bookings')}
             </button>
             <button
               onClick={() => switchTab('orders')}
@@ -304,7 +306,7 @@ export default function Profile() {
               }`}
             >
               <Package className="w-5 h-5 mr-3" />
-              My Orders
+              {translateText(locale, 'My Orders')}
             </button>
             <button
               onClick={() => switchTab('readings')}
@@ -315,21 +317,21 @@ export default function Profile() {
               }`}
             >
               <Sparkles className="w-5 h-5 mr-3" />
-              Astrology History
+              {translateText(locale, 'Astrology History')}
             </button>
             <button
               onClick={() => navigate('/vendor')}
               className="w-full flex items-center px-6 py-4 text-sm font-bold text-stone-600 hover:bg-stone-50 transition-colors"
             >
               <Settings className="w-5 h-5 mr-3" />
-              Vendor Dashboard
+              {translateText(locale, 'Vendor Dashboard')}
             </button>
             <button
               onClick={() => navigate('/admin')}
               className="w-full flex items-center px-6 py-4 text-sm font-bold text-stone-600 hover:bg-stone-50 transition-colors"
             >
               <Settings className="w-5 h-5 mr-3" />
-              Admin Dashboard
+              {translateText(locale, 'Admin Dashboard')}
             </button>
           </nav>
         </div>

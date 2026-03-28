@@ -24,14 +24,11 @@ import { cn } from '../lib/utils';
 import {
   buildUserNotifications,
   getLanguageOptions,
-  getLocale,
-  getLocaleCopy,
   getPwaReadinessSummary,
   setLocale,
-  subscribeToLocale,
-  type AppLocale,
   type PlatformNotification,
 } from '../lib/platform';
+import { translateText, useAppLocale } from '../lib/i18n';
 
 const navLinks = [
   { to: '/', label: 'Home', end: true },
@@ -75,9 +72,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
-  const [locale, setLocaleState] = useState<AppLocale>(getLocale());
+  const locale = useAppLocale();
   const [notifications, setNotifications] = useState<PlatformNotification[]>([]);
-  const copy = getLocaleCopy(locale);
   const unreadNotifications = notifications.filter((notification) => notification.isUnread).length;
   const pwaSummary = getPwaReadinessSummary();
 
@@ -97,8 +93,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     syncCartCount();
     return subscribeToCart(syncCartCount);
   }, []);
-
-  useEffect(() => subscribeToLocale(() => setLocaleState(getLocale())), []);
 
   useEffect(() => {
     const loadNotifications = async () => {
@@ -154,13 +148,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-2 text-[11px] sm:px-6 lg:px-8">
             <div className="flex shrink-0 items-center gap-2 uppercase tracking-[0.24em] text-orange-300">
               <Sparkles className="h-3.5 w-3.5" />
-              <span>{copy.platformDemo}</span>
+              <span>{translateText(locale, 'Spiritual platform demo')}</span>
             </div>
             <p className="hidden min-w-0 flex-1 truncate text-center text-stone-300 xl:block">
-              {copy.headline}
+              {translateText(locale, 'Puja booking, darshan support, prasad delivery, and astrology in one guided experience.')}
             </p>
             <Link to="/contact" className="ml-auto shrink-0 font-bold text-white hover:text-orange-300">
-              {copy.needHelp}
+              {translateText(locale, 'Need help?')}
             </Link>
           </div>
         </div>
@@ -177,7 +171,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                     DivineConnect
                   </p>
                   <p className="hidden text-xs text-stone-500 2xl:block">
-                    Sacred services with modern clarity
+                    {translateText(locale, 'Sacred services with modern clarity')}
                   </p>
                 </div>
               </Link>
@@ -197,7 +191,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                       )
                     }
                   >
-                    {link.label}
+                    {translateText(locale, link.label)}
                   </NavLink>
                 ))}
               </nav>
@@ -210,7 +204,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   <Search className="h-4 w-4 text-stone-400" />
                   <input
                     type="text"
-                    placeholder={copy.searchPlaceholder}
+                    placeholder={translateText(locale, 'Search offerings')}
                     value={searchTerm}
                     onChange={(event) => setSearchTerm(event.target.value)}
                     className="ml-2 min-w-0 flex-1 bg-transparent text-sm outline-none"
@@ -227,7 +221,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 </button>
 
                 <div className="hidden rounded-full border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700 2xl:block">
-                  {copy.demoMode}
+                  {translateText(locale, 'Demo Mode Active')}
                 </div>
 
                 <div className="hidden items-center gap-1 rounded-full border border-stone-200 bg-stone-50 p-1 lg:flex">
@@ -249,7 +243,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 </div>
 
                 <div className="hidden rounded-full border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-bold text-blue-700 2xl:block">
-                  {pwaSummary.installable ? 'PWA Ready' : 'Web Only'}
+                  {pwaSummary.installable ? translateText(locale, 'PWA Ready') : translateText(locale, 'Web Only')}
                 </div>
 
                 <Link
@@ -301,7 +295,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                       <p className="text-sm font-bold text-stone-900">
                         {profile?.displayName || 'Demo Devotee'}
                       </p>
-                      <p className="text-[11px] text-stone-500">Account</p>
+                      <p className="text-[11px] text-stone-500">{translateText(locale, 'Account Settings')}</p>
                     </div>
                     <ChevronDown className="h-4 w-4 text-stone-400" />
                   </button>
@@ -323,7 +317,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                         {notifications.length ? (
                           <div className="mt-3 rounded-[1.5rem] border border-stone-200 bg-white p-3">
                             <p className="px-1 text-[11px] font-bold uppercase tracking-[0.24em] text-blue-600">
-                              Realtime Alerts
+                              {translateText(locale, 'Realtime Alerts')}
                             </p>
                             <div className="mt-3 space-y-2">
                               {notifications.slice(0, 2).map((notification) => (
@@ -348,8 +342,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                               to={item.to}
                               className="block rounded-2xl px-4 py-3 hover:bg-orange-50"
                             >
-                              <p className="text-sm font-bold text-stone-900">{item.label}</p>
-                              <p className="mt-1 text-xs text-stone-500">{item.hint}</p>
+                              <p className="text-sm font-bold text-stone-900">{translateText(locale, item.label)}</p>
+                              <p className="mt-1 text-xs text-stone-500">{translateText(locale, item.hint)}</p>
                             </Link>
                           ))}
                         </div>
@@ -387,7 +381,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   <Search className="h-4 w-4 text-stone-400" />
                   <input
                     type="text"
-                    placeholder={copy.searchPlaceholder}
+                    placeholder={translateText(locale, 'Search offerings')}
                     value={searchTerm}
                     onChange={(event) => setSearchTerm(event.target.value)}
                     className="ml-2 w-full bg-transparent text-sm outline-none"
@@ -425,7 +419,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                         )
                       }
                     >
-                      {link.label}
+                      {translateText(locale, link.label)}
                     </NavLink>
                   ))}
                 </div>
@@ -442,8 +436,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                       to={item.to}
                       className="rounded-[1.25rem] border border-stone-200 bg-white px-4 py-3 shadow-sm"
                     >
-                      <p className="text-sm font-bold text-stone-900">{item.label}</p>
-                      <p className="mt-1 text-xs text-stone-500">{item.hint}</p>
+                      <p className="text-sm font-bold text-stone-900">{translateText(locale, item.label)}</p>
+                      <p className="mt-1 text-xs text-stone-500">{translateText(locale, item.hint)}</p>
                     </Link>
                   ))}
                 </div>
@@ -455,9 +449,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                       to={action.to}
                       className="rounded-[1.5rem] border border-stone-200 bg-white p-4 shadow-sm"
                     >
-                      <p className="text-sm font-bold text-stone-900">{action.title}</p>
+                      <p className="text-sm font-bold text-stone-900">{translateText(locale, action.title)}</p>
                       <p className="mt-2 text-xs leading-relaxed text-stone-500">
-                        {action.description}
+                        {translateText(locale, action.description)}
                       </p>
                     </Link>
                   ))}
@@ -482,11 +476,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 </div>
                 <div>
                   <p className="text-xl font-serif font-bold text-white">DivineConnect</p>
-                  <p className="text-sm text-stone-400">Spiritual services with modern clarity</p>
+                  <p className="text-sm text-stone-400">{translateText(locale, 'Sacred services with modern clarity')}</p>
                 </div>
               </div>
               <p className="mt-5 max-w-sm text-sm leading-relaxed text-stone-400">
-                A guided spiritual platform for puja booking, darshan coordination, temple prasad, sacred commerce, and AI-assisted devotional support.
+                {translateText(locale, 'A guided spiritual platform for puja booking, darshan coordination, temple prasad, sacred commerce, and AI-assisted devotional support.')}
               </p>
               <div className="mt-5 flex flex-wrap gap-2">
                 {['Verified services', 'Temple-linked offerings', 'Printable records'].map((tag) => (
@@ -494,7 +488,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                     key={tag}
                     className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-stone-300"
                   >
-                    {tag}
+                    {translateText(locale, tag)}
                   </span>
                 ))}
               </div>
@@ -502,54 +496,54 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
             <div>
               <h4 className="text-sm font-bold uppercase tracking-[0.24em] text-orange-300">
-                Explore
+                {translateText(locale, 'Explore')}
               </h4>
               <ul className="mt-5 space-y-3 text-sm">
-                <li><Link to="/services" className="hover:text-white">Puja Booking</Link></li>
-                <li><Link to="/services/yatra" className="hover:text-white">Yatra Packages</Link></li>
-                <li><Link to="/services/darshan" className="hover:text-white">Darshan Support</Link></li>
-                <li><Link to="/services/prasad" className="hover:text-white">Temple Prasad</Link></li>
-                <li><Link to="/shop" className="hover:text-white">Spiritual Shop</Link></li>
-                <li><Link to="/knowledge" className="hover:text-white">Spiritual Knowledge</Link></li>
-                <li><Link to="/astrology" className="hover:text-white">AI Astrology</Link></li>
+                <li><Link to="/services" className="hover:text-white">{translateText(locale, 'Puja Booking')}</Link></li>
+                <li><Link to="/services/yatra" className="hover:text-white">{translateText(locale, 'Yatra Packages')}</Link></li>
+                <li><Link to="/services/darshan" className="hover:text-white">{translateText(locale, 'Darshan Support')}</Link></li>
+                <li><Link to="/services/prasad" className="hover:text-white">{translateText(locale, 'Temple Prasad')}</Link></li>
+                <li><Link to="/shop" className="hover:text-white">{translateText(locale, 'Spiritual Shop')}</Link></li>
+                <li><Link to="/knowledge" className="hover:text-white">{translateText(locale, 'Spiritual Knowledge')}</Link></li>
+                <li><Link to="/astrology" className="hover:text-white">{translateText(locale, 'AI Astrology')}</Link></li>
               </ul>
             </div>
 
             <div>
               <h4 className="text-sm font-bold uppercase tracking-[0.24em] text-orange-300">
-                Platform
+                {translateText(locale, 'Platform')}
               </h4>
               <ul className="mt-5 space-y-3 text-sm">
-                <li><Link to="/about" className="hover:text-white">Our Mission</Link></li>
-                <li><Link to="/contact" className="hover:text-white">Contact Support</Link></li>
-                <li><Link to="/profile" className="hover:text-white">Demo Profile</Link></li>
-                <li><Link to="/vendor" className="hover:text-white">Vendor Dashboard</Link></li>
-                <li><Link to="/admin" className="hover:text-white">Admin Panel</Link></li>
+                <li><Link to="/about" className="hover:text-white">{translateText(locale, 'Our Mission')}</Link></li>
+                <li><Link to="/contact" className="hover:text-white">{translateText(locale, 'Contact Support')}</Link></li>
+                <li><Link to="/profile" className="hover:text-white">{translateText(locale, 'Demo Profile')}</Link></li>
+                <li><Link to="/vendor" className="hover:text-white">{translateText(locale, 'Vendor Dashboard')}</Link></li>
+                <li><Link to="/admin" className="hover:text-white">{translateText(locale, 'Admin Panel')}</Link></li>
               </ul>
             </div>
 
             <div className="rounded-[2rem] border border-white/10 bg-white/5 p-6">
               <p className="text-sm font-bold uppercase tracking-[0.24em] text-orange-300">
-                Reach Us
+                {translateText(locale, 'Reach Us')}
               </p>
               <div className="mt-5 space-y-3 text-sm text-stone-300">
                 <p>support@divineconnect.com</p>
                 <p>+91 1800-DIVINE-00</p>
                 <p>Varanasi, Uttar Pradesh, India</p>
-                <p>Monday to Saturday, 9:00 AM to 7:00 PM IST</p>
+                <p>{translateText(locale, 'Monday to Saturday, 9:00 AM to 7:00 PM IST')}</p>
               </div>
               <Link
                 to="/contact"
                 className="mt-6 inline-flex rounded-full bg-orange-500 px-5 py-3 text-sm font-bold text-white hover:bg-orange-600"
               >
-                Open Support
+                {translateText(locale, 'Open Support')}
               </Link>
             </div>
           </div>
 
           <div className="mt-10 border-t border-white/10 pt-6 text-xs text-stone-500 sm:flex sm:items-center sm:justify-between">
-            <p>&copy; 2026 DivineConnect. All spiritual rights reserved.</p>
-            <p className="mt-2 sm:mt-0">Designed for a calm, guided, and trustworthy devotional journey.</p>
+            <p>&copy; 2026 DivineConnect. {translateText(locale, 'All spiritual rights reserved.')}</p>
+            <p className="mt-2 sm:mt-0">{translateText(locale, 'Designed for a calm, guided, and trustworthy devotional journey.')}</p>
           </div>
         </div>
       </footer>

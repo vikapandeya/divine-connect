@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import PageHero from '../components/PageHero';
+import { translateText, useAppLocale } from '../lib/i18n';
 
 const values = [
   {
@@ -68,27 +69,29 @@ const developers = [
 ];
 
 export default function About() {
+  const locale = useAppLocale();
+
   return (
     <div className="min-h-screen px-4 py-12 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-6xl space-y-16">
         <PageHero
           tone="stone"
-          eyebrow="Our Mission"
-          title="Bridging the Divine and the Digital with more clarity, warmth, and trust."
-          description="DivineConnect is built to make spiritual services more accessible, organized, and reassuring for devotees everywhere while preserving the emotional warmth of tradition."
+          eyebrow={translateText(locale, 'Our Mission')}
+          title={translateText(locale, 'Bridging the Divine and the Digital with more clarity, warmth, and trust.')}
+          description={translateText(locale, 'DivineConnect is built to make spiritual services more accessible, organized, and reassuring for devotees everywhere while preserving the emotional warmth of tradition.')}
           stats={[
-            { label: 'Primary Focus', value: 'Trust & Clarity' },
-            { label: 'Platform Pillars', value: '3 Core Areas' },
-            { label: 'Audience', value: 'Families & Devotees' },
+            { label: translateText(locale, 'Primary Focus'), value: translateText(locale, 'Trust & Clarity') },
+            { label: translateText(locale, 'Platform Pillars'), value: translateText(locale, '3 Core Areas') },
+            { label: translateText(locale, 'Audience'), value: translateText(locale, 'Families & Devotees') },
           ]}
           aside={
             <div className="rounded-[2rem] border border-stone-200 bg-white p-6 shadow-sm">
               <div className="inline-flex items-center gap-2 rounded-full bg-orange-50 px-3 py-1 text-xs font-bold uppercase tracking-[0.22em] text-orange-700">
                 <Star className="h-3.5 w-3.5" />
-                Intentional Product Design
+                {translateText(locale, 'Intentional Product Design')}
               </div>
               <p className="mt-4 text-sm leading-relaxed text-stone-600">
-                The goal is not just to digitize rituals, but to make the full spiritual journey easier to understand, safer to navigate, and calmer to return to.
+                {translateText(locale, 'The goal is not just to digitize rituals, but to make the full spiritual journey easier to understand, safer to navigate, and calmer to return to.')}
               </p>
             </div>
           }
@@ -105,10 +108,10 @@ export default function About() {
             >
               <div className="flex justify-center mb-6">{value.icon}</div>
               <h3 className="text-xl font-bold text-stone-900 mb-4">
-                {value.title}
+                {translateText(locale, value.title)}
               </h3>
               <p className="text-stone-500 text-sm leading-relaxed">
-                {value.desc}
+                {translateText(locale, value.desc)}
               </p>
             </motion.div>
           ))}
@@ -118,20 +121,16 @@ export default function About() {
           <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] gap-10 items-start">
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.3em] text-orange-500 mb-4">
-                What DivineConnect Is Building
+                {translateText(locale, 'What DivineConnect Is Building')}
               </p>
               <h2 className="text-3xl md:text-4xl font-serif font-bold text-stone-900 mb-6">
-                A modern spiritual platform that feels helpful, not complicated.
+                {translateText(locale, 'A modern spiritual platform that feels helpful, not complicated.')}
               </h2>
               <p className="text-stone-600 leading-relaxed mb-6">
-                We want DivineConnect to become a dependable place where devotees
-                can book services, discover products, get guided support, and
-                stay connected to spiritual practices from anywhere.
+                {translateText(locale, 'We want DivineConnect to become a dependable place where devotees can book services, discover products, get guided support, and stay connected to spiritual practices from anywhere.')}
               </p>
               <p className="text-stone-600 leading-relaxed">
-                Our focus is simple: reduce confusion, improve trust, and make
-                spiritual access feel more organized for families, first-time users,
-                and returning devotees alike.
+                {translateText(locale, 'Our focus is simple: reduce confusion, improve trust, and make spiritual access feel more organized for families, first-time users, and returning devotees alike.')}
               </p>
             </div>
             <div className="space-y-4">
@@ -142,10 +141,10 @@ export default function About() {
                 >
                   <div className="flex items-center gap-3 mb-3">
                     {pillar.icon}
-                    <h3 className="font-bold text-stone-900">{pillar.title}</h3>
+                    <h3 className="font-bold text-stone-900">{translateText(locale, pillar.title)}</h3>
                   </div>
                   <p className="text-sm text-stone-600 leading-relaxed">
-                    {pillar.desc}
+                    {translateText(locale, pillar.desc)}
                   </p>
                 </div>
               ))}
@@ -164,17 +163,17 @@ export default function About() {
             <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-10">
               <div>
                 <p className="text-xs font-bold uppercase tracking-[0.3em] text-orange-300 mb-3">
-                  Meet the Developer Team
+                  {translateText(locale, 'Meet the Developer Team')}
                 </p>
                 <h2 className="text-3xl md:text-4xl font-serif font-bold">
-                  The people shaping DivineConnect
+                  {translateText(locale, 'The people shaping DivineConnect')}
                 </h2>
               </div>
               <Link
                 to="/contact"
                 className="inline-flex items-center gap-2 self-start bg-orange-500 hover:bg-orange-600 px-6 py-3 rounded-2xl font-bold transition-all"
               >
-                <span>Contact Us</span>
+                <span>{translateText(locale, 'Contact Us')}</span>
                 <ArrowRight className="w-5 h-5" />
               </Link>
             </div>
@@ -198,10 +197,10 @@ export default function About() {
                         {developer.name}
                       </h3>
                       <p className="text-orange-200 text-sm font-medium mb-4">
-                        {developer.role}
+                        {translateText(locale, developer.role)}
                       </p>
                       <p className="text-stone-300 leading-relaxed mb-5">
-                        {developer.bio}
+                        {translateText(locale, developer.bio)}
                       </p>
                       <a
                         href={developer.github}
@@ -210,7 +209,7 @@ export default function About() {
                         className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 px-5 py-3 rounded-2xl transition-all font-bold"
                       >
                         <Github className="w-5 h-5" />
-                        <span>GitHub Profile</span>
+                        <span>{translateText(locale, 'GitHub Profile')}</span>
                       </a>
                     </div>
                   </div>
@@ -223,24 +222,18 @@ export default function About() {
         <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="bg-orange-50 border border-orange-100 rounded-[2rem] p-8">
             <h3 className="text-2xl font-serif font-bold text-stone-900 mb-4">
-              Why devotees can trust the platform
+              {translateText(locale, 'Why devotees can trust the platform')}
             </h3>
             <p className="text-stone-600 leading-relaxed">
-              DivineConnect is designed around clear flows, visible pricing,
-              temple-linked offerings, and service records that stay accessible
-              after booking or ordering. The goal is to make sacred services feel
-              respectful, transparent, and dependable.
+              {translateText(locale, 'DivineConnect is designed around clear flows, visible pricing, temple-linked offerings, and service records that stay accessible after booking or ordering. The goal is to make sacred services feel respectful, transparent, and dependable.')}
             </p>
           </div>
           <div className="bg-white border border-stone-200 rounded-[2rem] p-8">
             <h3 className="text-2xl font-serif font-bold text-stone-900 mb-4">
-              What the experience is built to support
+              {translateText(locale, 'What the experience is built to support')}
             </h3>
             <p className="text-stone-600 leading-relaxed">
-              From puja booking and darshan planning to prasad ordering, invoices,
-              and devotional guidance, the platform is shaped to support the full
-              journey rather than isolated actions. Every improvement is aimed at
-              making that journey calmer and easier to follow.
+              {translateText(locale, 'From puja booking and darshan planning to prasad ordering, invoices, and devotional guidance, the platform is shaped to support the full journey rather than isolated actions. Every improvement is aimed at making that journey calmer and easier to follow.')}
             </p>
           </div>
         </section>
