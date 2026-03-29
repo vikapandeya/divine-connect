@@ -1,21 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { auth } from '../firebase';
-import { Puja } from '../types';
-import { motion } from 'framer-motion';
-import { Clock, IndianRupee, CheckCircle2, Calendar, User, ShieldCheck, ArrowLeft } from 'lucide-react';
+import { Puja, VendorProfile } from '../types';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Clock, IndianRupee, CheckCircle2, Calendar, User, ShieldCheck, ArrowLeft, Store, Star, X, Info, Flame, MessageSquare } from 'lucide-react';
+import FeedbackModal from '../components/FeedbackModal';
+import { Feedback } from '../types';
 
 export default function PujaDetail() {
   const currentUser = auth?.currentUser;
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [puja, setPuja] = useState<Puja | null>(null);
+  const [vendor, setVendor] = useState<VendorProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [bookingDate, setBookingDate] = useState('');
   const [bookingTime, setBookingTime] = useState('');
   const [isOnline, setIsOnline] = useState(false);
   const [bringSamagri, setBringSamagri] = useState(false);
   const [isBooking, setIsBooking] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [recommendedPujas, setRecommendedPujas] = useState<Puja[]>([]);
+  const [feedback, setFeedback] = useState<Feedback[]>([]);
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [bookingSuccess, setBookingSuccess] = useState(false);
 
   useEffect(() => {
     const fetchPuja = async () => {
@@ -25,16 +33,33 @@ export default function PujaDetail() {
         if (response.ok) {
           const data = await response.json();
           setPuja(data);
+          setIsOnline(data.isOnline); // Set default mode based on puja capability
+          
+          // Fetch vendor details
+          if (data.vendorId) {
+            const vRes = await fetch(`/api/vendors/${data.vendorId}`);
+            if (vRes.ok) {
+              setVendor(await vRes.json());
+            }
+          }
         } else {
           // Fallback mock data for demo
           const mockPujas: Record<string, any> = {
-            '1': { title: 'Ganesh Puja', onlinePrice: 1100, offlinePrice: 2100, duration: '1.5 Hours', description: 'Invoke the blessings of Lord Ganesha for new beginnings and removing obstacles.', samagriList: 'Ganesha Idol, Turmeric, Kumkum, Sandalwood Paste, Incense Sticks, Lamp, Flowers, Fruits, Betel Leaves, Betel Nuts, Coconut, Rice, Sweets (Modak).' },
-            '2': { title: 'Satyanarayan Katha', onlinePrice: 2500, offlinePrice: 5100, duration: '3 Hours', description: 'A sacred ritual dedicated to Lord Vishnu for peace, prosperity, and happiness.', samagriList: 'Satyanarayan Photo, Panchamrit, Banana Leaves, Flowers, Fruits, Tulsi Leaves, Kalash, Mango Leaves, Wheat, Ghee for Havan.' },
-            '3': { title: 'Lakshmi Puja', onlinePrice: 1800, offlinePrice: 3500, duration: '2 Hours', description: 'Attract wealth and prosperity with this special puja dedicated to Goddess Lakshmi.', samagriList: 'Lakshmi Idol/Photo, Lotus Flowers, Red Cloth, Rice, Turmeric, Kumkum, Sandalwood, Incense, Lamp, Ghee, Fruits, Sweets.' }
+            '1': { title: 'Ganesh Puja', onlinePrice: 1100, offlinePrice: 2100, samagriPrice: 500, duration: '1.5 Hours', description: 'Invoke the blessings of Lord Ganesha for new beginnings and removing obstacles.', samagriIncluded: true, isOnline: true },
+            '2': { title: 'Satyanarayan Katha', onlinePrice: 2500, offlinePrice: 5100, samagriPrice: 1000, duration: '3 Hours', description: 'A sacred ritual dedicated to Lord Vishnu for peace, prosperity, and happiness.', samagriIncluded: false, isOnline: true },
+            '3': { title: 'Lakshmi Puja', onlinePrice: 1800, offlinePrice: 3500, samagriPrice: 750, duration: '2 Hours', description: 'Attract wealth and prosperity with this special puja dedicated to Goddess Lakshmi.', samagriIncluded: true, isOnline: false }
           };
           if (mockPujas[id]) {
             setPuja({ id, ...mockPujas[id] } as Puja);
+            setIsOnline(mockPujas[id].isOnline);
           }
+        }
+
+        // Fetch all pujas for recommendations
+        const allResponse = await fetch('/api/pujas');
+        if (allResponse.ok) {
+          const allData = await allResponse.json();
+          setRecommendedPujas(allData.filter((p: any) => p.id.toString() !== id).slice(0, 3));
         }
       } catch (error) {
         console.error(error);
@@ -42,20 +67,31 @@ export default function PujaDetail() {
         setLoading(false);
       }
     };
+
+    const fetchFeedback = async () => {
+      if (!id) return;
+      try {
+        const response = await fetch(`/api/feedback?serviceId=${id}&type=puja`);
+        if (response.ok) {
+          setFeedback(await response.json());
+        }
+      } catch (error) {
+        console.error("Error fetching feedback:", error);
+      }
+    };
+
     fetchPuja();
+    fetchFeedback();
+    window.scrollTo(0, 0);
   }, [id]);
 
   const handleBooking = async () => {
-    if (!currentUser) {
-      alert('Please sign in to book a puja.');
-      return;
-    }
-    if (!bookingDate || !bookingTime) {
-      alert('Please select a date and time.');
-      return;
-    }
-
+    setShowConfirmation(false);
     setIsBooking(true);
+    const totalAmount = isOnline 
+      ? (puja?.onlinePrice || 0) 
+      : (puja?.offlinePrice || 0) + (bringSamagri ? (puja?.samagriPrice || 0) : 0);
+
     try {
       const response = await fetch('/api/bookings', {
         method: 'POST',
@@ -68,15 +104,15 @@ export default function PujaDetail() {
           date: bookingDate,
           timeSlot: bookingTime,
           status: 'pending',
-          totalAmount: isOnline ? puja?.onlinePrice : puja?.offlinePrice,
+          totalAmount,
           isOnline,
           bringSamagri: !isOnline && bringSamagri,
-          samagriList: puja?.samagriList
+          samagriList: puja?.samagriIncluded ? 'Included' : 'Not Included'
         })
       });
       if (response.ok) {
-        alert('Puja booked successfully! You can view it in your profile.');
-        navigate('/profile');
+        setBookingSuccess(true);
+        setShowFeedbackModal(true);
       } else {
         throw new Error('Failed to book puja');
       }
@@ -88,10 +124,24 @@ export default function PujaDetail() {
     }
   };
 
+  const initiateBooking = () => {
+    if (!currentUser) {
+      alert('Please sign in to book a puja.');
+      return;
+    }
+    if (!bookingDate || !bookingTime) {
+      alert('Please select a date and time.');
+      return;
+    }
+    setShowConfirmation(true);
+  };
+
   if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   if (!puja) return <div className="min-h-screen flex items-center justify-center">Puja not found.</div>;
 
-  const currentPrice = isOnline ? puja.onlinePrice : puja.offlinePrice;
+  const basePrice = isOnline ? puja.onlinePrice : puja.offlinePrice;
+  const samagriCost = (!isOnline && bringSamagri) ? (puja.samagriPrice || 0) : 0;
+  const totalAmount = basePrice + samagriCost;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -137,10 +187,17 @@ export default function PujaDetail() {
           </div>
 
           <div className="bg-stone-100 p-8 rounded-3xl space-y-4">
-            <h3 className="font-bold text-stone-900">Required Samagri:</h3>
-            <p className="text-sm text-stone-600 leading-relaxed">
-              {puja.samagriList}
-            </p>
+            <h3 className="font-bold text-stone-900">Puja Details:</h3>
+            <div className="space-y-2">
+              <div className="flex items-center text-stone-600">
+                <CheckCircle2 className={`w-4 h-4 mr-2 ${puja.samagriIncluded ? 'text-emerald-500' : 'text-stone-300'}`} />
+                <span>Samagri Included: {puja.samagriIncluded ? 'Yes' : 'No'}</span>
+              </div>
+              <div className="flex items-center text-stone-600">
+                <CheckCircle2 className={`w-4 h-4 mr-2 ${puja.isOnline ? 'text-emerald-500' : 'text-stone-300'}`} />
+                <span>Virtual Performance Available: {puja.isOnline ? 'Yes' : 'No'}</span>
+              </div>
+            </div>
             <div className="pt-4 border-t border-stone-200">
               <h4 className="font-bold text-stone-900 mb-2">What's Included in Service:</h4>
               <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -159,24 +216,85 @@ export default function PujaDetail() {
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
-          className="bg-white p-8 md:p-12 rounded-[2.5rem] border border-stone-200 shadow-xl shadow-stone-200/50 h-fit sticky top-24"
+          className="space-y-6 sticky top-24"
         >
-          <div className="flex items-center justify-between mb-8">
-            <span className="text-stone-500 font-medium">Service Price</span>
-            <div className="flex items-center text-3xl font-serif font-bold text-orange-600">
-              <IndianRupee className="w-6 h-6" />
-              <span>{currentPrice}</span>
+          {/* Vendor Card */}
+          {vendor && (
+            <div 
+              onClick={() => navigate(`/vendor/${vendor.uid}`)}
+              className="bg-white p-6 rounded-[2rem] border border-stone-200 shadow-xl shadow-stone-200/50 cursor-pointer group hover:border-orange-200 transition-all"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 rounded-2xl overflow-hidden border-2 border-stone-100 shadow-sm">
+                  <img 
+                    src={vendor.photoURL || `https://picsum.photos/seed/${vendor.uid}/200/200`} 
+                    alt={vendor.businessName}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform"
+                    referrerPolicy="no-referrer"
+                  />
+                </div>
+                <div className="flex-grow">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="font-bold text-stone-900 group-hover:text-orange-600 transition-colors">
+                      {vendor.businessName}
+                    </h3>
+                    {vendor.isVerified && <ShieldCheck className="w-4 h-4 text-emerald-500" />}
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center text-amber-500 text-xs font-bold">
+                      <Star className="w-3 h-3 mr-1 fill-current" />
+                      {vendor.rating}
+                    </div>
+                    <div className="flex items-center text-stone-400 text-[10px] font-bold uppercase tracking-wider">
+                      <Store className="w-3 h-3 mr-1" />
+                      {vendor.type}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="mt-4 pt-4 border-t border-stone-50 flex items-center justify-between text-xs font-bold text-orange-600">
+                <span>View Full Profile</span>
+                <ArrowLeft className="w-4 h-4 rotate-180" />
+              </div>
             </div>
-          </div>
+          )}
 
-          <div className="space-y-6">
+          <div className="bg-white p-8 md:p-12 rounded-[2.5rem] border border-stone-200 shadow-xl shadow-stone-200/50 h-fit">
+            <div className="space-y-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-stone-500 font-medium">Base Price</span>
+                <div className="flex items-center text-xl font-serif font-bold text-stone-900">
+                  <IndianRupee className="w-4 h-4" />
+                  <span>{basePrice}</span>
+                </div>
+              </div>
+
+            {!isOnline && bringSamagri && (
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-stone-500 font-medium">Samagri Cost</span>
+                <div className="flex items-center text-xl font-serif font-bold text-stone-900">
+                  <IndianRupee className="w-4 h-4" />
+                  <span>{puja.samagriPrice || 0}</span>
+                </div>
+              </div>
+            )}
+
+            <div className="flex items-center justify-between pt-4 border-t border-stone-100 mb-8">
+              <span className="text-stone-900 font-bold">Total Amount</span>
+              <div className="flex items-center text-3xl font-serif font-bold text-orange-600">
+                <IndianRupee className="w-6 h-6" />
+                <span>{totalAmount}</span>
+              </div>
+            </div>
+
             {/* Online/Offline Toggle */}
             <div className="bg-stone-50 p-4 rounded-2xl border border-stone-100">
               <label className="block text-sm font-bold text-stone-700 mb-3">Service Mode</label>
               <div className="grid grid-cols-2 gap-2">
                 <button
                   onClick={() => setIsOnline(true)}
-                  className={`py-2 rounded-xl text-sm font-bold transition-all ${isOnline ? 'bg-orange-500 text-white shadow-md' : 'bg-white text-stone-600 border border-stone-200'}`}
+                  disabled={!puja.isOnline}
+                  className={`py-2 rounded-xl text-sm font-bold transition-all ${isOnline ? 'bg-orange-500 text-white shadow-md' : 'bg-white text-stone-600 border border-stone-200'} ${!puja.isOnline ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   Online (Video Call)
                 </button>
@@ -188,7 +306,7 @@ export default function PujaDetail() {
                 </button>
               </div>
               <p className="text-[10px] text-stone-400 mt-2">
-                {isOnline ? 'Pandit Ji will perform the puja via high-quality video call.' : 'Pandit Ji will visit your location for the puja.'}
+                {!puja.isOnline && isOnline ? 'This puja is currently not available online.' : isOnline ? 'Pandit Ji will perform the puja via high-quality video call.' : 'Pandit Ji will visit your location for the puja.'}
               </p>
             </div>
 
@@ -201,7 +319,7 @@ export default function PujaDetail() {
                     onClick={() => setBringSamagri(true)}
                     className={`py-2 rounded-xl text-sm font-bold transition-all ${bringSamagri ? 'bg-stone-800 text-white' : 'bg-white text-stone-600 border border-stone-200'}`}
                   >
-                    Pandit Ji Brings
+                    Pandit Ji Brings (+₹{puja.samagriPrice || 0})
                   </button>
                   <button
                     onClick={() => setBringSamagri(false)}
@@ -251,19 +369,252 @@ export default function PujaDetail() {
 
             <div className="pt-4">
               <button 
-                onClick={handleBooking}
+                onClick={initiateBooking}
                 disabled={isBooking}
                 className="w-full bg-orange-500 text-white py-4 rounded-2xl font-bold text-lg hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/20 disabled:opacity-50"
               >
-                {isBooking ? 'Processing...' : 'Confirm Booking'}
+                {isBooking ? 'Processing...' : 'Book Now'}
               </button>
               <p className="text-center text-xs text-stone-400 mt-4">
                 Secure checkout powered by DivineConnect. No hidden charges.
               </p>
             </div>
+            </div>
           </div>
         </motion.div>
       </div>
+
+      {/* Confirmation Modal */}
+      <AnimatePresence>
+        {showConfirmation && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowConfirmation(false)}
+              className="absolute inset-0 bg-stone-950/60 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden"
+            >
+              <div className="p-8">
+                <div className="flex justify-between items-start mb-6">
+                  <div>
+                    <h2 className="text-2xl font-serif font-bold text-stone-900">Confirm Booking</h2>
+                    <p className="text-stone-500 text-sm">Please review your puja details</p>
+                  </div>
+                  <button 
+                    onClick={() => setShowConfirmation(false)}
+                    className="p-2 hover:bg-stone-100 rounded-full transition-colors"
+                  >
+                    <X className="w-5 h-5 text-stone-400" />
+                  </button>
+                </div>
+
+                <div className="space-y-4 mb-8">
+                  <div className="bg-stone-50 p-4 rounded-2xl border border-stone-100">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center">
+                        <Flame className="w-5 h-5 text-orange-600" />
+                      </div>
+                      <div>
+                        <p className="text-[10px] uppercase tracking-wider text-stone-400 font-bold">Puja Service</p>
+                        <h4 className="font-bold text-stone-900">{puja.title}</h4>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-[10px] uppercase tracking-wider text-stone-400 font-bold">Date</p>
+                        <p className="text-sm font-bold text-stone-700">{bookingDate}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] uppercase tracking-wider text-stone-400 font-bold">Time Slot</p>
+                        <p className="text-sm font-bold text-stone-700">{bookingTime}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3 px-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-stone-500">Service Mode</span>
+                      <span className="font-bold text-stone-900">{isOnline ? 'Online (Video Call)' : 'Offline (At Home)'}</span>
+                    </div>
+                    {!isOnline && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-stone-500">Samagri Arrangement</span>
+                        <span className="font-bold text-stone-900">{bringSamagri ? 'Pandit Ji Brings' : 'I will Arrange'}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between text-sm pt-3 border-t border-stone-100">
+                      <span className="text-stone-900 font-bold">Total Amount</span>
+                      <div className="flex items-center text-xl font-serif font-bold text-orange-600">
+                        <IndianRupee className="w-4 h-4" />
+                        <span>{totalAmount}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowConfirmation(false)}
+                    className="flex-1 py-3 rounded-xl font-bold text-stone-600 bg-stone-100 hover:bg-stone-200 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleBooking}
+                    className="flex-1 py-3 rounded-xl font-bold text-white bg-orange-500 hover:bg-orange-600 transition-colors shadow-lg shadow-orange-500/20"
+                  >
+                    Confirm & Pay
+                  </button>
+                </div>
+                
+                <div className="mt-6 flex items-start gap-2 p-3 bg-blue-50 rounded-xl">
+                  <Info className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
+                  <p className="text-[10px] text-blue-700 leading-relaxed">
+                    By confirming, you agree to our terms of service. You can cancel up to 24 hours before the scheduled time for a full refund.
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Recommended Pujas */}
+      {recommendedPujas.length > 0 && (
+        <div className="mt-24">
+          <div className="flex items-center justify-between mb-10">
+            <div>
+              <h2 className="text-3xl font-serif font-bold text-stone-900 mb-2">Other Sacred Services</h2>
+              <p className="text-stone-500">Explore more pujas and spiritual rituals.</p>
+            </div>
+            <button 
+              onClick={() => navigate('/services')}
+              className="text-orange-600 font-bold hover:text-orange-700 transition-colors flex items-center gap-2"
+            >
+              <span>View All</span>
+              <CheckCircle2 className="w-4 h-4" />
+            </button>
+          </div>
+
+          <div className="flex flex-wrap justify-center gap-8">
+            {recommendedPujas.map((p) => (
+              <motion.div
+                key={p.id}
+                whileHover={{ y: -8 }}
+                onClick={() => navigate(`/pujas/${p.id}`)}
+                className="bg-white rounded-[2rem] border border-stone-200 overflow-hidden cursor-pointer group shadow-sm hover:shadow-xl hover:shadow-stone-200/50 transition-all w-full md:w-[calc(50%-1.5rem)] lg:w-[calc(33.33%-1.5rem)] min-w-[300px] max-w-sm"
+              >
+                <div className="aspect-video overflow-hidden relative">
+                  <img 
+                    src={`https://picsum.photos/seed/${p.id}/800/600`} 
+                    alt={p.title}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    referrerPolicy="no-referrer"
+                  />
+                  <div className="absolute top-4 right-4">
+                    <div className="bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full flex items-center gap-1 shadow-sm">
+                      <Clock className="w-3.5 h-3.5 text-orange-500" />
+                      <span className="text-xs font-bold text-stone-900">{p.duration}</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="p-8">
+                  <h3 className="text-xl font-bold text-stone-900 mb-3 group-hover:text-orange-600 transition-colors">{p.title}</h3>
+                  <p className="text-stone-500 text-sm line-clamp-2 mb-6">
+                    {p.description}
+                  </p>
+                  <div className="flex items-center justify-between">
+                    <div className="flex flex-col">
+                      <span className="text-[10px] text-stone-400 uppercase font-bold tracking-wider">Starting from</span>
+                      <span className="text-xl font-serif font-bold text-stone-900">₹{p.onlinePrice}</span>
+                    </div>
+                    <div className="w-10 h-10 rounded-2xl bg-stone-50 flex items-center justify-center text-stone-400 group-hover:bg-orange-500 group-hover:text-white transition-all">
+                      <Calendar className="w-5 h-5" />
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Feedback Section */}
+      <div className="mt-24">
+        <div className="flex items-center justify-between mb-10">
+          <div>
+            <h2 className="text-3xl font-serif font-bold text-stone-900 mb-2">Devotee Experiences</h2>
+            <p className="text-stone-500">What others are saying about this sacred service.</p>
+          </div>
+          <button 
+            onClick={() => setShowFeedbackModal(true)}
+            className="bg-stone-900 text-white px-6 py-3 rounded-2xl font-bold hover:bg-stone-800 transition-all flex items-center gap-2"
+          >
+            <MessageSquare className="w-4 h-4" />
+            Leave Feedback
+          </button>
+        </div>
+
+        {feedback.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {feedback.map((item) => (
+              <motion.div
+                key={item.id}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                className="bg-white p-6 rounded-3xl border border-stone-100 shadow-sm"
+              >
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 font-bold">
+                    {item.userName.charAt(0)}
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-stone-900 text-sm">{item.userName}</h4>
+                    <p className="text-[10px] text-stone-400 uppercase tracking-wider font-bold">{item.city}</p>
+                  </div>
+                  <div className="ml-auto flex items-center text-amber-500">
+                    <Star className="w-3 h-3 fill-current" />
+                    <span className="ml-1 text-xs font-bold">{item.rating}</span>
+                  </div>
+                </div>
+                <p className="text-stone-600 text-sm italic leading-relaxed">
+                  "{item.message}"
+                </p>
+              </motion.div>
+            ))}
+          </div>
+        ) : (
+          <div className="bg-stone-50 rounded-[2rem] p-12 text-center border border-dashed border-stone-200">
+            <MessageSquare className="w-12 h-12 text-stone-300 mx-auto mb-4" />
+            <h3 className="text-lg font-bold text-stone-900 mb-2">No feedback yet</h3>
+            <p className="text-stone-500 max-w-md mx-auto">
+              Be the first to share your experience with this puja service.
+            </p>
+          </div>
+        )}
+      </div>
+
+      <FeedbackModal 
+        isOpen={showFeedbackModal}
+        onClose={() => {
+          setShowFeedbackModal(false);
+          if (bookingSuccess) {
+            navigate('/profile');
+          }
+        }}
+        serviceId={id}
+        type="puja"
+        serviceName={puja.title}
+      />
     </div>
   );
 }

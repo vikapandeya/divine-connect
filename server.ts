@@ -5,155 +5,316 @@ import fs from "fs/promises";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
-import { GoogleGenAI, ThinkingLevel } from "@google/genai";
-import mysql from "mysql2/promise";
+import admin from "firebase-admin";
+import { getFirestore } from "firebase-admin/firestore";
+import Stripe from "stripe";
 
 dotenv.config();
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
+  apiVersion: "2026-03-25.dahlia",
+});
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-let mysqlPool: mysql.Pool | null = null;
+let db: admin.firestore.Firestore;
+let firebaseConfig: any = {};
 
-type SupportMessage = {
-  role: "user" | "assistant";
-  content: string;
-};
-
-export function getMySQL(): mysql.Pool {
-  if (!mysqlPool) {
-    const config = {
-      host: process.env.MYSQL_HOST,
-      user: process.env.MYSQL_USER,
-      password: process.env.MYSQL_PASSWORD,
-      database: process.env.MYSQL_DATABASE,
-      port: parseInt(process.env.MYSQL_PORT || "3306"),
-      waitForConnections: true,
-      connectionLimit: 10,
-      queueLimit: 0,
-    };
-
-    if (!config.host || !config.user || !config.password || !config.database) {
-      console.warn("⚠️ MySQL environment variables are missing. Database features will fail until configured.");
-    }
-    
-    mysqlPool = mysql.createPool(config);
+async function initFirebaseAdmin() {
+  const firebaseConfigPath = path.join(__dirname, "firebase-applet-config.json");
+  try {
+    const configData = await fs.readFile(firebaseConfigPath, "utf8");
+    firebaseConfig = JSON.parse(configData);
+  } catch (e) {
+    console.error("Failed to read firebase-applet-config.json", e);
   }
-  return mysqlPool;
+
+  // Use config project ID if available, otherwise fallback to environment
+  const projectId = firebaseConfig.projectId || process.env.GOOGLE_CLOUD_PROJECT;
+
+  if (admin.apps.length === 0) {
+    try {
+      console.log(`Initializing Firebase Admin for project: ${projectId}`);
+      admin.initializeApp({
+        projectId: projectId
+      });
+    } catch (e) {
+      console.error("Firebase Admin initialization failed", e);
+    }
+  }
+
+  try {
+    console.log("Initializing Firestore...");
+    // If a specific database ID is provided and it's not (default), use it
+    if (firebaseConfig.firestoreDatabaseId && firebaseConfig.firestoreDatabaseId !== "(default)") {
+      try {
+        console.log(`Attempting to use Firestore Database: ${firebaseConfig.firestoreDatabaseId}`);
+        db = getFirestore(admin.app(), firebaseConfig.firestoreDatabaseId);
+        console.log(`Successfully initialized Firestore Database: ${firebaseConfig.firestoreDatabaseId}`);
+      } catch (e) {
+        console.warn("Failed to initialize Firestore with specific databaseId, falling back to default", e);
+        db = admin.firestore();
+      }
+    } else {
+      db = admin.firestore();
+      console.log("Using default Firestore database.");
+    }
+  } catch (e) {
+    console.error("Firestore initialization failed", e);
+  }
 }
 
 async function startServer() {
+  console.log("Starting server initialization...");
   try {
     const app = express();
     const PORT = 3000;
 
-    app.use(express.json());
+    // Health check early
+    app.get("/api/health", (req, res) => {
+      res.json({ status: "ok" });
+    });
 
-    // --- AUTO SETUP DATABASE ---
+    app.use(express.json());
+    console.log("Express middleware configured.");
+
+    app.post("/api/admin/send-announcement", async (req, res) => {
+      const { title, message, targetRole } = req.body;
+      try {
+        let query: any = db.collection("users");
+        if (targetRole && targetRole !== 'all') {
+          query = query.where("role", "==", targetRole);
+        }
+        
+        const usersSnap = await query.get();
+        const sendPromises = usersSnap.docs.map((doc: any) => 
+          createNotification(doc.id, title, message, 'system')
+        );
+        
+        await Promise.all(sendPromises);
+        res.json({ success: true, count: usersSnap.size });
+      } catch (error) {
+        console.error("[API] POST /api/admin/send-announcement error:", error);
+        res.status(500).json({ error: (error as Error).message });
+      }
+    });
+
+    app.post("/api/users/register-fcm-token", async (req, res) => {
+      const { userId, token } = req.body;
+      if (!userId || !token) {
+        return res.status(400).json({ error: "userId and token are required" });
+      }
+      try {
+        await db.collection("users").doc(userId).update({ fcmToken: token });
+        res.json({ success: true });
+      } catch (error) {
+        console.error("[API] POST /api/users/register-fcm-token error:", error);
+        res.status(500).json({ error: (error as Error).message });
+      }
+    });
+
+    // --- AUTO SETUP DATABASE (Firestore Seeding) ---
     const setupDatabase = async () => {
       try {
-        const db = getMySQL();
-        console.log("Checking database tables...");
+        console.log("Checking Firestore data...");
         
-        // Read schema and seed files
-        const schema = await fs.readFile(path.join(__dirname, "database", "schema.sql"), "utf8");
-        const seed = await fs.readFile(path.join(__dirname, "database", "seed.sql"), "utf8");
-        
-        const schemaQueries = schema.split(";").map(q => q.trim()).filter(q => q.length > 0);
-        const seedQueries = seed.split(";").map(q => q.trim()).filter(q => q.length > 0);
-        
-        // Execute schema queries (they use CREATE TABLE IF NOT EXISTS)
-        for (const query of schemaQueries) {
-          await db.execute(query);
+        // Ensure Admin User exists regardless of other data
+        const adminQuery = await db.collection("users").where("email", "==", "pg2331427@gmail.com").limit(1).get();
+        if (adminQuery.empty) {
+          console.log("Seeding admin user...");
+          await db.collection("users").doc("admin_1").set({
+            uid: "admin_1",
+            email: "pg2331427@gmail.com",
+            password: await bcrypt.hash("admin123", 10),
+            displayName: "Admin User",
+            role: "admin",
+            createdAt: admin.firestore.FieldValue.serverTimestamp()
+          });
         }
-        
-        // Check if we need to seed (only if users table is empty)
-        const [users]: any = await db.execute("SELECT COUNT(*) as count FROM users");
-        if (users[0].count === 0) {
-          console.log("Seeding initial data...");
-          for (const query of seedQueries) {
-            await db.execute(query);
+
+        // Seed Stats
+        const statsDoc = await db.collection("stats").doc("visitors").get();
+        if (!statsDoc.exists) {
+          await db.collection("stats").doc("visitors").set({
+            total: 0,
+            new: 0,
+            lastReset: admin.firestore.FieldValue.serverTimestamp()
+          });
+        }
+
+        const usersSnap = await db.collection("users").limit(1).get();
+        // If only the admin exists or no users, seed the rest
+        if (usersSnap.size <= 1) {
+          console.log("Seeding initial Firestore data...");
+          
+          // Seed other Users
+          const users = [
+            {
+              uid: "user_1",
+              email: "user@test.com",
+              password: await bcrypt.hash("user123", 10),
+              displayName: "Test User",
+              role: "devotee",
+              createdAt: admin.firestore.FieldValue.serverTimestamp()
+            },
+            {
+              uid: "vendor_1",
+              email: "vendor@test.com",
+              password: await bcrypt.hash("vendor123", 10),
+              displayName: "Test Vendor",
+              role: "vendor",
+              createdAt: admin.firestore.FieldValue.serverTimestamp()
+            }
+          ];
+          for (const user of users) {
+            // Don't overwrite if exists
+            const existing = await db.collection("users").doc(user.uid).get();
+            if (!existing.exists) {
+              await db.collection("users").doc(user.uid).set(user);
+            }
           }
-          console.log("Database seeded successfully.");
+
+          // Seed Products
+          const products = [
+            {
+              name: "Premium Brass Diya",
+              description: "Handcrafted brass diya for your daily puja needs.",
+              spiritualSignificance: "The Diya represents the triumph of light over darkness and knowledge over ignorance. Lighting a brass diya in the home is believed to attract the grace of Goddess Lakshmi, bringing prosperity and peace. This handcrafted piece follows traditional designs used in ancient Indian temples.",
+              price: 499,
+              category: "Puja Essentials",
+              stock: 50,
+              rating: 4.8,
+              image: "https://picsum.photos/seed/diya/400/400",
+              vendorId: "system"
+            },
+            {
+              name: "Sandalwood Incense Sticks",
+              description: "Pure sandalwood fragrance for a peaceful atmosphere.",
+              spiritualSignificance: "Sandalwood (Chandan) has been used for millennia in Vedic rituals for its cooling and purifying properties. The fragrance is said to calm the mind, making it ideal for meditation and prayer. It is traditionally associated with Lord Vishnu and is believed to create a protective spiritual shield around the home.",
+              price: 150,
+              category: "Incense",
+              stock: 100,
+              rating: 4.5,
+              image: "https://picsum.photos/seed/incense/400/400",
+              vendorId: "system"
+            }
+          ];
+          for (const product of products) {
+            await db.collection("products").add(product);
+          }
+
+          // Seed Pujas
+          const pujas = [
+            {
+              title: "Ganesh Puja",
+              description: "Seek blessings from Lord Ganesha for new beginnings.",
+              onlinePrice: 1100,
+              offlinePrice: 2100,
+              duration: "1.5 Hours",
+              vendorId: "system",
+              samagriList: ["Flowers", "Sweets", "Incense"]
+            }
+          ];
+          for (const puja of pujas) {
+            await db.collection("pujas").add(puja);
+          }
+
+          // Seed Feedback
+          const feedback = [
+            {
+              name: "Rahul Sharma",
+              city: "Delhi",
+              rating: 5,
+              message: "Amazing experience! The puja was performed with great devotion.",
+              createdAt: admin.firestore.FieldValue.serverTimestamp()
+            },
+            {
+              name: "Priya Singh",
+              city: "Mumbai",
+              rating: 4,
+              message: "Very convenient service. Pandit ji was very knowledgeable.",
+              createdAt: admin.firestore.FieldValue.serverTimestamp()
+            }
+          ];
+          for (const f of feedback) {
+            await db.collection("feedback").add(f);
+          }
+
+          // Seed Coupons
+          const coupons = [
+            { code: "DIVINE10", discount: 10, type: "percentage", minAmount: 500, active: true },
+            { code: "WELCOME50", discount: 50, type: "fixed", minAmount: 200, active: true },
+            { code: "FESTIVE20", discount: 20, type: "percentage", minAmount: 1000, active: true }
+          ];
+          for (const coupon of coupons) {
+            await db.collection("coupons").add(coupon);
+          }
+
+          console.log("Firestore seeded successfully.");
         } else {
-          console.log("Database already has data, skipping seed.");
-          // Check if address column exists in users table
-          const [columns]: any = await db.execute("SHOW COLUMNS FROM users LIKE 'address'");
-          if (columns.length === 0) {
-            console.log("Adding address column to users table...");
-            await db.execute("ALTER TABLE users ADD COLUMN address TEXT AFTER photoURL");
-            console.log("Address column added successfully.");
-          }
+          console.log("Firestore already has data, skipping seed.");
         }
-        
-        console.log("Database initialization check complete.");
       } catch (error) {
-        console.error("Auto-setup database error:", error);
+        console.error("Auto-setup Firestore error:", error);
       }
     };
+
+    // Initialize Firebase before registering routes
+    await initFirebaseAdmin();
+    console.log("Firebase Admin initialized.");
     
-    // Run setup in background
-    setupDatabase();
-
-  // --- API ROUTES ---
-
-  // Setup Database (Create tables and seed data in MySQL)
-  app.get("/api/setup-db", async (req, res) => {
-    try {
-      const db = getMySQL();
-      const schema = await fs.readFile(path.join(__dirname, "database", "schema.sql"), "utf8");
-      const seed = await fs.readFile(path.join(__dirname, "database", "seed.sql"), "utf8");
-      
-      // Split by semicolon and filter out empty strings
-      const schemaQueries = schema.split(";").map(q => q.trim()).filter(q => q.length > 0);
-      const seedQueries = seed.split(";").map(q => q.trim()).filter(q => q.length > 0);
-      
-      for (const query of schemaQueries) {
-        await db.execute(query);
+    // Run database setup in background
+    setupDatabase().catch(e => console.error("Background database setup failed:", e));
+    
+    // --- STRIPE ENDPOINTS ---
+    app.post("/api/create-payment-intent", async (req, res) => {
+      const { amount, currency = "inr" } = req.body;
+      try {
+        if (!process.env.STRIPE_SECRET_KEY) {
+          // Fallback for demo if key is missing
+          return res.json({ clientSecret: "demo_secret_" + Date.now() });
+        }
+        const paymentIntent = await stripe.paymentIntents.create({
+          amount: Math.round(amount * 100), // Stripe expects amount in cents/paisa
+          currency,
+          automatic_payment_methods: { enabled: true },
+        });
+        res.json({ clientSecret: paymentIntent.client_secret });
+      } catch (error) {
+        console.error("[Stripe] Error creating payment intent:", error);
+        res.status(500).json({ error: (error as Error).message });
       }
-      
-      for (const query of seedQueries) {
-        await db.execute(query);
-      }
-      
-      res.json({ status: "success", message: "MySQL database setup successfully." });
-    } catch (error) {
-      console.error("MySQL setup error:", error);
-      res.status(500).json({ status: "error", message: (error as Error).message });
-    }
-  });
+    });
 
-  // --- AUTH ENDPOINTS ---
-
-  app.post("/api/auth/register", async (req, res) => {
-    const { email, password, displayName, role } = req.body;
-    console.log(`[AUTH] Registration attempt for: ${email}`);
-    try {
-      const db = getMySQL();
-      
-      // Check if user already exists
-      const [existing]: any = await db.execute("SELECT uid FROM users WHERE email = ?", [email]);
-      if (existing.length > 0) {
-        console.log(`[AUTH] Registration failed: Email ${email} already exists.`);
+    // --- AUTH ENDPOINTS ---
+    app.post("/api/auth/register", async (req, res) => {
+      const { email, password, displayName, role } = req.body;
+      try {
+      const userSnap = await db.collection("users").where("email", "==", email).limit(1).get();
+      if (!userSnap.empty) {
         return res.status(400).json({ success: false, error: "Email already exists" });
       }
 
       const hashedPassword = await bcrypt.hash(password, 10);
       const uid = `custom_${Date.now()}`;
       
-      // Default admin logic for the user's email
       let userRole = role || 'devotee';
       if (email === 'pg2331427@gmail.com') {
         userRole = 'admin';
-        console.log(`[AUTH] Assigning admin role to: ${email}`);
       }
       
-      await db.execute(
-        "INSERT INTO users (uid, email, password, displayName, role, createdAt) VALUES (?, ?, ?, ?, ?, NOW())",
-        [uid, email, hashedPassword, displayName, userRole]
-      );
+      const userData = {
+        uid,
+        email,
+        password: hashedPassword,
+        displayName,
+        role: userRole,
+        createdAt: admin.firestore.FieldValue.serverTimestamp()
+      };
+
+      await db.collection("users").doc(uid).set(userData);
       
-      console.log(`[AUTH] User registered successfully: ${email} (UID: ${uid}, Role: ${userRole})`);
       res.json({ success: true, uid });
     } catch (error) {
       console.error("[API] POST /api/auth/register error:", error);
@@ -161,63 +322,24 @@ async function startServer() {
     }
   });
 
-  app.post("/api/auth/google-sync", async (req, res) => {
-    const { email, displayName, photoURL, uid: firebaseUid, role } = req.body;
-    console.log(`[AUTH] Google Sync attempt for: ${email} (Requested Role: ${role})`);
-    try {
-      const db = getMySQL();
-      
-      // Check if user already exists
-      const [existing]: any = await db.execute("SELECT * FROM users WHERE email = ?", [email]);
-      
-      let user;
-      if (existing.length > 0) {
-        user = existing[0];
-        console.log(`[AUTH] Google Sync: User ${email} already exists in MySQL.`);
-      } else {
-        // Create new user
-        let userRole = role || 'devotee';
-        if (email === 'pg2331427@gmail.com') {
-          userRole = 'admin';
-          console.log(`[AUTH] Google Sync: Assigning admin role to: ${email}`);
-        }
-        
-        await db.execute(
-          "INSERT INTO users (uid, email, displayName, photoURL, role, createdAt) VALUES (?, ?, ?, ?, ?, NOW())",
-          [firebaseUid, email, displayName, photoURL, userRole]
-        );
-        
-        const [newUser]: any = await db.execute("SELECT * FROM users WHERE email = ?", [email]);
-        user = newUser[0];
-        console.log(`[AUTH] Google Sync: New user created for: ${email} (Role: ${userRole})`);
-      }
-      
-      res.json({ success: true, user });
-    } catch (error) {
-      console.error("[API] POST /api/auth/google-sync error:", error);
-      res.status(500).json({ success: false, error: (error as Error).message });
-    }
-  });
-
   app.post("/api/auth/login", async (req, res) => {
     const { email, password } = req.body;
-    console.log(`[AUTH] Login attempt for: ${email}`);
     try {
-      const db = getMySQL();
-      const [rows]: any = await db.execute("SELECT * FROM users WHERE email = ? LIMIT 1", [email]);
-      if (rows.length === 0) {
-        console.log(`[AUTH] Login failed: User not found - ${email}`);
+      const userSnap = await db.collection("users").where("email", "==", email).limit(1).get();
+      if (userSnap.empty) {
         return res.status(401).json({ message: "Invalid credentials" });
       }
       
-      const user = rows[0];
+      const user = userSnap.docs[0].data();
+      if (!user.password) {
+        return res.status(401).json({ message: "Please login with Google" });
+      }
+
       const isMatch = await bcrypt.compare(password, user.password);
       if (!isMatch) {
-        console.log(`[AUTH] Login failed: Incorrect password for - ${email}`);
         return res.status(401).json({ message: "Invalid credentials" });
       }
       
-      console.log(`[AUTH] User logged in successfully: ${email} (Role: ${user.role})`);
       res.json({ success: true, user: { uid: user.uid, email: user.email, displayName: user.displayName, role: user.role } });
     } catch (error) {
       console.error("[API] POST /api/auth/login error:", error);
@@ -225,99 +347,44 @@ async function startServer() {
     }
   });
 
-  app.post("/api/auth/forgot-password", async (req, res) => {
-    const { email } = req.body;
+    // Users
+  app.get("/api/users/:uid", async (req, res) => {
+    const { uid } = req.params;
+    if (!uid || uid === "undefined" || uid === "null") {
+      return res.status(400).json({ message: "Invalid UID" });
+    }
     try {
-      const db = getMySQL();
-      const [users]: any = await db.execute("SELECT * FROM users WHERE email = ? LIMIT 1", [email]);
-      if (users.length === 0) return res.status(404).json({ error: "User not found" });
-
-      const otp = Math.floor(100000 + Math.random() * 900000).toString();
-      const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
-
-      await db.execute(
-        "INSERT INTO otps (email, otp, expiresAt) VALUES (?, ?, ?)",
-        [email, otp, expiresAt]
-      );
-
-      // In a real app, send email here. For now, we log it.
-      console.log(`[AUTH] OTP for ${email}: ${otp}`);
-      
-      res.json({ success: true, message: "OTP sent to your email (Check server logs in this demo)" });
+      const userDoc = await db.collection("users").doc(uid).get();
+      if (!userDoc.exists) return res.status(404).json({ message: "User not found" });
+      res.json(userDoc.data());
     } catch (error) {
-      console.error("[API] POST /api/auth/forgot-password error:", error);
+      console.error(`[API] GET /api/users/${uid} error:`, error);
       res.status(500).json({ error: (error as Error).message });
     }
   });
 
-  app.post("/api/auth/verify-otp", async (req, res) => {
-    const { email, otp, newPassword } = req.body;
+  app.put("/api/users/:uid", async (req, res) => {
+    const { uid } = req.params;
+    const { address, bio, bannerURL } = req.body;
     try {
-      const db = getMySQL();
-      const [otps]: any = await db.execute(
-        "SELECT * FROM otps WHERE email = ? AND otp = ? AND expiresAt > NOW() ORDER BY expiresAt DESC LIMIT 1",
-        [email, otp]
-      );
+      const userRef = db.collection("users").doc(uid);
+      const updateData: any = {};
+      if (address !== undefined) updateData.address = address;
+      if (bio !== undefined) updateData.bio = bio;
+      if (bannerURL !== undefined) updateData.bannerURL = bannerURL;
 
-      if (otps.length === 0) return res.status(400).json({ error: "Invalid or expired OTP" });
-
-      const hashedPassword = await bcrypt.hash(newPassword, 10);
-      
-      // Update user password
-      await db.execute("UPDATE users SET password = ? WHERE email = ?", [hashedPassword, email]);
-
-      // Delete the OTP
-      await db.execute("DELETE FROM otps WHERE id = ?", [otps[0].id]);
-
-      res.json({ success: true, message: "Password reset successfully" });
-    } catch (error) {
-      console.error("[API] POST /api/auth/verify-otp error:", error);
-      res.status(500).json({ error: (error as Error).message });
-    }
-  });
-
-  app.post("/api/auth/reset-password", async (req, res) => {
-    const { uid, newPassword } = req.body;
-    try {
-      const db = getMySQL();
-      const hashedPassword = await bcrypt.hash(newPassword, 10);
-      await db.execute("UPDATE users SET password = ? WHERE uid = ?", [hashedPassword, uid]);
+      await userRef.update(updateData);
       res.json({ success: true });
     } catch (error) {
-      console.error("[API] POST /api/auth/reset-password error:", error);
-      res.status(500).json({ error: (error as Error).message });
-    }
-  });
-
-  // Health check
-  app.get("/api/health", async (req, res) => {
-    try {
-      const db = getMySQL();
-      await db.execute("SELECT 1");
-      res.json({ status: "ok", database: "mysql_connected" });
-    } catch (error) {
-      res.status(500).json({ status: "error", message: "MySQL connection failed", error: (error as Error).message });
-    }
-  });
-
-  // Users
-  app.get("/api/users/:uid", async (req, res) => {
-    try {
-      const db = getMySQL();
-      const [rows]: any = await db.execute("SELECT * FROM users WHERE uid = ? LIMIT 1", [req.params.uid]);
-      if (rows.length === 0) return res.status(404).json({ message: "User not found" });
-      res.json(rows[0]);
-    } catch (error) {
-      console.error("[API] GET /api/users/:uid error:", error);
-      res.status(500).json({ error: (error as Error).message });
+      console.error("[API] PUT /api/users/:uid error:", error);
+      res.status(500).json({ error: "Failed to update profile" });
     }
   });
 
   app.put("/api/users/:uid/address", async (req, res) => {
     const { address } = req.body;
     try {
-      const db = getMySQL();
-      await db.execute("UPDATE users SET address = ? WHERE uid = ?", [address, req.params.uid]);
+      await db.collection("users").doc(req.params.uid).update({ address });
       res.json({ success: true });
     } catch (error) {
       console.error("[API] PUT /api/users/:uid/address error:", error);
@@ -325,34 +392,70 @@ async function startServer() {
     }
   });
 
-  app.post("/api/users", async (req, res) => {
-    const { uid, displayName, email, photoURL, role } = req.body;
+  app.get("/api/vendors/:vendorId", async (req, res) => {
+    const { vendorId } = req.params;
     try {
-      const db = getMySQL();
-      await db.execute(
-        "INSERT INTO users (uid, displayName, email, photoURL, role) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE displayName = ?, email = ?, photoURL = ?, role = ?",
-        [uid, displayName, email, photoURL, role || 'devotee', displayName, email, photoURL, role || 'devotee']
-      );
+      const vendorDoc = await db.collection("vendors").doc(vendorId).get();
+      const userDoc = await db.collection("users").doc(vendorId).get();
+      
+      if (!vendorDoc.exists || !userDoc.exists) {
+        return res.status(404).json({ message: "Vendor not found" });
+      }
+      
+      const vendorData = vendorDoc.data();
+      const userData = userDoc.data();
+      
+      // Merge data for the profile
+      res.json({
+        ...userData,
+        ...vendorData,
+        uid: vendorId // Ensure UID is correct
+      });
+    } catch (error) {
+      console.error(`[API] GET /api/vendors/${vendorId} error:`, error);
+      res.status(500).json({ error: (error as Error).message });
+    }
+  });
+
+  app.post("/api/vendor/register", async (req, res) => {
+    const { userId, businessName, businessType, description } = req.body;
+    try {
+      await db.collection("users").doc(userId).update({
+        role: 'vendor',
+        vendorStatus: 'pending'
+      });
+
+      await db.collection("vendors").doc(userId).set({
+        name: businessName,
+        type: businessType,
+        description,
+        userId,
+        rating: 0,
+        reviews: 0,
+        joinedAt: admin.firestore.FieldValue.serverTimestamp()
+      });
+
+      await createNotification(userId, "Vendor Registration", "Your vendor registration request has been submitted and is pending approval.", "system");
+      
       res.json({ success: true });
     } catch (error) {
-      console.error("[API] POST /api/users error:", error);
+      console.error("[API] POST /api/vendor/register error:", error);
       res.status(500).json({ error: (error as Error).message });
     }
   });
 
   app.get("/api/admin/stats", async (req, res) => {
     try {
-      const db = getMySQL();
-      const [[{ count: usersCount }]]: any = await db.execute("SELECT COUNT(*) as count FROM users WHERE role = 'devotee'");
-      const [[{ count: vendorsCount }]]: any = await db.execute("SELECT COUNT(*) as count FROM users WHERE role = 'vendor'");
-      const [[{ count: productsCount }]]: any = await db.execute("SELECT COUNT(*) as count FROM products");
-      const [[{ count: bookingsCount }]]: any = await db.execute("SELECT COUNT(*) as count FROM bookings");
+      const usersSnap = await db.collection("users").where("role", "==", "devotee").get();
+      const vendorsSnap = await db.collection("users").where("role", "==", "vendor").get();
+      const productsSnap = await db.collection("products").get();
+      const bookingsSnap = await db.collection("bookings").get();
       
       res.json({
-        totalUsers: usersCount,
-        totalVendors: vendorsCount,
-        totalProducts: productsCount,
-        totalBookings: bookingsCount
+        totalUsers: usersSnap.size,
+        totalVendors: vendorsSnap.size,
+        totalProducts: productsSnap.size,
+        totalBookings: bookingsSnap.size
       });
     } catch (error) {
       console.error("[API] GET /api/admin/stats error:", error);
@@ -360,26 +463,91 @@ async function startServer() {
     }
   });
 
+  app.get("/api/admin/vendors-performance", async (req, res) => {
+    try {
+      const vendorsSnap = await db.collection("users").where("role", "==", "vendor").get();
+      const vendors = vendorsSnap.docs.map(doc => ({ uid: doc.id, ...doc.data() }));
+      
+      const performanceData = await Promise.all(vendors.map(async (vendor: any) => {
+        const bookingsSnap = await db.collection("bookings").where("vendorId", "==", vendor.uid).get();
+        return {
+          ...vendor,
+          totalBookings: bookingsSnap.size
+        };
+      }));
+      
+      res.json(performanceData);
+    } catch (error) {
+      console.error("[API] GET /api/admin/vendors-performance error:", error);
+      res.status(500).json({ error: (error as Error).message });
+    }
+  });
+
+  app.get("/api/admin/pending-vendors", async (req, res) => {
+    try {
+      const usersSnap = await db.collection("users").where("vendorStatus", "==", "pending").get();
+      const pendingVendors = await Promise.all(usersSnap.docs.map(async (userDoc) => {
+        const userData = userDoc.data();
+        const vendorDoc = await db.collection("vendors").doc(userDoc.id).get();
+        return {
+          uid: userDoc.id,
+          ...userData,
+          businessDetails: vendorDoc.exists ? vendorDoc.data() : null
+        };
+      }));
+      res.json(pendingVendors);
+    } catch (error) {
+      console.error("[API] GET /api/admin/pending-vendors error:", error);
+      res.status(500).json({ error: (error as Error).message });
+    }
+  });
+
+  app.post("/api/admin/approve-vendor", async (req, res) => {
+    const { vendorId } = req.body;
+    try {
+      await db.collection("users").doc(vendorId).update({
+        vendorStatus: 'approved'
+      });
+      await createNotification(vendorId, "Vendor Approved", "Congratulations! Your vendor registration has been approved. You can now start adding products and pujas.", "system");
+      res.json({ success: true });
+    } catch (error) {
+      console.error("[API] POST /api/admin/approve-vendor error:", error);
+      res.status(500).json({ error: (error as Error).message });
+    }
+  });
+
+  app.post("/api/admin/reject-vendor", async (req, res) => {
+    const { vendorId, reason } = req.body;
+    try {
+      await db.collection("users").doc(vendorId).update({
+        vendorStatus: 'rejected',
+        role: 'devotee'
+      });
+      await createNotification(vendorId, "Vendor Registration Rejected", `Your vendor registration request was rejected. Reason: ${reason || 'Not specified'}`, "system");
+      res.json({ success: true });
+    } catch (error) {
+      console.error("[API] POST /api/admin/reject-vendor error:", error);
+      res.status(500).json({ error: (error as Error).message });
+    }
+  });
+
   // Products
   app.get("/api/products", async (req, res) => {
     try {
-      const db = getMySQL();
       const { category, vendorId } = req.query;
-      let query = "SELECT * FROM products WHERE 1=1";
-      const params = [];
+      let query: admin.firestore.Query = db.collection("products");
       
       if (category && category !== "all") {
-        query += " AND category = ?";
-        params.push(category);
+        query = query.where("category", "==", category);
       }
       
       if (vendorId) {
-        query += " AND vendorId = ?";
-        params.push(vendorId);
+        query = query.where("vendorId", "==", vendorId);
       }
       
-      const [rows]: any = await db.execute(query, params);
-      res.json(rows);
+      const snap = await query.get();
+      const products = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      res.json(products);
     } catch (error) {
       console.error("[API] GET /api/products error:", error);
       res.status(500).json({ error: (error as Error).message });
@@ -389,11 +557,19 @@ async function startServer() {
   app.post("/api/products", async (req, res) => {
     const { name, description, price, category, stock, rating, image, vendorId, templeName, weightOptions } = req.body;
     try {
-      const db = getMySQL();
-      await db.execute(
-        "INSERT INTO products (name, description, price, category, stock, rating, image, vendorId, templeName, weightOptions, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())",
-        [name, description, Number(price), category, Number(stock), Number(rating), image, vendorId || 'system', templeName, JSON.stringify(weightOptions)]
-      );
+      await db.collection("products").add({
+        name,
+        description,
+        price: Number(price),
+        category,
+        stock: Number(stock),
+        rating: Number(rating),
+        image,
+        vendorId: vendorId || 'system',
+        templeName,
+        weightOptions,
+        createdAt: admin.firestore.FieldValue.serverTimestamp()
+      });
       res.json({ success: true });
     } catch (error) {
       console.error("[API] POST /api/products error:", error);
@@ -404,11 +580,17 @@ async function startServer() {
   app.put("/api/products/:id", async (req, res) => {
     const { name, description, price, category, stock, rating, image, templeName, weightOptions } = req.body;
     try {
-      const db = getMySQL();
-      await db.execute(
-        "UPDATE products SET name = ?, description = ?, price = ?, category = ?, stock = ?, rating = ?, image = ?, templeName = ?, weightOptions = ? WHERE id = ?",
-        [name, description, Number(price), category, Number(stock), Number(rating), image, templeName, JSON.stringify(weightOptions), req.params.id]
-      );
+      await db.collection("products").doc(req.params.id).update({
+        name,
+        description,
+        price: Number(price),
+        category,
+        stock: Number(stock),
+        rating: Number(rating),
+        image,
+        templeName,
+        weightOptions
+      });
       res.json({ success: true });
     } catch (error) {
       console.error("[API] PUT /api/products/:id error:", error);
@@ -418,8 +600,7 @@ async function startServer() {
 
   app.delete("/api/products/:id", async (req, res) => {
     try {
-      const db = getMySQL();
-      await db.execute("DELETE FROM products WHERE id = ?", [req.params.id]);
+      await db.collection("products").doc(req.params.id).delete();
       res.json({ success: true });
     } catch (error) {
       console.error("[API] DELETE /api/products/:id error:", error);
@@ -430,16 +611,23 @@ async function startServer() {
   // Pujas
   app.get("/api/pujas", async (req, res) => {
     try {
-      const db = getMySQL();
       const { vendorId } = req.query;
-      let query = "SELECT * FROM pujas WHERE 1=1";
-      const params = [];
+      let query: admin.firestore.Query = db.collection("pujas");
       if (vendorId) {
-        query += " AND vendorId = ?";
-        params.push(vendorId);
+        query = query.where("vendorId", "==", vendorId);
       }
-      const [rows]: any = await db.execute(query, params);
-      res.json(rows);
+      const snap = await query.get();
+      const pujas = await Promise.all(snap.docs.map(async doc => {
+        const pujaData = { id: doc.id, ...doc.data() } as any;
+        if (pujaData.vendorId) {
+          const vendorDoc = await db.collection("vendors").doc(pujaData.vendorId).get();
+          if (vendorDoc.exists) {
+            pujaData.vendor = vendorDoc.data();
+          }
+        }
+        return pujaData;
+      }));
+      res.json(pujas);
     } catch (error) {
       console.error("[API] GET /api/pujas error:", error);
       res.status(500).json({ error: (error as Error).message });
@@ -447,13 +635,20 @@ async function startServer() {
   });
 
   app.post("/api/pujas", async (req, res) => {
-    const { title, description, onlinePrice, offlinePrice, duration, vendorId, samagriList } = req.body;
+    const { title, description, onlinePrice, offlinePrice, duration, vendorId, samagriIncluded, isOnline, rating } = req.body;
     try {
-      const db = getMySQL();
-      await db.execute(
-        "INSERT INTO pujas (title, description, onlinePrice, offlinePrice, duration, vendorId, samagriList, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())",
-        [title, description, Number(onlinePrice), Number(offlinePrice), duration, vendorId || 'system', JSON.stringify(samagriList)]
-      );
+      await db.collection("pujas").add({
+        title,
+        description,
+        onlinePrice: Number(onlinePrice),
+        offlinePrice: offlinePrice ? Number(offlinePrice) : null,
+        duration,
+        vendorId: vendorId || 'system',
+        samagriIncluded: Boolean(samagriIncluded),
+        isOnline: Boolean(isOnline),
+        rating: rating ? Number(rating) : 0,
+        createdAt: admin.firestore.FieldValue.serverTimestamp()
+      });
       res.json({ success: true });
     } catch (error) {
       console.error("[API] POST /api/pujas error:", error);
@@ -461,14 +656,30 @@ async function startServer() {
     }
   });
 
-  app.put("/api/pujas/:id", async (req, res) => {
-    const { title, description, onlinePrice, offlinePrice, duration, samagriList } = req.body;
+  app.get("/api/pujas/:id", async (req, res) => {
     try {
-      const db = getMySQL();
-      await db.execute(
-        "UPDATE pujas SET title = ?, description = ?, onlinePrice = ?, offlinePrice = ?, duration = ?, samagriList = ? WHERE id = ?",
-        [title, description, Number(onlinePrice), Number(offlinePrice), duration, JSON.stringify(samagriList), req.params.id]
-      );
+      const doc = await db.collection("pujas").doc(req.params.id).get();
+      if (!doc.exists) return res.status(404).json({ message: "Puja not found" });
+      res.json({ id: doc.id, ...doc.data() });
+    } catch (error) {
+      console.error("[API] GET /api/pujas/:id error:", error);
+      res.status(500).json({ error: (error as Error).message });
+    }
+  });
+
+  app.put("/api/pujas/:id", async (req, res) => {
+    const { title, description, onlinePrice, offlinePrice, duration, samagriIncluded, isOnline, rating } = req.body;
+    try {
+      await db.collection("pujas").doc(req.params.id).update({
+        title,
+        description,
+        onlinePrice: Number(onlinePrice),
+        offlinePrice: offlinePrice ? Number(offlinePrice) : null,
+        duration,
+        samagriIncluded: Boolean(samagriIncluded),
+        isOnline: Boolean(isOnline),
+        rating: rating ? Number(rating) : 0
+      });
       res.json({ success: true });
     } catch (error) {
       console.error("[API] PUT /api/pujas/:id error:", error);
@@ -478,8 +689,7 @@ async function startServer() {
 
   app.delete("/api/pujas/:id", async (req, res) => {
     try {
-      const db = getMySQL();
-      await db.execute("DELETE FROM pujas WHERE id = ?", [req.params.id]);
+      await db.collection("pujas").doc(req.params.id).delete();
       res.json({ success: true });
     } catch (error) {
       console.error("[API] DELETE /api/pujas/:id error:", error);
@@ -487,24 +697,12 @@ async function startServer() {
     }
   });
 
-  app.get("/api/pujas/:id", async (req, res) => {
-    try {
-      const db = getMySQL();
-      const [rows]: any = await db.execute("SELECT * FROM pujas WHERE id = ? LIMIT 1", [req.params.id]);
-      if (rows.length === 0) return res.status(404).json({ message: "Puja not found" });
-      res.json(rows[0]);
-    } catch (error) {
-      console.error("[API] GET /api/pujas/:id error:", error);
-      res.status(500).json({ error: (error as Error).message });
-    }
-  });
-
   // Bookings
   app.get("/api/bookings/:uid", async (req, res) => {
     try {
-      const db = getMySQL();
-      const [rows]: any = await db.execute("SELECT * FROM bookings WHERE userId = ?", [req.params.uid]);
-      res.json(rows);
+      const snap = await db.collection("bookings").where("userId", "==", req.params.uid).get();
+      const bookings = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      res.json(bookings);
     } catch (error) {
       console.error("[API] GET /api/bookings/:uid error:", error);
       res.status(500).json({ error: (error as Error).message });
@@ -513,16 +711,252 @@ async function startServer() {
 
   app.get("/api/vendor/bookings/:vendorId", async (req, res) => {
     try {
-      const db = getMySQL();
-      const [rows]: any = await db.execute(`
-        SELECT b.*, u.displayName as customerName 
-        FROM bookings b 
-        LEFT JOIN users u ON b.userId = u.uid 
-        WHERE b.vendorId = ?
-      `, [req.params.vendorId]);
-      res.json(rows);
+      const snap = await db.collection("bookings").where("vendorId", "==", req.params.vendorId).get();
+      const bookings = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      res.json(bookings);
     } catch (error) {
       console.error("[API] GET /api/vendor/bookings/:vendorId error:", error);
+      res.status(500).json({ error: (error as Error).message });
+    }
+  });
+
+  // Commission Logic
+  const COMMISSION_PERCENT = 10;
+
+  async function updateVendorWallet(vendorId: string, amount: number, type: 'order' | 'booking', referenceId: string) {
+    if (!vendorId || vendorId === 'system') return;
+    const earning = amount * (1 - COMMISSION_PERCENT / 100);
+    const walletRef = db.collection("vendor_wallets").doc(vendorId);
+    
+    try {
+      await db.runTransaction(async (t) => {
+        const doc = await t.get(walletRef);
+        if (!doc.exists) {
+          t.set(walletRef, {
+            balance: earning,
+            totalEarned: earning,
+            payouts: []
+          });
+        } else {
+          const data = doc.data()!;
+          t.update(walletRef, {
+            balance: (data.balance || 0) + earning,
+            totalEarned: (data.totalEarned || 0) + earning
+          });
+        }
+        
+        // Log transaction
+        t.set(db.collection("vendor_transactions").doc(), {
+          vendorId,
+          amount: earning,
+          originalAmount: amount,
+          commission: amount - earning,
+          type,
+          referenceId,
+          createdAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+      });
+    } catch (err) {
+      console.error("Error updating vendor wallet:", err);
+    }
+  }
+
+  app.get("/api/vendor/wallet/:vendorId", async (req, res) => {
+    try {
+      const { vendorId } = req.params;
+      const walletDoc = await db.collection("vendor_wallets").doc(vendorId).get();
+      const transactionsSnap = await db.collection("vendor_transactions")
+        .where("vendorId", "==", vendorId)
+        .orderBy("createdAt", "desc")
+        .limit(20)
+        .get();
+      
+      const transactions = transactionsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      
+      if (!walletDoc.exists) {
+        return res.json({ balance: 0, totalEarned: 0, payouts: [], transactions: [] });
+      }
+      
+      res.json({ ...walletDoc.data(), transactions });
+    } catch (error) {
+      console.error("[API] GET /api/vendor/wallet/:vendorId error:", error);
+      res.status(500).json({ error: (error as Error).message });
+    }
+  });
+
+  app.post("/api/vendor/payout/:vendorId", async (req, res) => {
+    try {
+      const { vendorId } = req.params;
+      const { amount, bankDetails } = req.body;
+      const walletRef = db.collection("vendor_wallets").doc(vendorId);
+      
+      await db.runTransaction(async (t) => {
+        const doc = await t.get(walletRef);
+        if (!doc.exists || doc.data()!.balance < amount) {
+          throw new Error("Insufficient balance");
+        }
+        
+        const data = doc.data()!;
+        const payout = {
+          id: Math.random().toString(36).substr(2, 9),
+          amount: Number(amount),
+          status: 'pending',
+          bankDetails,
+          createdAt: new Date().toISOString()
+        };
+        
+        t.update(walletRef, {
+          balance: data.balance - Number(amount),
+          payouts: admin.firestore.FieldValue.arrayUnion(payout)
+        });
+      });
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("[API] POST /api/vendor/payout/:vendorId error:", error);
+      res.status(500).json({ error: (error as Error).message });
+    }
+  });
+
+  app.get("/api/vendor/stats/:vendorId", async (req, res) => {
+    try {
+      const { vendorId } = req.params;
+      const productsSnap = await db.collection("products").where("vendorId", "==", vendorId).get();
+      const bookingsSnap = await db.collection("bookings").where("vendorId", "==", vendorId).orderBy("createdAt", "desc").get();
+      const walletDoc = await db.collection("vendor_wallets").doc(vendorId).get();
+      
+      const lastBooking = bookingsSnap.empty ? null : bookingsSnap.docs[0].data();
+      const walletData = walletDoc.exists ? walletDoc.data() : { balance: 0, totalEarned: 0 };
+      
+      // Calculate performance data (last 6 months)
+      const performance: any[] = [];
+      const now = new Date();
+      for (let i = 5; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const monthName = d.toLocaleString('default', { month: 'short' });
+        const monthStart = admin.firestore.Timestamp.fromDate(new Date(d.getFullYear(), d.getMonth(), 1));
+        const monthEnd = admin.firestore.Timestamp.fromDate(new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59));
+        
+        const monthBookings = bookingsSnap.docs.filter(doc => {
+          const createdAt = doc.data().createdAt;
+          return createdAt && createdAt.toMillis() >= monthStart.toMillis() && createdAt.toMillis() <= monthEnd.toMillis();
+        });
+        
+        const revenue = monthBookings.reduce((sum, doc) => sum + (doc.data().totalAmount || 0), 0);
+        
+        performance.push({
+          month: monthName,
+          bookings: monthBookings.length,
+          revenue: revenue
+        });
+      }
+      
+      res.json({
+        totalProducts: productsSnap.size,
+        totalBookings: bookingsSnap.size,
+        lastBookingPrice: lastBooking ? lastBooking.totalAmount : 0,
+        balance: walletData?.balance || 0,
+        totalEarned: walletData?.totalEarned || 0,
+        performance
+      });
+    } catch (error) {
+      const { vendorId } = req.params;
+      console.error("[API] GET /api/vendor/stats/:vendorId error:", error);
+      // Fallback if orderBy fails due to missing index
+      try {
+        const productsSnap = await db.collection("products").where("vendorId", "==", vendorId).get();
+        const bookingsSnap = await db.collection("bookings").where("vendorId", "==", vendorId).get();
+        const walletDoc = await db.collection("vendor_wallets").doc(vendorId).get();
+        
+        let lastBooking = null;
+        if (!bookingsSnap.empty) {
+          const sorted = bookingsSnap.docs.sort((a, b) => {
+            const aTime = a.data().createdAt?.toMillis() || 0;
+            const bTime = b.data().createdAt?.toMillis() || 0;
+            return bTime - aTime;
+          });
+          lastBooking = sorted[0].data();
+        }
+
+        const walletData = walletDoc.exists ? walletDoc.data() : { balance: 0, totalEarned: 0 };
+
+        res.json({
+          totalProducts: productsSnap.size,
+          totalBookings: bookingsSnap.size,
+          lastBookingPrice: lastBooking ? lastBooking.totalAmount : 0,
+          balance: walletData?.balance || 0,
+          totalEarned: walletData?.totalEarned || 0
+        });
+      } catch (innerError) {
+        res.status(500).json({ error: (error as Error).message });
+      }
+    }
+  });
+
+  // Notifications
+  async function createNotification(userId: string, title: string, message: string, type: 'order' | 'booking' | 'system') {
+    if (!userId) return;
+    try {
+      // Save to Firestore
+      await db.collection("notifications").add({
+        userId,
+        title,
+        message,
+        type,
+        read: false,
+        createdAt: admin.firestore.FieldValue.serverTimestamp()
+      });
+
+      // Send Push Notification
+      const userDoc = await db.collection("users").doc(userId).get();
+      if (userDoc.exists) {
+        const userData = userDoc.data();
+        const token = userData?.fcmToken;
+        if (token) {
+          const fcmMessage = {
+            notification: { title, body: message },
+            data: { type, click_action: 'FLUTTER_NOTIFICATION_CLICK' },
+            token: token
+          };
+          await admin.messaging().send(fcmMessage);
+          console.log(`Successfully sent FCM to user ${userId}`);
+        }
+      }
+    } catch (err) {
+      console.error("Error creating/sending notification:", err);
+    }
+  }
+
+  app.post("/api/bookings", async (req, res) => {
+    const { userId, serviceId, vendorId, type, date, timeSlot, status, totalAmount, isOnline, bringSamagri, samagriList } = req.body;
+    try {
+      const docRef = await db.collection("bookings").add({
+        userId,
+        serviceId,
+        vendorId,
+        type,
+        date,
+        time: timeSlot,
+        totalAmount: Number(totalAmount),
+        isOnline: !!isOnline,
+        bringSamagri: !!bringSamagri,
+        samagriList,
+        status: status || 'pending',
+        createdAt: admin.firestore.FieldValue.serverTimestamp()
+      });
+      
+      // Update vendor wallet
+      await updateVendorWallet(vendorId, Number(totalAmount), 'booking', docRef.id);
+      
+      // Create notifications
+      await createNotification(userId, "Booking Placed", `Your booking for ${type} on ${date} is pending confirmation.`, 'booking');
+      if (vendorId && vendorId !== 'system') {
+        await createNotification(vendorId, "New Booking", `You have a new booking request for ${type} on ${date}.`, 'booking');
+      }
+      
+      res.json({ success: true, id: docRef.id });
+    } catch (error) {
+      console.error("[API] POST /api/bookings error:", error);
       res.status(500).json({ error: (error as Error).message });
     }
   });
@@ -530,8 +964,15 @@ async function startServer() {
   app.patch("/api/bookings/:id/status", async (req, res) => {
     const { status } = req.body;
     try {
-      const db = getMySQL();
-      await db.execute("UPDATE bookings SET status = ? WHERE id = ?", [status, req.params.id]);
+      const bookingDoc = await db.collection("bookings").doc(req.params.id).get();
+      if (!bookingDoc.exists) return res.status(404).json({ message: "Booking not found" });
+      const booking = bookingDoc.data()!;
+
+      await db.collection("bookings").doc(req.params.id).update({ status });
+      
+      // Notify user
+      await createNotification(booking.userId, "Booking Update", `Your booking for ${booking.type} on ${booking.date} has been ${status}.`, 'booking');
+      
       res.json({ success: true });
     } catch (error) {
       console.error("[API] PATCH /api/bookings/:id/status error:", error);
@@ -539,84 +980,12 @@ async function startServer() {
     }
   });
 
-  app.post("/api/bookings", async (req, res) => {
-    const { userId, serviceId, vendorId, type, date, timeSlot, status, totalAmount, isOnline, bringSamagri, samagriList } = req.body;
-    try {
-      const db = getMySQL();
-      const [result]: any = await db.execute(
-        "INSERT INTO bookings (userId, serviceId, vendorId, type, date, time, totalAmount, isOnline, bringSamagri, samagriList, status, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())",
-        [userId, serviceId, vendorId, type, date, timeSlot, Number(totalAmount), isOnline ? 1 : 0, bringSamagri ? 1 : 0, JSON.stringify(samagriList), status || 'pending']
-      );
-      res.json({ success: true, id: result.insertId });
-    } catch (error) {
-      console.error("[API] POST /api/bookings error:", error);
-      res.status(500).json({ error: (error as Error).message });
-    }
-  });
-
-  // Receipt Generation
-  app.get("/api/receipt/:type/:id", async (req, res) => {
-    const { type, id } = req.params;
-    try {
-      const db = getMySQL();
-      if (type === 'booking') {
-        const [bookings]: any = await db.execute("SELECT * FROM bookings WHERE id = ? LIMIT 1", [id]);
-        if (bookings.length === 0) return res.status(404).json({ error: "Booking not found" });
-        const booking = bookings[0];
-
-        const [pujas]: any = await db.execute("SELECT * FROM pujas WHERE id = ? LIMIT 1", [booking.serviceId]);
-        const [users]: any = await db.execute("SELECT * FROM users WHERE uid = ? LIMIT 1", [booking.userId]);
-
-        res.json({
-          receiptId: `BK-${booking.id}`,
-          date: booking.date,
-          customer: users.length > 0 ? users[0].displayName : 'Unknown',
-          email: users.length > 0 ? users[0].email : 'N/A',
-          item: pujas.length > 0 ? pujas[0].title : 'Unknown Service',
-          type: booking.isOnline ? 'Online' : 'Offline',
-          amount: booking.totalAmount,
-          samagriStatus: booking.isOnline ? 'Provided Online' : (booking.bringSamagri ? 'Brought by Pandit Ji' : 'Arranged by Customer'),
-          samagriList: typeof booking.samagriList === 'string' ? JSON.parse(booking.samagriList) : booking.samagriList,
-          status: booking.status
-        });
-      } else {
-        const [orders]: any = await db.execute("SELECT * FROM orders WHERE id = ? LIMIT 1", [id]);
-        if (orders.length === 0) return res.status(404).json({ error: "Order not found" });
-        const order = orders[0];
-
-        const [users]: any = await db.execute("SELECT * FROM users WHERE uid = ? LIMIT 1", [order.userId]);
-        const [items]: any = await db.execute("SELECT * FROM order_items WHERE orderId = ?", [id]);
-
-        res.json({
-          receiptId: `ORD-${order.id}`,
-          date: order.createdAt,
-          customer: users.length > 0 ? users[0].displayName : 'Unknown',
-          email: users.length > 0 ? users[0].email : 'N/A',
-          items: items.map((i: any) => ({ name: i.productName, qty: i.quantity, price: i.price })),
-          total: order.totalAmount,
-          address: order.shippingAddress,
-          status: order.status
-        });
-      }
-    } catch (error) {
-      console.error("[API] GET /api/receipt/:type/:id error:", error);
-      res.status(500).json({ error: (error as Error).message });
-    }
-  });
-
   // Orders
   app.get("/api/orders/:uid", async (req, res) => {
     try {
-      const db = getMySQL();
-      const [orders]: any = await db.execute("SELECT * FROM orders WHERE userId = ?", [req.params.uid]);
-      
-      // For each order, fetch its items
-      const rows = await Promise.all(orders.map(async (order: any) => {
-        const [items]: any = await db.execute("SELECT * FROM order_items WHERE orderId = ?", [order.id]);
-        return { ...order, items };
-      }));
-      
-      res.json(rows);
+      const snap = await db.collection("orders").where("userId", "==", req.params.uid).get();
+      const orders = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      res.json(orders);
     } catch (error) {
       console.error("[API] GET /api/orders/:uid error:", error);
       res.status(500).json({ error: (error as Error).message });
@@ -624,175 +993,315 @@ async function startServer() {
   });
 
   app.post("/api/orders", async (req, res) => {
-    const { userId, items, totalAmount, status, shippingAddress } = req.body;
+    const { userId, items, totalAmount, status, shippingAddress, couponUsed, discountAmount, paymentMethod, paymentStatus, paymentId } = req.body;
     try {
-      const db = getMySQL();
-      // Start transaction
-      const conn = await db.getConnection();
-      try {
-        await conn.beginTransaction();
-        
-        const [orderResult]: any = await conn.execute(
-          "INSERT INTO orders (userId, totalAmount, status, shippingAddress, createdAt) VALUES (?, ?, ?, ?, NOW())",
-          [userId, Number(totalAmount), status, shippingAddress]
-        );
-        
-        const orderId = orderResult.insertId;
-        
-        for (const item of items) {
-          await conn.execute(
-            "INSERT INTO order_items (orderId, productId, quantity, price, selectedOption, productName) VALUES (?, ?, ?, ?, ?, ?)",
-            [orderId, item.productId, item.quantity, Number(item.price), item.selectedOption, item.productName]
-          );
+      const docRef = await db.collection("orders").add({
+        userId,
+        items,
+        totalAmount: Number(totalAmount),
+        status,
+        shippingAddress,
+        couponUsed: couponUsed || null,
+        discountAmount: Number(discountAmount) || 0,
+        paymentMethod,
+        paymentStatus,
+        paymentId,
+        createdAt: admin.firestore.FieldValue.serverTimestamp()
+      });
+
+      // Update vendor wallets for each item
+      for (const item of items) {
+        if (item.vendorId) {
+          const itemTotal = item.price * item.quantity;
+          await updateVendorWallet(item.vendorId, itemTotal, 'order', docRef.id);
+          
+          // Notify vendor
+          await createNotification(item.vendorId, "New Order", `You have a new order for ${item.name}.`, 'order');
         }
-        
-        await conn.commit();
-        res.json({ success: true, orderId });
-      } catch (err) {
-        await conn.rollback();
-        throw err;
-      } finally {
-        conn.release();
       }
+
+      // Notify user
+      await createNotification(userId, "Order Placed", `Your order for ${items.length} items has been placed successfully.`, 'order');
+
+      res.json({ success: true, orderId: docRef.id });
     } catch (error) {
       console.error("[API] POST /api/orders error:", error);
       res.status(500).json({ error: (error as Error).message });
     }
   });
 
-   app.post("/api/feedback", async (req, res) => {
-    const { name, city, rating, message } = req.body;
+  app.get("/api/notifications/:userId", async (req, res) => {
     try {
-      const db = getMySQL();
-      await db.execute(
-        "INSERT INTO feedback (name, city, rating, message) VALUES (?, ?, ?, ?)",
-        [name, city, rating, message]
-      );
-      res.json({ success: true });
+      const snap = await db.collection("notifications")
+        .where("userId", "==", req.params.userId)
+        .orderBy("createdAt", "desc")
+        .limit(50)
+        .get();
+      const notifications = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      res.json(notifications);
     } catch (error) {
-      console.error("[API] POST /api/feedback error:", error);
+      console.error("[API] GET /api/notifications/:userId error:", error);
       res.status(500).json({ error: (error as Error).message });
     }
   });
 
+  app.patch("/api/notifications/:id/read", async (req, res) => {
+    try {
+      await db.collection("notifications").doc(req.params.id).update({ read: true });
+      res.json({ success: true });
+    } catch (error) {
+      console.error("[API] PATCH /api/notifications/:id/read error:", error);
+      res.status(500).json({ error: (error as Error).message });
+    }
+  });
+
+  app.get("/api/orders/:id/receipt", async (req, res) => {
+    try {
+      const doc = await db.collection("orders").doc(req.params.id).get();
+      if (!doc.exists) return res.status(404).json({ message: "Order not found" });
+      
+      const order = doc.data();
+      // Simple HTML receipt
+      const html = `
+        <html>
+          <body style="font-family: sans-serif; padding: 40px; max-width: 600px; margin: auto; border: 1px solid #eee;">
+            <h1 style="color: #f97316;">DivineConnect Receipt</h1>
+            <p>Order ID: ${doc.id}</p>
+            <p>Date: ${order?.createdAt?.toDate().toLocaleDateString()}</p>
+            <hr/>
+            <h3>Items:</h3>
+            <ul>
+              ${order?.items?.map((item: any) => `<li>${item.name} x ${item.quantity} - ₹${item.price * item.quantity}</li>`).join('')}
+            </ul>
+            <hr/>
+            <h3>Total: ₹${order?.totalAmount}</h3>
+            <p>Status: ${order?.status}</p>
+            <p>Shipping to: ${order?.shippingAddress}</p>
+          </body>
+        </html>
+      `;
+      res.send(html);
+    } catch (error) {
+      console.error("[API] GET /api/orders/:id/receipt error:", error);
+      res.status(500).json({ error: (error as Error).message });
+    }
+  });
+
+  // Feedback
   app.get("/api/feedback", async (req, res) => {
     try {
-      const db = getMySQL();
-      const [rows] = await db.execute("SELECT * FROM feedback ORDER BY createdAt DESC LIMIT 10");
-      res.json(rows);
+      const { serviceId, type, limit: limitVal } = req.query;
+      let query: admin.firestore.Query = db.collection("feedback");
+      
+      if (serviceId) {
+        query = query.where("serviceId", "==", serviceId);
+      }
+      if (type) {
+        query = query.where("type", "==", type);
+      }
+      
+      try {
+        query = query.orderBy("createdAt", "desc");
+      } catch (e) {
+        console.warn("Feedback orderBy failed, falling back to simple get", e);
+      }
+      
+      if (limitVal) {
+        query = query.limit(Number(limitVal));
+      } else {
+        query = query.limit(20);
+      }
+      
+      const snap = await query.get();
+      const feedback = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      res.json(feedback);
     } catch (error) {
       console.error("[API] GET /api/feedback error:", error);
       res.status(500).json({ error: (error as Error).message });
     }
   });
 
-  app.post("/api/support/chat", async (req, res) => {
-    const messages = Array.isArray(req.body?.messages)
-      ? (req.body.messages as SupportMessage[])
-      : [];
-
-    const sanitizedMessages = messages
-      .filter(
-        (message) =>
-          message &&
-          (message.role === "user" || message.role === "assistant") &&
-          typeof message.content === "string",
-      )
-      .slice(-20);
-
-    if (sanitizedMessages.length === 0) {
-      return res.status(400).json({ error: "At least one chat message is required." });
-    }
-
-    const apiKey = process.env.API_KEY;
-    if (!apiKey) {
-      return res.status(503).json({
-        error: "AI support is not configured yet. Please add API_KEY on the backend.",
-      });
-    }
-
+  app.post("/api/feedback", async (req, res) => {
+    const { userId, userName, city, rating, message, serviceId, type, imageURL } = req.body;
     try {
-      const ai = new GoogleGenAI({ apiKey });
-
-      const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: sanitizedMessages.map((m) => ({
-          role: m.role === "assistant" ? "model" : "user",
-          parts: [{ text: m.content }],
-        })),
-        config: {
-          systemInstruction: `
-You are DivineConnect AI Support.
-Your role is to help users with:
-- Puja bookings (online/offline)
-- Darshan and Prasad guidance
-- Order status and delivery support
-- Account access and sign-in issues
-- Vendor onboarding questions (how to join as a priest, temple, or shop)
-
-Puja Booking Flow:
-If a user expresses interest in booking a puja:
-1. Prompt them for the type of puja or service they are interested in. Provide a selectable list of common types in this format: [OPTIONS: Ganesh Puja, Lakshmi Puja, Satyanarayan Katha, Durga Puja, Saraswati Puja].
-2. Prompt them for their preferred date.
-3. Prompt them for their preferred time slot (morning, afternoon, or evening). Provide a selectable list in this format: [OPTIONS: Morning, Afternoon, Evening].
-4. Ask if they prefer an online (virtual) or offline (in-person) service. Provide a selectable list in this format: [OPTIONS: Online (Virtual), Offline (In-person)].
-5. Once you have these details, provide a summary and guide them to the official "Pujas" page to finalize the booking.
-
-Rules:
-- Be concise, practical, and warm.
-- Stay focused on product and platform support.
-- Use the provided conversation history to maintain context and provide relevant answers.
-- If the user needs direct human help, tell them to use the Contact Us page email or phone support.
-- Do not invent order status, account status, or booking confirmations.
-- If information is unavailable, say so clearly.
-- Use a helpful, spiritual, yet professional tone.
-          `.trim(),
-          temperature: 0.4,
-        },
+      const docRef = await db.collection("feedback").add({
+        userId: userId || null,
+        userName: userName || 'Anonymous',
+        city: city || null,
+        rating: Number(rating) || 5,
+        message: message || '',
+        serviceId: serviceId || null,
+        type: type || 'general',
+        imageURL: imageURL || '',
+        createdAt: admin.firestore.FieldValue.serverTimestamp()
       });
-
-      const reply = response.text?.trim();
-
-      if (!reply) {
-        throw new Error("The AI support response was empty.");
-      }
-
-      res.json({ reply });
+      res.json({ success: true, id: docRef.id });
     } catch (error) {
-      console.error("AI support error:", error);
-      const errorMessage = error instanceof Error ? error.message : "AI support is temporarily unavailable.";
+      console.error("[API] POST /api/feedback error:", error);
+      res.status(500).json({ error: (error as Error).message });
+    }
+  });
+
+
+  app.post("/api/inquiry", async (req, res) => {
+    const { name, phone, yatra, date, message } = req.body;
+    try {
+      await db.collection("inquiries").add({
+        name,
+        phone,
+        yatra,
+        date,
+        message,
+        status: 'pending',
+        createdAt: admin.firestore.FieldValue.serverTimestamp()
+      });
+      res.json({ success: true });
+    } catch (error) {
+      console.error("[API] POST /api/inquiry error:", error);
+      res.status(500).json({ error: (error as Error).message });
+    }
+  });
+
+
+  // Stats
+  app.get("/api/stats/visitors", async (req, res) => {
+    try {
+      const doc = await db.collection("stats").doc("visitors").get();
+      res.json(doc.data());
+    } catch (error) {
+      console.error("[API] GET /api/stats/visitors error:", error);
+      res.status(500).json({ error: (error as Error).message });
+    }
+  });
+
+  // Coupons
+  app.post("/api/coupons/validate", async (req, res) => {
+    const { code, cartTotal } = req.body;
+    try {
+      if (!code) return res.status(400).json({ message: "Coupon code is required" });
       
-      // If the error is about the API key, provide a helpful instruction to the user
-      if (errorMessage.includes("API key not valid") || errorMessage.includes("API_KEY_INVALID")) {
-        return res.status(401).json({
-          error: "Invalid Gemini API Key. Please ensure you have a valid API_KEY set in the 'Settings' menu of AI Studio.",
-        });
+      const snap = await db.collection("coupons")
+        .where("code", "==", code.toUpperCase())
+        .where("active", "==", true)
+        .limit(1)
+        .get();
+        
+      if (snap.empty) {
+        return res.status(404).json({ message: "Invalid or expired coupon code" });
+      }
+      
+      const coupon = snap.docs[0].data();
+      if (cartTotal < coupon.minAmount) {
+        return res.status(400).json({ message: `Minimum order amount for this coupon is ₹${coupon.minAmount}` });
+      }
+      
+      res.json({ success: true, discount: coupon.discount, type: coupon.type });
+    } catch (error) {
+      console.error("[API] POST /api/coupons/validate error:", error);
+      res.status(500).json({ error: (error as Error).message });
+    }
+  });
+
+  app.post("/api/stats/visitors/increment", async (req, res) => {
+    const { isNew } = req.body;
+    try {
+      const statsRef = db.collection("stats").doc("visitors");
+      await statsRef.update({
+        total: admin.firestore.FieldValue.increment(1),
+        new: isNew ? admin.firestore.FieldValue.increment(1) : admin.firestore.FieldValue.increment(0)
+      });
+      res.json({ success: true });
+    } catch (error) {
+      console.error("[API] POST /api/stats/visitors/increment error:", error);
+      res.status(500).json({ error: (error as Error).message });
+    }
+  });
+
+  // Reviews
+  app.get("/api/products/:id/reviews", async (req, res) => {
+    try {
+      const snap = await db.collection("reviews")
+        .where("productId", "==", req.params.id)
+        .orderBy("createdAt", "desc")
+        .get();
+      const reviews = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      res.json(reviews);
+    } catch (error) {
+      console.error("[API] GET /api/products/:id/reviews error:", error);
+      res.status(500).json({ error: (error as Error).message });
+    }
+  });
+
+
+  // Support Chat Proxy
+  app.post("/api/support/chat", async (req, res) => {
+    const { messages, systemInstruction } = req.body;
+    try {
+      const apiKey = process.env.GEMINI_API_KEY;
+      if (!apiKey) {
+        return res.status(500).json({ error: "Gemini API key not configured on server" });
       }
 
-      res.status(500).json({
-        error: `AI support is temporarily unavailable. ${errorMessage}`,
+      // We'll use a simple fetch to the Gemini API to avoid adding @google/genai to the backend if not needed,
+      // but since we already have it in the project, we could use it.
+      // Actually, let's just use a direct fetch to keep the backend simple and avoid dependency bloat if possible.
+      // Or better, use the SDK if it's already in package.json.
+      
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          contents: messages.map((m: any) => ({
+            role: m.role === "assistant" ? "model" : "user",
+            parts: [{ text: m.content }],
+          })),
+          systemInstruction: {
+            parts: [{ text: systemInstruction }]
+          },
+          generationConfig: {
+            temperature: 0.4,
+          }
+        }),
       });
+
+      const data = await response.json();
+      const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      
+      if (!text) {
+        throw new Error("Empty response from Gemini API");
+      }
+
+      res.json({ text });
+    } catch (error) {
+      console.error("[API] POST /api/support/chat error:", error);
+      res.status(500).json({ error: (error as Error).message });
     }
   });
 
   // --- VITE MIDDLEWARE ---
 
   if (process.env.NODE_ENV !== "production") {
+    console.log("Initializing Vite in development mode...");
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",
     });
     app.use(vite.middlewares);
+    console.log("Vite middleware attached.");
   } else {
+    console.log("Serving static files in production mode...");
     const distPath = path.join(process.cwd(), "dist");
     app.use(express.static(distPath));
     app.get("*", (req, res) => {
       res.sendFile(path.join(distPath, "index.html"));
     });
   }
+  console.log("Vite middleware/static serving configured.");
 
   app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+    console.log(`Server listening on port ${PORT}`);
   });
 } catch (error) {
   console.error("Failed to start server:", error);

@@ -68,7 +68,7 @@ const developers = [
 
 export default function About() {
   return (
-    <div className="min-h-screen bg-stone-50 pb-20">
+    <div className="min-h-screen bg-stone-50 dark:bg-stone-950 pb-20 transition-colors duration-300">
       <section className="relative h-[50vh] flex items-center overflow-hidden mb-20">
         <div className="absolute inset-0 z-0">
           <img
@@ -110,34 +110,34 @@ export default function About() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 + idx * 0.1 }}
-              className="bg-white p-8 rounded-[2rem] shadow-sm border border-stone-100 text-center"
+              className="bg-white dark:bg-stone-900 p-8 rounded-[2rem] shadow-sm border border-stone-100 dark:border-stone-800 text-center"
             >
               <div className="flex justify-center mb-6">{value.icon}</div>
-              <h3 className="text-xl font-bold text-stone-900 mb-4">
+              <h3 className="text-xl font-bold text-stone-900 dark:text-white mb-4">
                 {value.title}
               </h3>
-              <p className="text-stone-500 text-sm leading-relaxed">
+              <p className="text-stone-500 dark:text-stone-400 text-sm leading-relaxed">
                 {value.desc}
               </p>
             </motion.div>
           ))}
         </div>
 
-        <section className="bg-white rounded-[3rem] border border-stone-200 p-8 md:p-12">
+        <section className="bg-white dark:bg-stone-900 rounded-[3rem] border border-stone-200 dark:border-stone-800 p-8 md:p-12">
           <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] gap-10 items-start">
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.3em] text-orange-500 mb-4">
                 What DivineConnect Is Building
               </p>
-              <h2 className="text-3xl md:text-4xl font-serif font-bold text-stone-900 mb-6">
+              <h2 className="text-3xl md:text-4xl font-serif font-bold text-stone-900 dark:text-white mb-6">
                 A modern spiritual platform that feels helpful, not complicated.
               </h2>
-              <p className="text-stone-600 leading-relaxed mb-6">
+              <p className="text-stone-600 dark:text-stone-300 leading-relaxed mb-6">
                 We want DivineConnect to become a dependable place where devotees
                 can book services, discover products, get guided support, and
                 stay connected to spiritual practices from anywhere.
               </p>
-              <p className="text-stone-600 leading-relaxed">
+              <p className="text-stone-600 dark:text-stone-300 leading-relaxed">
                 The strongest About pages usually answer three questions clearly:
                 what the product does, why people should trust it, and who is
                 building it. This version now leans into those trust signals.
@@ -147,13 +147,13 @@ export default function About() {
               {platformPillars.map((pillar) => (
                 <div
                   key={pillar.title}
-                  className="rounded-[2rem] bg-stone-50 border border-stone-100 p-6"
+                  className="rounded-[2rem] bg-stone-50 dark:bg-stone-800 border border-stone-100 dark:border-stone-700 p-6"
                 >
                   <div className="flex items-center gap-3 mb-3">
                     {pillar.icon}
-                    <h3 className="font-bold text-stone-900">{pillar.title}</h3>
+                    <h3 className="font-bold text-stone-900 dark:text-white">{pillar.title}</h3>
                   </div>
-                  <p className="text-sm text-stone-600 leading-relaxed">
+                  <p className="text-sm text-stone-600 dark:text-stone-400 leading-relaxed">
                     {pillar.desc}
                   </p>
                 </div>
@@ -230,21 +230,21 @@ export default function About() {
         </motion.section>
 
         <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-orange-50 border border-orange-100 rounded-[2rem] p-8">
-            <h3 className="text-2xl font-serif font-bold text-stone-900 mb-4">
+          <div className="bg-orange-50 dark:bg-orange-900/10 border border-orange-100 dark:border-orange-900/30 rounded-[2rem] p-8">
+            <h3 className="text-2xl font-serif font-bold text-stone-900 dark:text-white mb-4">
               What else works well on an About page
             </h3>
-            <p className="text-stone-600 leading-relaxed">
+            <p className="text-stone-600 dark:text-stone-300 leading-relaxed">
               Over time we can add real trust builders here too: partner temples,
               testimonials, safety standards, verified pandit onboarding, and a
               short roadmap for what is coming next.
             </p>
           </div>
-          <div className="bg-white border border-stone-200 rounded-[2rem] p-8">
-            <h3 className="text-2xl font-serif font-bold text-stone-900 mb-4">
+          <div className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-[2rem] p-8">
+            <h3 className="text-2xl font-serif font-bold text-stone-900 dark:text-white mb-4">
               Where this can grow next
             </h3>
-            <p className="text-stone-600 leading-relaxed">
+            <p className="text-stone-600 dark:text-stone-300 leading-relaxed">
               A stronger next step would be adding real team photos, partnership
               logos, FAQs, and a short “why users trust us” checklist backed by
               actual operational details.

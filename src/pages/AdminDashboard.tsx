@@ -20,11 +20,16 @@ export default function AdminDashboard() {
     image: ''
   });
 
+  const [activeTab, setActiveTab] = useState<'inventory' | 'vendors' | 'approvals'>('inventory');
+  const [vendorsPerformance, setVendorsPerformance] = useState<any[]>([]);
+  const [pendingVendors, setPendingVendors] = useState<any[]>([]);
+  const [vendorFilter, setVendorFilter] = useState<'all' | 'high' | 'low'>('all');
   const [stats, setStats] = useState({
     totalUsers: 0,
     totalVendors: 0,
     totalProducts: 0,
-    totalBookings: 0
+    totalBookings: 0,
+    visitorCount: 0
   });
 
   const fetchStats = async () => {
@@ -52,12 +57,43 @@ export default function AdminDashboard() {
     }
   };
 
+  const fetchVendorsPerformance = async () => {
+    try {
+      const response = await fetch('/api/admin/vendors-performance');
+      if (response.ok) {
+        setVendorsPerformance(await response.json());
+      }
+    } catch (error) {
+      console.error('Error fetching vendor performance:', error);
+    }
+  };
+
+  const fetchPendingVendors = async () => {
+    try {
+      const response = await fetch('/api/admin/pending-vendors');
+      if (response.ok) {
+        setPendingVendors(await response.json());
+      }
+    } catch (error) {
+      console.error('Error fetching pending vendors:', error);
+    }
+  };
+
   useEffect(() => {
     if (currentUser && currentUser.role === 'admin') {
       fetchProducts();
       fetchStats();
+      fetchVendorsPerformance();
+      fetchPendingVendors();
     }
   }, [currentUser]);
+
+  const filteredVendors = vendorsPerformance.filter(v => {
+    if (vendorFilter === 'all') return true;
+    if (vendorFilter === 'high') return v.totalBookings >= 5;
+    if (vendorFilter === 'low') return v.totalBookings < 5;
+    return true;
+  }).sort((a, b) => b.totalBookings - a.totalBookings);
 
   if (authLoading) {
     return (
@@ -104,6 +140,20 @@ export default function AdminDashboard() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const price = parseFloat(formData.price);
+    const stock = parseInt(formData.stock);
+    const rating = parseFloat(formData.rating);
+
+    if (isNaN(price) || price <= 0) {
+      alert('Please enter a valid positive price.');
+      return;
+    }
+
+    if (isNaN(stock) || stock < 0) {
+      alert('Please enter a valid stock quantity (0 or more).');
+      return;
+    }
+
     const url = editingProduct ? `/api/products/${editingProduct.id}` : '/api/products';
     const method = editingProduct ? 'PUT' : 'POST';
 
@@ -113,9 +163,9 @@ export default function AdminDashboard() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formData,
-          price: parseFloat(formData.price),
-          stock: parseInt(formData.stock),
-          rating: parseFloat(formData.rating)
+          price,
+          stock,
+          rating
         })
       });
 
@@ -145,6 +195,43 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleApproveVendor = async (vendorId: string) => {
+    if (!window.confirm('Approve this vendor?')) return;
+    try {
+      const response = await fetch('/api/admin/approve-vendor', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ vendorId })
+      });
+      if (response.ok) {
+        alert('Vendor approved!');
+        fetchPendingVendors();
+        fetchStats();
+      }
+    } catch (error) {
+      console.error('Error approving vendor:', error);
+    }
+  };
+
+  const handleRejectVendor = async (vendorId: string) => {
+    const reason = window.prompt('Reason for rejection?');
+    if (reason === null) return;
+    try {
+      const response = await fetch('/api/admin/reject-vendor', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ vendorId, reason })
+      });
+      if (response.ok) {
+        alert('Vendor rejected.');
+        fetchPendingVendors();
+        fetchStats();
+      }
+    } catch (error) {
+      console.error('Error rejecting vendor:', error);
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="flex justify-between items-center mb-12">
@@ -152,129 +239,284 @@ export default function AdminDashboard() {
           <h1 className="text-4xl font-serif font-bold text-stone-900 mb-2">Admin Dashboard</h1>
           <p className="text-stone-600">Manage your spiritual marketplace inventory.</p>
         </div>
-        <button 
-          onClick={() => handleOpenModal()}
-          className="flex items-center space-x-2 bg-orange-500 text-white px-6 py-3 rounded-2xl hover:bg-orange-600 transition-colors shadow-lg shadow-orange-500/20"
-        >
-          <Plus className="w-5 h-5" />
-          <span className="font-bold">Add Product</span>
-        </button>
+        <div className="flex items-center space-x-4">
+          <div className="flex bg-stone-100 p-1 rounded-2xl mr-4">
+            <button 
+              onClick={() => setActiveTab('inventory')}
+              className={`px-6 py-2 rounded-xl text-sm font-bold transition-all ${activeTab === 'inventory' ? 'bg-white text-stone-900 shadow-sm' : 'text-stone-500 hover:text-stone-700'}`}
+            >
+              Inventory
+            </button>
+            <button 
+              onClick={() => setActiveTab('vendors')}
+              className={`px-6 py-2 rounded-xl text-sm font-bold transition-all ${activeTab === 'vendors' ? 'bg-white text-stone-900 shadow-sm' : 'text-stone-500 hover:text-stone-700'}`}
+            >
+              Vendors
+            </button>
+            <button 
+              onClick={() => setActiveTab('approvals')}
+              className={`px-6 py-2 rounded-xl text-sm font-bold transition-all ${activeTab === 'approvals' ? 'bg-white text-stone-900 shadow-sm' : 'text-stone-500 hover:text-stone-700'}`}
+            >
+              Approvals
+              {pendingVendors.length > 0 && (
+                <span className="ml-2 px-2 py-0.5 bg-orange-500 text-white text-[10px] rounded-full">
+                  {pendingVendors.length}
+                </span>
+              )}
+            </button>
+          </div>
+          {activeTab === 'inventory' && (
+            <button 
+              onClick={() => handleOpenModal()}
+              className="flex items-center space-x-2 bg-orange-500 text-white px-6 py-3 rounded-2xl hover:bg-orange-600 transition-colors shadow-lg shadow-orange-500/20"
+            >
+              <Plus className="w-5 h-5" />
+              <span className="font-bold">Add Product</span>
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* Stats Section */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
-        <div className="bg-white p-6 rounded-3xl border border-stone-200 shadow-sm">
-          <div className="flex items-center space-x-4">
-            <div className="p-3 bg-blue-50 rounded-2xl text-blue-600">
-              <Users className="w-6 h-6" />
+            <div className="bg-white p-6 rounded-3xl border border-stone-200 shadow-sm">
+              <div className="flex items-center space-x-4">
+                <div className="p-3 bg-blue-50 rounded-2xl text-blue-600">
+                  <Users className="w-6 h-6" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-stone-400 uppercase tracking-wider">Total Users</p>
+                  <p className="text-2xl font-bold text-stone-900">{stats.totalUsers}</p>
+                </div>
+              </div>
             </div>
-            <div>
-              <p className="text-xs font-bold text-stone-400 uppercase tracking-wider">Total Users</p>
-              <p className="text-2xl font-bold text-stone-900">{stats.totalUsers}</p>
+            <div className="bg-white p-6 rounded-3xl border border-stone-200 shadow-sm">
+              <div className="flex items-center space-x-4">
+                <div className="p-3 bg-emerald-50 rounded-2xl text-emerald-600">
+                  <Store className="w-6 h-6" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-stone-400 uppercase tracking-wider">Total Vendors</p>
+                  <p className="text-2xl font-bold text-stone-900">{stats.totalVendors}</p>
+                </div>
+              </div>
+            </div>
+            <div className="bg-white p-6 rounded-3xl border border-stone-200 shadow-sm">
+              <div className="flex items-center space-x-4">
+                <div className="p-3 bg-orange-50 rounded-2xl text-orange-600">
+                  <Package className="w-6 h-6" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-stone-400 uppercase tracking-wider">Total Products</p>
+                  <p className="text-2xl font-bold text-stone-900">{stats.totalProducts}</p>
+                </div>
+              </div>
+            </div>
+            <div className="bg-white p-6 rounded-3xl border border-stone-200 shadow-sm">
+              <div className="flex items-center space-x-4">
+                <div className="p-3 bg-purple-50 rounded-2xl text-purple-600">
+                  <Calendar className="w-6 h-6" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-stone-400 uppercase tracking-wider">Total Bookings</p>
+                  <p className="text-2xl font-bold text-stone-900">{stats.totalBookings}</p>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-        <div className="bg-white p-6 rounded-3xl border border-stone-200 shadow-sm">
-          <div className="flex items-center space-x-4">
-            <div className="p-3 bg-emerald-50 rounded-2xl text-emerald-600">
-              <Store className="w-6 h-6" />
-            </div>
-            <div>
-              <p className="text-xs font-bold text-stone-400 uppercase tracking-wider">Total Vendors</p>
-              <p className="text-2xl font-bold text-stone-900">{stats.totalVendors}</p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-white p-6 rounded-3xl border border-stone-200 shadow-sm">
-          <div className="flex items-center space-x-4">
-            <div className="p-3 bg-orange-50 rounded-2xl text-orange-600">
-              <Package className="w-6 h-6" />
-            </div>
-            <div>
-              <p className="text-xs font-bold text-stone-400 uppercase tracking-wider">Total Products</p>
-              <p className="text-2xl font-bold text-stone-900">{stats.totalProducts}</p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-white p-6 rounded-3xl border border-stone-200 shadow-sm">
-          <div className="flex items-center space-x-4">
-            <div className="p-3 bg-purple-50 rounded-2xl text-purple-600">
-              <Calendar className="w-6 h-6" />
-            </div>
-            <div>
-              <p className="text-xs font-bold text-stone-400 uppercase tracking-wider">Total Bookings</p>
-              <p className="text-2xl font-bold text-stone-900">{stats.totalBookings}</p>
-            </div>
-          </div>
-        </div>
-      </div>
 
-      {loading ? (
-        <div className="flex justify-center py-20">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"></div>
-        </div>
-      ) : (
-        <div className="bg-white rounded-3xl border border-stone-200 overflow-hidden shadow-sm">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-stone-50 border-bottom border-stone-200">
-                  <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase tracking-wider">Product</th>
-                  <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase tracking-wider">Category</th>
-                  <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase tracking-wider">Price</th>
-                  <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase tracking-wider">Stock</th>
-                  <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase tracking-wider">Rating</th>
-                  <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase tracking-wider text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-stone-100">
-                {products.map((product) => (
-                  <tr key={product.id} className="hover:bg-stone-50 transition-colors">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center space-x-4">
-                        <img src={product.image || null} alt={product.name} className="w-10 h-10 rounded-lg object-cover" referrerPolicy="no-referrer" />
-                        <span className="font-bold text-stone-900">{product.name}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="px-3 py-1 bg-stone-100 text-stone-600 rounded-full text-xs font-bold">{product.category}</span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center font-bold text-orange-600">
-                        <IndianRupee className="w-3 h-3 mr-1" />
-                        {product.price}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-stone-600 font-medium">{product.stock}</td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center space-x-1">
-                        <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
-                        <span className="text-sm font-bold text-stone-900">{product.rating}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex justify-end space-x-2">
-                        <button 
-                          onClick={() => handleOpenModal(product)}
-                          className="p-2 text-stone-400 hover:text-orange-500 hover:bg-orange-50 rounded-lg transition-all"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                        <button 
-                          onClick={() => handleDelete(product.id)}
-                          className="p-2 text-stone-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
+          {loading ? (
+            <div className="flex justify-center py-20">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"></div>
+            </div>
+          ) : activeTab === 'inventory' ? (
+            <div className="bg-white rounded-3xl border border-stone-200 overflow-hidden shadow-sm">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-stone-50 border-bottom border-stone-200">
+                      <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase tracking-wider">Product</th>
+                      <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase tracking-wider">Category</th>
+                      <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase tracking-wider">Price</th>
+                      <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase tracking-wider">Stock</th>
+                      <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase tracking-wider">Rating</th>
+                      <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase tracking-wider text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-stone-100">
+                    {products.map((product) => (
+                      <tr key={product.id} className="hover:bg-stone-50 transition-colors">
+                        <td className="px-6 py-4">
+                          <div className="flex items-center space-x-4">
+                            <img src={product.image || null} alt={product.name} className="w-10 h-10 rounded-lg object-cover" referrerPolicy="no-referrer" />
+                            <span className="font-bold text-stone-900">{product.name}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="px-3 py-1 bg-stone-100 text-stone-600 rounded-full text-xs font-bold">{product.category}</span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center font-bold text-orange-600">
+                            <IndianRupee className="w-3 h-3 mr-1" />
+                            {product.price}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-stone-600 font-medium">{product.stock}</td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center space-x-1">
+                            <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
+                            <span className="text-sm font-bold text-stone-900">{product.rating}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <div className="flex justify-end space-x-2">
+                            <button 
+                              onClick={() => handleOpenModal(product)}
+                              className="p-2 text-stone-400 hover:text-orange-500 hover:bg-orange-50 rounded-lg transition-all"
+                            >
+                              <Edit2 className="w-4 h-4" />
+                            </button>
+                            <button 
+                              onClick={() => handleDelete(product.id)}
+                              className="p-2 text-stone-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ) : activeTab === 'vendors' ? (
+            <div className="space-y-6">
+              <div className="flex justify-between items-center bg-white p-6 rounded-3xl border border-stone-200 shadow-sm">
+                <h3 className="text-xl font-serif font-bold text-stone-900">Vendor Performance</h3>
+                <div className="flex space-x-2">
+                  <button 
+                    onClick={() => setVendorFilter('all')}
+                    className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${vendorFilter === 'all' ? 'bg-stone-900 text-white' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'}`}
+                  >
+                    All
+                  </button>
+                  <button 
+                    onClick={() => setVendorFilter('high')}
+                    className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${vendorFilter === 'high' ? 'bg-emerald-500 text-white' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'}`}
+                  >
+                    High Performance (5+)
+                  </button>
+                  <button 
+                    onClick={() => setVendorFilter('low')}
+                    className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${vendorFilter === 'low' ? 'bg-orange-500 text-white' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'}`}
+                  >
+                    Low Performance (&lt;5)
+                  </button>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-3xl border border-stone-200 overflow-hidden shadow-sm">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-stone-50 border-bottom border-stone-200">
+                        <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase tracking-wider">Vendor</th>
+                        <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase tracking-wider">Email</th>
+                        <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase tracking-wider">Total Bookings</th>
+                        <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase tracking-wider">Performance</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-stone-100">
+                      {filteredVendors.map((vendor) => (
+                        <tr key={vendor.uid} className="hover:bg-stone-50 transition-colors">
+                          <td className="px-6 py-4">
+                            <span className="font-bold text-stone-900">{vendor.displayName || 'Unnamed Vendor'}</span>
+                          </td>
+                          <td className="px-6 py-4 text-stone-600">{vendor.email}</td>
+                          <td className="px-6 py-4 font-bold text-stone-900">{vendor.totalBookings}</td>
+                          <td className="px-6 py-4">
+                            <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                              vendor.totalBookings >= 5 ? 'bg-emerald-100 text-emerald-700' : 'bg-orange-100 text-orange-700'
+                            }`}>
+                              {vendor.totalBookings >= 5 ? 'High' : 'Low'}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              <div className="bg-white p-6 rounded-3xl border border-stone-200 shadow-sm">
+                <h3 className="text-xl font-serif font-bold text-stone-900">Pending Vendor Registrations</h3>
+              </div>
+
+              {pendingVendors.length === 0 ? (
+                <div className="bg-white p-12 rounded-3xl border border-stone-200 text-center shadow-sm">
+                  <Store className="w-12 h-12 text-stone-200 mx-auto mb-4" />
+                  <p className="text-stone-500">No pending vendor registrations at the moment.</p>
+                </div>
+              ) : (
+                <div className="bg-white rounded-3xl border border-stone-200 overflow-hidden shadow-sm">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="bg-stone-50 border-bottom border-stone-200">
+                          <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase tracking-wider">User</th>
+                          <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase tracking-wider">Business Name</th>
+                          <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase tracking-wider">Type</th>
+                          <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase tracking-wider">Description</th>
+                          <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase tracking-wider text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-stone-100">
+                        {pendingVendors.map((vendor) => (
+                          <tr key={vendor.uid} className="hover:bg-stone-50 transition-colors">
+                            <td className="px-6 py-4">
+                              <div className="flex flex-col">
+                                <span className="font-bold text-stone-900">{vendor.displayName || 'Unnamed'}</span>
+                                <span className="text-xs text-stone-500">{vendor.email}</span>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <span className="font-bold text-stone-900">{vendor.businessDetails?.name || 'N/A'}</span>
+                            </td>
+                            <td className="px-6 py-4">
+                              <span className="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-xs font-bold uppercase tracking-wider">
+                                {vendor.businessDetails?.type || 'N/A'}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4">
+                              <p className="text-sm text-stone-600 line-clamp-2 max-w-xs">{vendor.businessDetails?.description || 'No description provided'}</p>
+                            </td>
+                            <td className="px-6 py-4 text-right">
+                              <div className="flex justify-end space-x-2">
+                                <button 
+                                  onClick={() => handleApproveVendor(vendor.uid)}
+                                  className="px-4 py-2 bg-emerald-500 text-white text-xs font-bold rounded-xl hover:bg-emerald-600 transition-colors"
+                                >
+                                  Approve
+                                </button>
+                                <button 
+                                  onClick={() => handleRejectVendor(vendor.uid)}
+                                  className="px-4 py-2 bg-red-500 text-white text-xs font-bold rounded-xl hover:bg-red-600 transition-colors"
+                                >
+                                  Reject
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
       {/* Modal */}
       <AnimatePresence>
@@ -337,6 +579,8 @@ export default function AdminDashboard() {
                     <input
                       required
                       type="number"
+                      min="0.01"
+                      step="0.01"
                       value={formData.price}
                       onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                       className="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
@@ -348,6 +592,7 @@ export default function AdminDashboard() {
                     <input
                       required
                       type="number"
+                      min="0"
                       value={formData.stock}
                       onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
                       className="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"

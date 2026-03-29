@@ -46,6 +46,33 @@ type ChatMessage = {
   content: string;
 };
 
+const SYSTEM_INSTRUCTION = `
+You are DivineConnect AI Support.
+Your role is to help users with:
+- Puja bookings (online/offline)
+- Darshan and Prasad guidance
+- Order status and delivery support
+- Account access and sign-in issues
+- Vendor onboarding questions (how to join as a priest, temple, or shop)
+
+Puja Booking Flow:
+If a user expresses interest in booking a puja:
+1. Prompt them for the type of puja or service they are interested in. Provide a selectable list of common types in this format: [OPTIONS: Ganesh Puja, Lakshmi Puja, Satyanarayan Katha, Durga Puja, Saraswati Puja].
+2. Prompt them for their preferred date.
+3. Prompt them for their preferred time slot (morning, afternoon, or evening). Provide a selectable list in this format: [OPTIONS: Morning, Afternoon, Evening].
+4. Ask if they prefer an online (virtual) or offline (in-person) service. Provide a selectable list in this format: [OPTIONS: Online (Virtual), Offline (In-person)].
+5. Once you have these details, provide a summary and guide them to the official "Pujas" page to finalize the booking.
+
+Rules:
+- Be concise, practical, and warm.
+- Stay focused on product and platform support.
+- Use the provided conversation history to maintain context and provide relevant answers.
+- If the user needs direct human help, tell them to use the Contact Us page email or phone support.
+- Do not invent order status, account status, or booking confirmations.
+- If information is unavailable, say so clearly.
+- Use a helpful, spiritual, yet professional tone.
+`.trim();
+
 export default function Contact() {
   const [messages, setMessages] = useState<ChatMessage[]>(() => {
     const saved = localStorage.getItem('divineconnect_chat_history');
@@ -106,20 +133,27 @@ export default function Contact() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           messages: nextMessages,
+          systemInstruction: SYSTEM_INSTRUCTION,
         }),
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
-        throw new Error(data.error || 'AI support is unavailable right now.');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to get AI response');
+      }
+
+      const data = await response.json();
+      const reply = data.text?.trim();
+
+      if (!reply) {
+        throw new Error("The AI support response was empty.");
       }
 
       setMessages([
         ...nextMessages,
         {
           role: 'assistant',
-          content: data.reply,
+          content: reply,
         },
       ]);
     } catch (error) {
@@ -143,7 +177,7 @@ export default function Contact() {
   };
 
   return (
-    <div className="pb-20">
+    <div className="pb-20 bg-stone-50 dark:bg-stone-950 transition-colors duration-300">
       <section className="relative h-[40vh] flex items-center overflow-hidden mb-12">
         <div className="absolute inset-0 z-0">
           <img
@@ -183,17 +217,17 @@ export default function Contact() {
             href={href}
             target={href.startsWith('https://') ? '_blank' : undefined}
             rel={href.startsWith('https://') ? 'noreferrer' : undefined}
-            className="bg-white rounded-[2rem] border border-stone-200 p-8 hover:border-orange-200 hover:shadow-xl hover:shadow-orange-500/10 transition-all"
+            className="bg-white dark:bg-stone-900 rounded-[2rem] border border-stone-200 dark:border-stone-800 p-8 hover:border-orange-200 dark:hover:border-orange-500/50 hover:shadow-xl hover:shadow-orange-500/10 transition-all"
           >
-            <div className="w-12 h-12 rounded-2xl bg-orange-50 text-orange-500 flex items-center justify-center mb-6">
+            <div className="w-12 h-12 rounded-2xl bg-orange-50 dark:bg-orange-900/20 text-orange-500 flex items-center justify-center mb-6">
               <Icon className="w-6 h-6" />
             </div>
-            <h2 className="text-xl font-bold text-stone-900 mb-3">{title}</h2>
-            <p className="text-stone-600 text-sm leading-relaxed mb-4">
+            <h2 className="text-xl font-bold text-stone-900 dark:text-white mb-3">{title}</h2>
+            <p className="text-stone-600 dark:text-stone-400 text-sm leading-relaxed mb-4">
               {description}
             </p>
             <div className="flex items-center justify-between gap-4">
-              <span className="font-medium text-stone-900">{value}</span>
+              <span className="font-medium text-stone-900 dark:text-stone-200">{value}</span>
               <ArrowRight className="w-4 h-4 text-orange-500 shrink-0" />
             </div>
           </a>
@@ -201,17 +235,17 @@ export default function Contact() {
       </section>
 
       <section className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-8">
-        <div className="bg-white rounded-[2.5rem] border border-stone-200 overflow-hidden shadow-sm">
-            <div className="border-b border-stone-100 px-6 py-5 md:px-8 flex items-center justify-between gap-4">
+        <div className="bg-white dark:bg-stone-900 rounded-[2.5rem] border border-stone-200 dark:border-stone-800 overflow-hidden shadow-sm">
+            <div className="border-b border-stone-100 dark:border-stone-800 px-6 py-5 md:px-8 flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-2xl bg-orange-50 text-orange-500 flex items-center justify-center">
+              <div className="w-11 h-11 rounded-2xl bg-orange-50 dark:bg-orange-900/20 text-orange-500 flex items-center justify-center">
                 <Headphones className="w-5 h-5" />
               </div>
               <div>
-                <h2 className="text-2xl font-serif font-bold text-stone-900">
+                <h2 className="text-2xl font-serif font-bold text-stone-900 dark:text-white">
                   Live Chat
                 </h2>
-                <p className="text-sm text-stone-500">
+                <p className="text-sm text-stone-500 dark:text-stone-400">
                   AI support for bookings, orders, and onboarding questions.
                 </p>
               </div>
@@ -223,7 +257,7 @@ export default function Contact() {
               >
                 Clear Chat
               </button>
-              <div className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700">
+              <div className="inline-flex items-center gap-2 rounded-full bg-emerald-50 dark:bg-emerald-900/20 px-3 py-1.5 text-xs font-bold text-emerald-700 dark:text-emerald-400">
                 <Sparkles className="w-3.5 h-3.5" />
                 <span>AI Support Online</span>
               </div>
@@ -237,7 +271,7 @@ export default function Contact() {
                   key={question}
                   type="button"
                   onClick={() => sendMessage(question)}
-                  className="rounded-full border border-stone-200 bg-stone-50 px-4 py-2 text-sm text-stone-700 hover:border-orange-200 hover:text-orange-600 transition-colors"
+                  className="rounded-full border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 px-4 py-2 text-sm text-stone-700 dark:text-stone-300 hover:border-orange-200 dark:hover:border-orange-500 transition-colors"
                 >
                   {question}
                 </button>
@@ -246,7 +280,7 @@ export default function Contact() {
 
             <div 
               ref={scrollRef}
-              className="h-[26rem] overflow-y-auto rounded-[2rem] bg-stone-50 p-4 md:p-5 space-y-3 scroll-smooth"
+              className="h-[26rem] overflow-y-auto rounded-[2rem] bg-stone-50 dark:bg-stone-950 p-4 md:p-5 space-y-3 scroll-smooth"
             >
               {messages.map((message, index) => {
                 const { text, options } = message.role === 'assistant' ? parseOptions(message.content) : { text: message.content, options: [] };
@@ -261,7 +295,7 @@ export default function Contact() {
                       className={`max-w-[85%] rounded-[1.5rem] px-4 py-3 text-sm leading-relaxed shadow-sm ${
                         message.role === 'user'
                           ? 'bg-orange-500 text-white'
-                          : 'bg-white text-stone-700 border border-stone-200'
+                          : 'bg-white dark:bg-stone-900 text-stone-700 dark:text-stone-200 border border-stone-200 dark:border-stone-800'
                       }`}
                     >
                       {text}
@@ -273,7 +307,7 @@ export default function Contact() {
                             key={option}
                             type="button"
                             onClick={() => sendMessage(option)}
-                            className="rounded-full border border-orange-200 bg-orange-50 px-3 py-1.5 text-xs text-orange-700 hover:bg-orange-100 transition-colors"
+                            className="rounded-full border border-orange-200 dark:border-orange-900/30 bg-orange-50 dark:bg-orange-900/20 px-3 py-1.5 text-xs text-orange-700 dark:text-orange-300 hover:bg-orange-100 dark:hover:bg-orange-900/40 transition-colors"
                           >
                             {option}
                           </button>
@@ -285,7 +319,7 @@ export default function Contact() {
               })}
               {isSending && (
                 <div className="flex justify-start">
-                  <div className="rounded-[1.5rem] px-4 py-3 text-sm bg-white text-stone-500 border border-stone-200">
+                  <div className="rounded-[1.5rem] px-4 py-3 text-sm bg-white dark:bg-stone-900 text-stone-500 dark:text-stone-400 border border-stone-200 dark:border-stone-800">
                     DivineConnect AI is typing...
                   </div>
                 </div>
@@ -310,7 +344,7 @@ export default function Contact() {
                 value={draft}
                 onChange={(event) => setDraft(event.target.value)}
                 placeholder="Ask about booking, order status, vendor onboarding..."
-                className="flex-1 rounded-2xl border border-stone-200 px-4 py-3 outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                className="flex-1 rounded-2xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 px-4 py-3 outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:text-white"
               />
               <button
                 type="submit"
@@ -325,16 +359,16 @@ export default function Contact() {
         </div>
 
         <div className="space-y-6">
-          <section className="bg-stone-100 rounded-[2.5rem] p-8 md:p-10">
+          <section className="bg-stone-100 dark:bg-stone-900 rounded-[2.5rem] p-8 md:p-10">
             <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center text-orange-500 shadow-sm">
+              <div className="w-12 h-12 rounded-2xl bg-white dark:bg-stone-800 flex items-center justify-center text-orange-500 shadow-sm">
                 <Clock className="w-6 h-6" />
               </div>
               <div>
-                <h2 className="text-2xl font-serif font-bold text-stone-900 mb-3">
+                <h2 className="text-2xl font-serif font-bold text-stone-900 dark:text-white mb-3">
                   Support Hours
                 </h2>
-                <p className="text-stone-600 leading-relaxed">
+                <p className="text-stone-600 dark:text-stone-400 leading-relaxed">
                   Monday to Saturday, 9:00 AM to 7:00 PM IST. For online orders
                   and general support, email is available anytime and we usually
                   respond within one business day.
@@ -343,11 +377,11 @@ export default function Contact() {
             </div>
           </section>
 
-          <section className="bg-white border border-stone-200 rounded-[2.5rem] p-8">
-            <h2 className="text-2xl font-serif font-bold text-stone-900 mb-4">
+          <section className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-[2.5rem] p-8">
+            <h2 className="text-2xl font-serif font-bold text-stone-900 dark:text-white mb-4">
               What AI Support Can Help With
             </h2>
-            <ul className="space-y-3 text-stone-600">
+            <ul className="space-y-3 text-stone-600 dark:text-stone-400">
               <li>Booking guidance for pujas and service flows.</li>
               <li>Order support for products and shipping questions.</li>
               <li>Vendor onboarding and account-related help.</li>

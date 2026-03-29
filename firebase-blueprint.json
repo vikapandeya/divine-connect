@@ -12,6 +12,17 @@
         "role": { "type": "string", "enum": ["devotee", "vendor", "admin"], "description": "The user's role on the platform." },
         "phoneNumber": { "type": "string", "description": "The user's phone number." },
         "addresses": { "type": "array", "items": { "type": "string" }, "description": "List of saved addresses." },
+        "bio": { "type": "string", "description": "A short bio for the user." },
+        "bannerURL": { "type": "string", "description": "The user's profile banner image URL." },
+        "fcmToken": { "type": "string", "description": "The user's Firebase Cloud Messaging device token." },
+        "location": {
+          "type": "object",
+          "properties": {
+            "lat": { "type": "number" },
+            "lng": { "type": "number" }
+          },
+          "description": "User's current latitude and longitude."
+        },
         "createdAt": { "type": "string", "format": "date-time", "description": "When the user account was created." }
       },
       "required": ["uid", "email", "role"]
@@ -26,9 +37,18 @@
         "description": { "type": "string", "description": "A description of the vendor's services." },
         "type": { "type": "string", "enum": ["priest", "temple", "shop"], "description": "The type of vendor." },
         "status": { "type": "string", "enum": ["pending", "approved", "suspended"], "description": "The vendor's approval status." },
+        "isVerified": { "type": "boolean", "description": "Whether the vendor is verified by admin." },
         "gstNumber": { "type": "string", "description": "GST registration number." },
         "rating": { "type": "number", "description": "Average rating of the vendor." },
-        "commissionRate": { "type": "number", "description": "Commission rate set by admin." }
+        "commissionRate": { "type": "number", "description": "Commission rate set by admin." },
+        "location": {
+          "type": "object",
+          "properties": {
+            "lat": { "type": "number" },
+            "lng": { "type": "number" }
+          },
+          "description": "Vendor's business latitude and longitude."
+        }
       },
       "required": ["uid", "businessName", "type", "status"]
     },
@@ -44,7 +64,8 @@
         "category": { "type": "string", "description": "Product category (e.g., Idols, Incense)." },
         "images": { "type": "array", "items": { "type": "string" }, "description": "List of product image URLs." },
         "stock": { "type": "integer", "description": "Available stock quantity." },
-        "rating": { "type": "number", "description": "Average product rating." }
+        "rating": { "type": "number", "description": "Average product rating." },
+        "isFeatured": { "type": "boolean", "description": "Whether the product is featured on the home page." }
       },
       "required": ["vendorId", "name", "price", "category", "stock"]
     },
@@ -56,11 +77,14 @@
         "vendorId": { "type": "string", "description": "The ID of the pandit or temple providing the puja." },
         "title": { "type": "string", "description": "The name of the puja." },
         "description": { "type": "string", "description": "Description of the puja and its benefits." },
-        "price": { "type": "number", "description": "Base price for the puja." },
+        "onlinePrice": { "type": "number", "description": "Price for online puja booking." },
+        "offlinePrice": { "type": "number", "description": "Price for offline puja booking." },
         "duration": { "type": "string", "description": "Estimated duration of the puja." },
-        "samagriIncluded": { "type": "boolean", "description": "Whether puja materials are included." }
+        "samagriIncluded": { "type": "boolean", "description": "Whether puja materials are included." },
+        "isOnline": { "type": "boolean", "description": "Whether the puja can be performed virtually." },
+        "rating": { "type": "number", "description": "Average rating of the puja service." }
       },
-      "required": ["vendorId", "title", "price"]
+      "required": ["vendorId", "title", "onlinePrice"]
     },
     "Booking": {
       "title": "Booking",
@@ -88,9 +112,64 @@
         "totalAmount": { "type": "number", "description": "Total order amount." },
         "status": { "type": "string", "enum": ["processing", "shipped", "delivered", "cancelled"], "description": "Current order status." },
         "shippingAddress": { "type": "string", "description": "Delivery address." },
+        "couponUsed": { "type": "string", "description": "The coupon code used for this order." },
+        "discountAmount": { "type": "number", "description": "The discount amount applied." },
         "createdAt": { "type": "string", "format": "date-time", "description": "When the order was placed." }
       },
       "required": ["userId", "items", "totalAmount", "status", "createdAt"]
+    },
+    "Coupon": {
+      "title": "Coupon",
+      "description": "A discount coupon for the platform.",
+      "type": "object",
+      "properties": {
+        "code": { "type": "string", "description": "The unique coupon code." },
+        "discount": { "type": "number", "description": "The discount value." },
+        "type": { "type": "string", "enum": ["percentage", "fixed"], "description": "The type of discount." },
+        "minPurchase": { "type": "number", "description": "Minimum purchase required to use the coupon." },
+        "expiry": { "type": "string", "format": "date-time", "description": "When the coupon expires." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "When the coupon was created." }
+      },
+      "required": ["code", "discount", "type", "expiry"]
+    },
+    "Feedback": {
+      "title": "Feedback",
+      "description": "User feedback and testimonials.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "The name of the user providing feedback." },
+        "city": { "type": "string", "description": "The user's city." },
+        "rating": { "type": "number", "description": "Rating given by the user." },
+        "message": { "type": "string", "description": "The feedback message." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "When the feedback was submitted." }
+      },
+      "required": ["name", "rating", "message", "createdAt"]
+    },
+    "Wishlist": {
+      "title": "Wishlist",
+      "description": "A user's wishlist of products or pujas.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "The ID of the user." },
+        "itemId": { "type": "string", "description": "The ID of the product or puja." },
+        "type": { "type": "string", "enum": ["product", "puja"], "description": "The type of item." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "When it was added to wishlist." }
+      },
+      "required": ["userId", "itemId", "type"]
+    },
+    "Notification": {
+      "title": "Notification",
+      "description": "A notification for a user.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "The ID of the user." },
+        "title": { "type": "string", "description": "Notification title." },
+        "message": { "type": "string", "description": "Notification message." },
+        "type": { "type": "string", "enum": ["order", "booking", "system"], "description": "Type of notification." },
+        "read": { "type": "boolean", "description": "Whether the notification has been read." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "When the notification was created." }
+      },
+      "required": ["userId", "title", "message", "type", "read", "createdAt"]
     }
   },
   "firestore": {
@@ -99,6 +178,10 @@
     "/products/{productId}": { "schema": "Product", "description": "Marketplace products." },
     "/pujas/{pujaId}": { "schema": "Puja", "description": "Available puja services." },
     "/bookings/{bookingId}": { "schema": "Booking", "description": "Service bookings." },
-    "/orders/{orderId}": { "schema": "Order", "description": "Marketplace and prasad orders." }
+    "/orders/{orderId}": { "schema": "Order", "description": "Marketplace and prasad orders." },
+    "/feedback/{feedbackId}": { "schema": "Feedback", "description": "User feedback." },
+    "/coupons/{couponId}": { "schema": "Coupon", "description": "Discount coupons." },
+    "/wishlist/{wishlistId}": { "schema": "Wishlist", "description": "User wishlists." },
+    "/notifications/{notificationId}": { "schema": "Notification", "description": "User notifications." }
   }
 }
