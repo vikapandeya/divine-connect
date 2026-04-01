@@ -7,6 +7,40 @@
     <link rel="manifest" href="/manifest.webmanifest" />
     <meta name="theme-color" content="#111827" />
     <title>PunyaSeva</title>
+    <script>
+      (function () {
+        if (!('serviceWorker' in navigator)) {
+          return;
+        }
+
+        window.addEventListener('load', function () {
+          navigator.serviceWorker.getRegistrations().then(function (registrations) {
+            registrations.forEach(function (registration) {
+              registration.unregister().catch(function () {
+                return undefined;
+              });
+            });
+          });
+
+          if (!('caches' in window)) {
+            return;
+          }
+
+          caches.keys().then(function (keys) {
+            keys
+              .filter(function (key) {
+                return key.indexOf('divine-connect-runtime-') === 0
+                  || key.indexOf('punyaseva-runtime-') === 0;
+              })
+              .forEach(function (key) {
+                caches.delete(key).catch(function () {
+                  return undefined;
+                });
+              });
+          });
+        });
+      }());
+    </script>
   </head>
   <body>
     <div id="root"></div>
