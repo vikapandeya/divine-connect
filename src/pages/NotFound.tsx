@@ -12,7 +12,7 @@ export default function NotFound() {
       <PageHero
         tone="stone"
         eyebrow={translateText(locale, 'Page Not Found')}
-        title={translateText(locale, 'This path is not part of the current DivineConnect journey.')}
+        title={translateText(locale, 'This path is not part of the current PunyaSeva journey.')}
         description={translateText(locale, 'The page may have moved, the URL may be incomplete, or the requested path is outside the current demo routes.')}
         actions={
           <>
@@ -79,10 +79,11 @@ export default function NotFound() {
           <ArrowLeft className="mb-4 h-6 w-6 text-orange-500" />
           <h2 className="text-xl font-bold text-stone-900">{translateText(locale, 'Back to Home')}</h2>
           <p className="mt-2 text-sm leading-relaxed text-stone-600">
-            {translateText(locale, 'Return to the homepage and restart from the main DivineConnect experience.')}
+            {translateText(locale, 'Return to the homepage and restart from the main PunyaSeva experience.')}
           </p>
         </Link>
       </section>
     </div>
   );
 }
+

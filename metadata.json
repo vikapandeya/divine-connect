@@ -1,6 +1,6 @@
 {
-  "name": "DivineConnect",
-  "description": "A comprehensive platform for temple services booking and spiritual e-commerce marketplace.",
+  "name": "PunyaSeva",
+  "description": "PunyaSeva is a comprehensive platform for temple services booking and spiritual e-commerce.",
   "requestFramePermissions": [
     "geolocation"
   ]

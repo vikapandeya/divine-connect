@@ -10,8 +10,8 @@ export interface CartItem {
   size?: string;
 }
 
-const STORAGE_KEY = 'divine-connect-cart';
-const CART_EVENT = 'divine-connect-cart-updated';
+const STORAGE_KEY = 'punyaseva-cart';
+const CART_EVENT = 'punyaseva-cart-updated';
 
 function isBrowser() {
   return typeof window !== 'undefined';
@@ -132,3 +132,4 @@ export function subscribeToCart(callback: () => void) {
     window.removeEventListener('storage', handleStorage);
   };
 }
+

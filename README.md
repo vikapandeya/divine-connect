@@ -1,6 +1,6 @@
-# DivineConnect
+# PunyaSeva
 
-DivineConnect is a full-stack spiritual services platform for puja booking, sacred products, AI-powered astrology, and guided support.
+PunyaSeva is a full-stack spiritual services platform for puja booking, sacred products, AI-powered astrology, and guided support.
 
 ## Stack
 
@@ -54,7 +54,8 @@ npm run firebase:emulators
    - `Email/Password`
    - `Google`
 4. In Firebase Authentication > Settings > Authorized domains, add:
-   - `vikapandeya.github.io`
+   - `punyaseva.in`
+   - `www.punyaseva.in`
    - `localhost`
 5. Set the Gemini backend secret:
 
@@ -80,4 +81,4 @@ You can override this with `VITE_API_BASE_URL` if needed.
 
 ## Live URL
 
-`https://vikapandeya.github.io/divine-connect/docs/`
+`https://punyaseva.in/`

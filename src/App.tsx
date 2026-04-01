@@ -34,7 +34,7 @@ function PageLoader() {
           Loading Experience
         </div>
         <h2 className="mt-5 text-2xl font-serif font-bold text-stone-900">
-          Preparing your DivineConnect page
+          Preparing your PunyaSeva page
         </h2>
         <p className="mt-3 text-sm leading-relaxed text-stone-600">
           We are arranging the next view, services, and devotional details for a smooth transition.
@@ -79,3 +79,4 @@ export default function App() {
     </ErrorBoundary>
   );
 }
+

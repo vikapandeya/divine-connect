@@ -145,9 +145,9 @@ const translations: Record<string, LocaleMap> = {
   'Submitting Feedback...': { hi: 'प्रतिक्रिया भेजी जा रही है...', sa: 'प्रतिक्रिया प्रेष्यते...' },
   'Submit Feedback': { hi: 'प्रतिक्रिया भेजें', sa: 'प्रतिक्रियाम् प्रेषयत' },
   'Feedback shared': { hi: 'प्रतिक्रिया साझा की गई', sa: 'प्रतिक्रिया साझिता' },
-  'Thank you. Your feedback has been shared with the DivineConnect team.': {
-    hi: 'धन्यवाद। आपकी प्रतिक्रिया DivineConnect टीम तक पहुँच गई है।',
-    sa: 'धन्यवादः। भवतः प्रतिक्रिया DivineConnect-दले प्रापिता।',
+  'Thank you. Your feedback has been shared with the PunyaSeva team.': {
+    hi: 'धन्यवाद। आपकी प्रतिक्रिया PunyaSeva टीम तक पहुँच गई है।',
+    sa: 'धन्यवादः। भवतः प्रतिक्रिया PunyaSeva-दले प्रापिता।',
   },
   'Feedback not submitted': { hi: 'प्रतिक्रिया जमा नहीं हुई', sa: 'प्रतिक्रिया न समर्पिता' },
   'Unable to submit feedback right now. Please try again in a moment.': {
@@ -158,7 +158,7 @@ const translations: Record<string, LocaleMap> = {
   'View All': { hi: 'सभी देखें', sa: 'सर्वाणि पश्यत' },
   'Open Knowledge Hub': { hi: 'ज्ञान केंद्र खोलें', sa: 'ज्ञानकेन्द्रम् उद्घाटयत' },
   'Read article': { hi: 'लेख पढ़ें', sa: 'लेखं पठत' },
-  'Contact DivineConnect': { hi: 'DivineConnect से संपर्क', sa: 'DivineConnect-सम्पर्कः' },
+  'Contact PunyaSeva': { hi: 'PunyaSeva से संपर्क', sa: 'PunyaSeva-सम्पर्कः' },
   'Live Chat': { hi: 'लाइव चैट', sa: 'सजीव-सम्भाषणम्' },
   'AI Support Online': { hi: 'एआई सहायता ऑनलाइन', sa: 'कृत्रिम-बुद्धि-साहाय्यम् आनलाइन' },
   'Send': { hi: 'भेजें', sa: 'प्रेषयत' },
@@ -191,7 +191,7 @@ const translations: Record<string, LocaleMap> = {
   'Back to Services': { hi: 'सेवाओं पर वापस', sa: 'सेवासु प्रत्यागच्छत' },
   'Puja not found': { hi: 'पूजा नहीं मिली', sa: 'पूजा न लब्धा' },
   'Loading puja details...': { hi: 'पूजा विवरण लोड हो रहे हैं...', sa: 'पूजा-विवरणानि आनीयन्ते...' },
-  'My DivineConnect': { hi: 'मेरा DivineConnect', sa: 'मम DivineConnect' },
+  'My PunyaSeva': { hi: 'मेरा PunyaSeva', sa: 'मम PunyaSeva' },
   'Service Bookings': { hi: 'सेवा बुकिंग', sa: 'सेवा-आरक्षणानि' },
   'Order History': { hi: 'ऑर्डर इतिहास', sa: 'आदेश-इतिहासः' },
   'Astrology History': { hi: 'ज्योतिष इतिहास', sa: 'ज्योतिष-इतिहासः' },
@@ -291,3 +291,4 @@ export function formatDateTimeForLocale(value: string | Date, locale: AppLocale)
     timeStyle: 'short',
   }).format(new Date(value));
 }
+

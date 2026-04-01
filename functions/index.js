@@ -158,7 +158,7 @@ const defaultPujas = [
     mode: 'hybrid',
     onlineTimings: ['06:30 AM - 08:00 AM', '07:00 PM - 08:30 PM'],
     offlineTimings: ['08:00 AM - 10:00 AM', '05:00 PM - 06:30 PM'],
-    templeName: 'DivineConnect Certified Pandit Seva',
+    templeName: 'PunyaSeva Certified Pandit Seva',
     liveDarshanAvailable: false,
   },
   {
@@ -200,7 +200,7 @@ app.use(express.json({ limit: '1mb' }));
 
 const apiWelcomePayload = {
   status: 'ok',
-  service: 'DivineConnect API',
+  service: 'PunyaSeva API',
   database: 'firestore',
   backend: 'firebase-functions',
   healthEndpoint: '/health',
@@ -1317,7 +1317,7 @@ app.post(['/astrology/reading', '/api/astrology/reading'], async (req, res) => {
     assert(typeof pob === 'string' && pob.trim(), 'Place of birth is required.');
 
     const prompt = `
-You are an expert Vedic Astrologer for DivineConnect.
+You are an expert Vedic Astrologer for PunyaSeva.
 Provide a detailed, spiritual, and compassionate reading based on:
 - Name: ${name}
 - Date of Birth: ${dob}
@@ -1340,7 +1340,7 @@ Keep it warm, structured, and easy to read.
       config: {
         temperature: 0.7,
         systemInstruction:
-          'You are Jyotish AI, a compassionate Vedic astrology guide for DivineConnect.',
+          'You are Jyotish AI, a compassionate Vedic astrology guide for PunyaSeva.',
       },
     });
 
@@ -1391,7 +1391,7 @@ app.post(['/support/chat', '/api/support/chat'], async (req, res) => {
     const response = await getAiClient().models.generateContent({
       model: 'gemini-2.5-flash',
       contents: `
-You are DivineConnect AI Support.
+You are PunyaSeva AI Support.
 Your role is to help users with:
 - puja bookings
 - darshan and prasad guidance

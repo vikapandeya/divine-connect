@@ -11,7 +11,7 @@ interface State {
 }
 
 export class ErrorBoundary extends React.Component<Props, State> {
-  private readonly recoveryStorageKey = 'divine-connect-chunk-recovery';
+  private readonly recoveryStorageKey = 'punyaseva-chunk-recovery';
 
   constructor(props: Props) {
     super(props);
@@ -54,7 +54,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
       const cacheKeys = await caches.keys();
       await Promise.all(
         cacheKeys
-          .filter((key) => key.startsWith('divine-connect-'))
+          .filter((key) => key.startsWith('punyaseva-'))
           .map((key) => caches.delete(key)),
       );
     }
@@ -89,7 +89,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
   render() {
     if (this.state.hasError) {
       const errorMessage =
-        this.state.error?.message || 'Something went wrong while loading the DivineConnect experience.';
+        this.state.error?.message || 'Something went wrong while loading the PunyaSeva experience.';
 
       return (
         <div className="flex min-h-screen items-center justify-center bg-stone-50 px-4 py-10">
@@ -118,3 +118,4 @@ export class ErrorBoundary extends React.Component<Props, State> {
     return this.props.children;
   }
 }
+

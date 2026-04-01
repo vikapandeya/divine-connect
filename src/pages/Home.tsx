@@ -223,7 +223,7 @@ export default function Home() {
       setFeedbackNotice({
         tone: 'success',
         title: translateText(locale, 'Feedback shared'),
-        message: translateText(locale, 'Thank you. Your feedback has been shared with the DivineConnect team.'),
+        message: translateText(locale, 'Thank you. Your feedback has been shared with the PunyaSeva team.'),
       });
       setFormState((previous) => ({
         ...previous,
@@ -383,7 +383,7 @@ export default function Home() {
                 Full yatra booking for Char Dham, Jyotirlinga, and major tirth circuits
               </h2>
               <p className="mt-4 text-sm leading-relaxed text-stone-200">
-                DivineConnect now includes package-based pilgrimage planning with route overview,
+                PunyaSeva now includes package-based pilgrimage planning with route overview,
                 temple-city stays, transport support, and certificate-ready booking history.
               </p>
             </div>
@@ -755,3 +755,4 @@ export default function Home() {
     </div>
   );
 }
+

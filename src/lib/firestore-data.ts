@@ -10,12 +10,12 @@ import type {
 import { getLocale } from './platform';
 
 const STORAGE_KEYS = {
-  products: 'divine-connect-demo-products',
-  pujas: 'divine-connect-demo-pujas',
-  bookings: 'divine-connect-demo-bookings',
-  orders: 'divine-connect-demo-orders',
-  readings: 'divine-connect-demo-readings',
-  feedback: 'divine-connect-demo-feedback',
+  products: 'punyaseva-demo-products',
+  pujas: 'punyaseva-demo-pujas',
+  bookings: 'punyaseva-demo-bookings',
+  orders: 'punyaseva-demo-orders',
+  readings: 'punyaseva-demo-readings',
+  feedback: 'punyaseva-demo-feedback',
 };
 
 const nowIso = () => new Date().toISOString();
@@ -41,7 +41,7 @@ function createSeedProduct(
 }
 
 export const DEMO_CREDENTIALS = {
-  email: 'demo@divineconnect.com',
+  email: 'demo@punyaseva.in',
   password: 'demo1234',
 };
 
@@ -59,7 +59,7 @@ export const DEMO_DEVOTEE_PROFILE: UserProfile = {
 export const DEMO_VENDOR_PROFILE: UserProfile = {
   uid: 'demo-vendor',
   displayName: 'Temple Vendor Demo',
-  email: 'vendor.demo@divineconnect.com',
+  email: 'vendor.demo@punyaseva.in',
   photoURL: 'https://ui-avatars.com/api/?name=Temple+Vendor&background=111827&color=ffffff',
   role: 'vendor',
   phoneNumber: '+91 9123456780',
@@ -70,7 +70,7 @@ export const DEMO_VENDOR_PROFILE: UserProfile = {
 export const DEMO_ADMIN_PROFILE: UserProfile = {
   uid: 'demo-admin',
   displayName: 'Admin Demo',
-  email: 'admin.demo@divineconnect.com',
+  email: 'admin.demo@punyaseva.in',
   photoURL: 'https://ui-avatars.com/api/?name=Admin+Demo&background=0f172a&color=ffffff',
   role: 'admin',
   phoneNumber: '+91 9000000000',
@@ -618,7 +618,7 @@ const defaultPujas: Puja[] = [
     mode: 'hybrid',
     onlineTimings: ['06:30 AM - 08:00 AM', '07:00 PM - 08:30 PM'],
     offlineTimings: ['08:00 AM - 10:00 AM', '05:00 PM - 06:30 PM'],
-    templeName: 'DivineConnect Certified Pandit Seva',
+    templeName: 'PunyaSeva Certified Pandit Seva',
     liveDarshanAvailable: false,
     isActive: true,
     createdAt: nowIso(),
@@ -1268,7 +1268,7 @@ export function generateDemoAstrologyReading(payload: {
         '- गुरुवार को पीले पुष्प या मिठाई अर्पित करें।',
         '- संवेदनशील समय में मौन के बजाय स्पष्ट संवाद रखें।',
         '',
-        'यह DivineConnect के स्थिर डेमो हेतु ब्राउज़र में तैयार किया गया कुंडली मिलान है।',
+        'यह PunyaSeva के स्थिर डेमो हेतु ब्राउज़र में तैयार किया गया कुंडली मिलान है।',
       ].join('\n');
     }
 
@@ -1276,7 +1276,7 @@ export function generateDemoAstrologyReading(payload: {
       return [
         `नमस्ते ${payload.name}।`,
         '',
-        `यह DivineConnect डेमो के लिए ${payload.rashi || 'आपकी राशि'} का राशिफल है।`,
+        `यह PunyaSeva डेमो के लिए ${payload.rashi || 'आपकी राशि'} का राशिफल है।`,
         '',
         'राशि मार्गदर्शन:',
         '- कार्य: लंबित काम पूरा करके आगे बढ़ना लाभकारी रहेगा।',
@@ -1286,7 +1286,7 @@ export function generateDemoAstrologyReading(payload: {
         '',
         `विशेष संकेत: ${focus} में प्रगति अनुशासन और साधना से बढ़ेगी।`,
         '',
-        'यह DivineConnect के स्थिर डेमो हेतु स्थानीय रूप से तैयार किया गया राशिफल है।',
+        'यह PunyaSeva के स्थिर डेमो हेतु स्थानीय रूप से तैयार किया गया राशिफल है।',
       ].join('\n');
     }
 
@@ -1307,7 +1307,7 @@ export function generateDemoAstrologyReading(payload: {
       '- स्पष्टता के लिए छोटा दैनिक मंत्र जप रखें।',
       '- गणेश पूजा या लक्ष्मी पूजा बुक करना शुभ रहेगा।',
       '',
-      'यह DivineConnect के डेमो संस्करण के लिए स्थानीय रूप से तैयार की गई रीडिंग है।',
+      'यह PunyaSeva के डेमो संस्करण के लिए स्थानीय रूप से तैयार की गई रीडिंग है।',
     ].join('\n');
   }
 
@@ -1328,7 +1328,7 @@ export function generateDemoAstrologyReading(payload: {
         '- गुरुवासरे पीतपुष्पाणि वा मिष्टान्नम् अर्पयत।',
         '- सूक्ष्मकालेषु मौनस्य स्थाने स्पष्ट-संवादः श्रेयस्करः।',
         '',
-        'अयं DivineConnect-प्रदर्शनाय स्थानीय-निर्मितः कुण्डली-मेलन-लेखः।',
+        'अयं PunyaSeva-प्रदर्शनाय स्थानीय-निर्मितः कुण्डली-मेलन-लेखः।',
       ].join('\n');
     }
 
@@ -1336,7 +1336,7 @@ export function generateDemoAstrologyReading(payload: {
       return [
         `नमस्ते ${payload.name}।`,
         '',
-        `अयं DivineConnect-प्रदर्शनार्थं ${payload.rashi || 'भवतः राशेः'} राशिफलम्।`,
+        `अयं PunyaSeva-प्रदर्शनार्थं ${payload.rashi || 'भवतः राशेः'} राशिफलम्।`,
         '',
         'राशि-मार्गदर्शनम्:',
         '- कार्ये: आरब्धात् पूर्वं लंबितकार्यसमापनं हितकरम्।',
@@ -1346,7 +1346,7 @@ export function generateDemoAstrologyReading(payload: {
         '',
         `विशेष-सूचना: ${focus} विषये अनुशासन-साधनाभ्यां प्रगतिरेव।`,
         '',
-        'अयं DivineConnect-स्थिर-प्रदर्शनार्थं स्थानीय-राशिफल-निर्माणम्।',
+        'अयं PunyaSeva-स्थिर-प्रदर्शनार्थं स्थानीय-राशिफल-निर्माणम्।',
       ].join('\n');
     }
 
@@ -1367,7 +1367,7 @@ export function generateDemoAstrologyReading(payload: {
       '- स्पष्टतायै लघु-दैनिक-मन्त्रजपः कुर्यात्।',
       '- गणेश-पूजां वा लक्ष्मी-पूजां आरक्षतु।',
       '',
-      'अयं DivineConnect-प्रदर्शन-रूपाय स्थानीयरूपेण निर्मितः पाठः।',
+      'अयं PunyaSeva-प्रदर्शन-रूपाय स्थानीयरूपेण निर्मितः पाठः।',
     ].join('\n');
   }
 
@@ -1392,7 +1392,7 @@ export function generateDemoAstrologyReading(payload: {
       '- Offer yellow sweets or flowers on Thursdays for grace and understanding.',
       '- Choose open communication over silence during sensitive phases.',
       '',
-      'This is a locally generated demo Kundali Match for the static DivineConnect showcase.',
+      'This is a locally generated demo Kundali Match for the static PunyaSeva showcase.',
     ].join('\n');
   }
 
@@ -1400,7 +1400,7 @@ export function generateDemoAstrologyReading(payload: {
     return [
       `Namaste ${payload.name}.`,
       '',
-      `Here is your demo Rashi Phal for ${payload.rashi || 'your sign'}, generated for the DivineConnect static showcase.`,
+      `Here is your demo Rashi Phal for ${payload.rashi || 'your sign'}, generated for the PunyaSeva static showcase.`,
       '',
       'Rashi guidance:',
       '- Career: steady progress is supported when you complete pending work before starting something new.',
@@ -1415,7 +1415,7 @@ export function generateDemoAstrologyReading(payload: {
       '',
       `Special note for ${payload.rashi || 'this rashi'}: ${focus.charAt(0).toUpperCase()}${focus.slice(1)} improves when you stay disciplined and spiritually grounded.`,
       '',
-      'This is a locally generated demo Rashi Phal for the static DivineConnect showcase.',
+      'This is a locally generated demo Rashi Phal for the static PunyaSeva showcase.',
     ].join('\n');
   }
 
@@ -1436,7 +1436,7 @@ export function generateDemoAstrologyReading(payload: {
     '- Chant a short daily mantra for clarity and grounding.',
     '- Consider booking a Ganesh Puja or Lakshmi Puja for momentum and blessings.',
     '',
-    'This is a demo reading created locally for the static showcase version of DivineConnect.',
+    'This is a demo reading created locally for the static showcase version of PunyaSeva.',
   ].join('\n');
 }
 
@@ -1462,7 +1462,7 @@ export function generateDemoSupportReply(messages: Array<{ role: 'user' | 'assis
       return `इस डेमो में साइन-इन आवश्यक नहीं है। यदि आप नमूना क्रेडेंशियल चाहते हैं, तो ${DEMO_CREDENTIALS.email} / ${DEMO_CREDENTIALS.password} उपयोग करें।`;
     }
 
-    return 'यह स्थिर DivineConnect डेमो पूरी तरह ब्राउज़र में स्थानीय डेमो डेटा के साथ चलता है। आप बिना साइन-इन के बुकिंग, कार्ट, चेकआउट, रसीद, ज्योतिष, विक्रेता और एडमिन प्रवाह देख सकते हैं।';
+    return 'यह स्थिर PunyaSeva डेमो पूरी तरह ब्राउज़र में स्थानीय डेमो डेटा के साथ चलता है। आप बिना साइन-इन के बुकिंग, कार्ट, चेकआउट, रसीद, ज्योतिष, विक्रेता और एडमिन प्रवाह देख सकते हैं।';
   }
 
   if (locale === 'sa') {
@@ -1482,7 +1482,7 @@ export function generateDemoSupportReply(messages: Array<{ role: 'user' | 'assis
       return `अस्मिन् प्रदर्शनरूपे प्रवेशः न अपेक्षितः। यदि उदाहरण-प्रवेश-विवरणं इच्छथ, ${DEMO_CREDENTIALS.email} / ${DEMO_CREDENTIALS.password} उपयोगयत।`;
     }
 
-    return 'अयं DivineConnect-प्रदर्शनः पूर्णतया ब्राउजरमध्ये स्थानीय-दत्तांशेन चलति। भवन्तः आरक्षणम्, कार्ट्, समापनम्, रसीदाः, ज्योतिषम्, विक्रेता-प्रवाहम्, प्रशासक-प्रवाहम् च अनाहत्य अवलोकयितुं शक्नुवन्ति।';
+    return 'अयं PunyaSeva-प्रदर्शनः पूर्णतया ब्राउजरमध्ये स्थानीय-दत्तांशेन चलति। भवन्तः आरक्षणम्, कार्ट्, समापनम्, रसीदाः, ज्योतिषम्, विक्रेता-प्रवाहम्, प्रशासक-प्रवाहम् च अनाहत्य अवलोकयितुं शक्नुवन्ति।';
   }
 
   if (latestUserMessage.includes('book') || latestUserMessage.includes('puja')) {
@@ -1501,5 +1501,6 @@ export function generateDemoSupportReply(messages: Array<{ role: 'user' | 'assis
     return `This demo no longer requires sign-in. If you still want sample credentials, use ${DEMO_CREDENTIALS.email} / ${DEMO_CREDENTIALS.password}.`;
   }
 
-  return 'This static DivineConnect demo runs fully in the browser with local demo data. You can explore booking, cart, checkout, receipts, astrology, vendor, and admin flows without sign-in.';
+  return 'This static PunyaSeva demo runs fully in the browser with local demo data. You can explore booking, cart, checkout, receipts, astrology, vendor, and admin flows without sign-in.';
 }
+

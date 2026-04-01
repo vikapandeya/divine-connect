@@ -102,8 +102,8 @@ function getOrderCertificateCopy(order: Order) {
     ? 'Product purchase verification'
     : 'Multi-item purchase verification';
   const summary = hasSingleItem && primaryItem
-    ? `This certificate confirms that ${primaryItem.name} was purchased through DivineConnect and recorded with payment details in your order history.`
-    : 'This certificate confirms that the listed sacred products were purchased through DivineConnect and recorded with payment details in your order history.';
+    ? `This certificate confirms that ${primaryItem.name} was purchased through PunyaSeva and recorded with payment details in your order history.`
+    : 'This certificate confirms that the listed sacred products were purchased through PunyaSeva and recorded with payment details in your order history.';
 
   return {
     title,
@@ -220,7 +220,7 @@ function buildCertificatePage(options: {
       type: 'text',
       x: 60,
       y: textYFromTop(62),
-      text: 'DivineConnect',
+      text: 'PunyaSeva',
       size: 14,
       bold: true,
       color: theme.panel,
@@ -316,7 +316,7 @@ function buildCertificatePage(options: {
   while (cards.length < 4) {
     cards.push({
       title: 'Information',
-      rows: [{ label: 'Status', value: 'Available in your DivineConnect profile' }],
+      rows: [{ label: 'Status', value: 'Available in your PunyaSeva profile' }],
     });
   }
 
@@ -386,7 +386,7 @@ function buildCertificatePage(options: {
       type: 'text',
       x: 382,
       y: 82,
-      text: 'DivineConnect Records',
+      text: 'PunyaSeva Records',
       size: 9,
       bold: true,
       color: theme.muted,
@@ -454,7 +454,7 @@ function buildInvitationPage(
       type: 'text',
       x: 60,
       y: textYFromTop(66),
-      text: 'DivineConnect',
+      text: 'PunyaSeva',
       size: 14,
       bold: true,
       color: [1, 0.986, 0.955],
@@ -655,7 +655,7 @@ function buildInvitationPage(
       type: 'text',
       x: 74,
       y: 86,
-      text: 'Presented with care by DivineConnect',
+      text: 'Presented with care by PunyaSeva',
       size: 10,
       bold: true,
       color: theme.muted,
@@ -694,8 +694,8 @@ export function downloadBookingCertificate(booking: Booking, profile: UserProfil
         : 'Verified yatra reservation';
   const certificateSummary =
     booking.type === 'yatra'
-      ? 'This digital certificate confirms that the selected pilgrimage package has been successfully reserved through DivineConnect and saved in your travel history.'
-      : 'This digital certificate confirms that the requested sacred service has been successfully reserved through DivineConnect and recorded in your activity history.';
+      ? 'This digital certificate confirms that the selected pilgrimage package has been successfully reserved through PunyaSeva and saved in your travel history.'
+      : 'This digital certificate confirms that the requested sacred service has been successfully reserved through PunyaSeva and recorded in your activity history.';
   const certificateId = buildCertificateId(
     bookingPrefix,
     booking.bookingReference || booking.id,
@@ -741,7 +741,7 @@ export function downloadBookingCertificate(booking: Booking, profile: UserProfil
       },
     ],
     footerNote:
-      'Keep this certificate for support follow-up, service check-in, and future reference inside your DivineConnect profile.',
+      'Keep this certificate for support follow-up, service check-in, and future reference inside your PunyaSeva profile.',
     footerLabel: 'Digital certificate',
     theme: {
       background: [0.988, 0.969, 0.937],
@@ -776,7 +776,7 @@ export function downloadOrderCertificate(order: Order) {
     subtitle: certificateCopy.subtitle,
     documentId: certificateId,
     recipientLabel: 'Issued To',
-    recipient: order.customerDetails?.fullName || 'DivineConnect Customer',
+    recipient: order.customerDetails?.fullName || 'PunyaSeva Customer',
     summary: certificateCopy.summary,
     cards: [
       {
@@ -805,7 +805,7 @@ export function downloadOrderCertificate(order: Order) {
             value:
               certificateCopy.primaryItem?.templeName ||
               certificateCopy.primaryItem?.category ||
-              'DivineConnect marketplace selection',
+              'PunyaSeva marketplace selection',
           },
           { label: 'Total Amount', value: `Rs. ${formatIndianRupees(order.totalAmount)}` },
         ],
@@ -851,7 +851,7 @@ export function downloadKundaliCertificate(reading: AstrologyReading) {
     recipientLabel: 'Primary Profile',
     recipient: reading.name,
     summary:
-      'This certificate confirms that a compatibility reading was generated in the DivineConnect Kundali Match experience and stored as a devotional reference.',
+      'This certificate confirms that a compatibility reading was generated in the PunyaSeva Kundali Match experience and stored as a devotional reference.',
     cards: [
       {
         title: 'Primary Details',
@@ -878,12 +878,12 @@ export function downloadKundaliCertificate(reading: AstrologyReading) {
         title: 'Use Case',
         rows: [
           { label: 'Document Type', value: 'Digital compatibility certificate' },
-          { label: 'Storage', value: 'Saved inside the DivineConnect astrology profile' },
+          { label: 'Storage', value: 'Saved inside the PunyaSeva astrology profile' },
         ],
       },
     ],
     footerNote:
-      'This certificate is intended for personal reference and devotional recordkeeping inside the DivineConnect experience.',
+      'This certificate is intended for personal reference and devotional recordkeeping inside the PunyaSeva experience.',
     footerLabel: 'Astrology certificate',
     theme: {
       background: [0.969, 0.96, 0.988],
@@ -896,3 +896,4 @@ export function downloadKundaliCertificate(reading: AstrologyReading) {
     },
   });
 }
+

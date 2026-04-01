@@ -84,13 +84,13 @@ export type LiveSessionInfo = {
 };
 
 const STORAGE_KEYS = {
-  locale: 'divine-connect-locale',
-  wishlist: 'divine-connect-wishlist',
+  locale: 'punyaseva-locale',
+  wishlist: 'punyaseva-wishlist',
 };
 
 const EVENTS = {
-  locale: 'divine-connect-locale-updated',
-  wishlist: 'divine-connect-wishlist-updated',
+  locale: 'punyaseva-locale-updated',
+  wishlist: 'punyaseva-wishlist-updated',
 };
 
 const localeCopy = {
@@ -427,7 +427,7 @@ export function getLiveSessionInfo(serviceTitle: string): LiveSessionInfo {
     provider: serviceTitle.toLowerCase().includes('darshan') ? 'Zoom SDK Demo' : 'Jitsi Demo Room',
     roomCode: `${slug}-2026`,
     joinWindow: 'Join link opens 15 minutes before the ritual starts',
-    host: 'Certified DivineConnect Host',
+    host: 'Certified PunyaSeva Host',
     streamType: 'One-click livestream placeholder for online seva participation',
   };
 }
@@ -661,3 +661,4 @@ export function getPwaReadinessSummary() {
     manifestVersion: '2026.03 hardcoded demo',
   };
 }
+

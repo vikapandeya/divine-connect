@@ -358,7 +358,7 @@ export default function VendorDashboard() {
             <div>
               <p className="text-sm font-bold text-stone-900">Commission logic</p>
               <p className="mt-1 text-sm text-stone-600">
-                DivineConnect keeps a hardcoded {Math.round(financeSnapshot.commissionRate * 100)}% platform fee before vendor payout settlement.
+                PunyaSeva keeps a hardcoded {Math.round(financeSnapshot.commissionRate * 100)}% platform fee before vendor payout settlement.
               </p>
             </div>
             <button type="button" className="rounded-full bg-stone-900 px-5 py-3 text-sm font-bold text-white hover:bg-orange-500">
@@ -708,7 +708,7 @@ export default function VendorDashboard() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2">
                         <label className="text-xs font-bold text-stone-400 uppercase">Temple / Service Area</label>
-                        <input type="text" value={pujaForm.templeName} onChange={e => setPujaForm({...pujaForm, templeName: e.target.value})} className="w-full px-4 py-3 bg-stone-50 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500" placeholder="e.g. DivineConnect Certified Pandit Seva" />
+                        <input type="text" value={pujaForm.templeName} onChange={e => setPujaForm({...pujaForm, templeName: e.target.value})} className="w-full px-4 py-3 bg-stone-50 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500" placeholder="e.g. PunyaSeva Certified Pandit Seva" />
                       </div>
                       <div className="space-y-2">
                         <label className="text-xs font-bold text-stone-400 uppercase">Mode</label>
@@ -757,3 +757,4 @@ export default function VendorDashboard() {
     </div>
   );
 }
+

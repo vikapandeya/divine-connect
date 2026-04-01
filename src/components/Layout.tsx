@@ -164,11 +164,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <div className="flex h-20 items-center gap-3 xl:grid xl:grid-cols-[minmax(188px,212px)_minmax(0,1fr)_auto] xl:gap-3 2xl:grid-cols-[minmax(212px,248px)_minmax(0,1fr)_auto] 2xl:gap-4">
               <Link to="/" className="flex min-w-0 items-center gap-3 overflow-hidden xl:max-w-[212px] 2xl:max-w-[248px]">
                 <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-orange-50 ring-1 ring-orange-100">
-                  <img src={logoMark} alt="DivineConnect logo" className="h-8 w-8" />
+                  <img src={logoMark} alt="PunyaSeva logo" className="h-8 w-8" />
                 </div>
                 <div className="min-w-0">
                   <p className="truncate text-base font-serif font-bold tracking-tight text-stone-900 2xl:text-xl">
-                    DivineConnect
+                    PunyaSeva
                   </p>
                   <p className="hidden text-xs text-stone-500 2xl:block">
                     {translateText(locale, 'Sacred services with modern clarity')}
@@ -472,10 +472,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <div>
               <div className="flex items-center gap-3">
                 <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10">
-                  <img src={logoMark} alt="DivineConnect logo" className="h-8 w-8" />
+                  <img src={logoMark} alt="PunyaSeva logo" className="h-8 w-8" />
                 </div>
                 <div>
-                  <p className="text-xl font-serif font-bold text-white">DivineConnect</p>
+                  <p className="text-xl font-serif font-bold text-white">PunyaSeva</p>
                   <p className="text-sm text-stone-400">{translateText(locale, 'Sacred services with modern clarity')}</p>
                 </div>
               </div>
@@ -527,8 +527,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 {translateText(locale, 'Reach Us')}
               </p>
               <div className="mt-5 space-y-3 text-sm text-stone-300">
-                <p>support@divineconnect.com</p>
-                <p>+91 1800-DIVINE-00</p>
+                <p>support@punyaseva.in</p>
+                <p>+91 1800-786-9272</p>
                 <p>Varanasi, Uttar Pradesh, India</p>
                 <p>{translateText(locale, 'Monday to Saturday, 9:00 AM to 7:00 PM IST')}</p>
               </div>
@@ -542,7 +542,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </div>
 
           <div className="mt-10 border-t border-white/10 pt-6 text-xs text-stone-500 sm:flex sm:items-center sm:justify-between">
-            <p>&copy; 2026 DivineConnect. {translateText(locale, 'All spiritual rights reserved.')}</p>
+            <p>&copy; 2026 PunyaSeva. {translateText(locale, 'All spiritual rights reserved.')}</p>
             <p className="mt-2 sm:mt-0">{translateText(locale, 'Designed for a calm, guided, and trustworthy devotional journey.')}</p>
           </div>
         </div>
@@ -550,3 +550,4 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
+

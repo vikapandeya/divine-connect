@@ -170,7 +170,7 @@ export default function YatraBooking() {
       <PageHero
         eyebrow={translateText(locale, 'Pilgrimage Packages')}
         title={translateText(locale, 'Book full yatra packages for Char Dham, Jyotirlinga circuits, and major tirth sthals.')}
-        description={translateText(locale, 'This new feature brings complete pilgrimage planning into DivineConnect with curated routes, temple-city stays, meal coverage, transfers, and a simpler booking flow for devotees and families.')}
+        description={translateText(locale, 'This new feature brings complete pilgrimage planning into PunyaSeva with curated routes, temple-city stays, meal coverage, transfers, and a simpler booking flow for devotees and families.')}
         stats={[
           { label: 'Package Types', value: 'Char Dham, Jyotirlinga, Tirth' },
           { label: 'Booking Model', value: 'Full Package' },
@@ -502,3 +502,4 @@ export default function YatraBooking() {
     </div>
   );
 }
+

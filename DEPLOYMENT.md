@@ -1,6 +1,6 @@
-# DivineConnect Firebase Deployment
+# PunyaSeva Firebase Deployment
 
-DivineConnect now uses:
+PunyaSeva now uses:
 
 - Firestore for app data
 - Firebase Authentication for sign-in and password reset
@@ -32,7 +32,8 @@ Default products and pujas are seeded automatically by the backend.
    - `Email/Password`
    - `Google`
 4. In Firebase Authentication > Settings > Authorized domains, add:
-   - `vikapandeya.github.io`
+   - `punyaseva.in`
+   - `www.punyaseva.in`
    - `localhost`
 5. Set the Gemini secret:
 

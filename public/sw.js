@@ -1,6 +1,6 @@
 const CACHE_VERSION = '2026-03-23-v2';
-const CACHE_NAME = `divine-connect-runtime-${CACHE_VERSION}`;
-const CACHE_PREFIX = 'divine-connect-runtime-';
+const CACHE_NAME = `punyaseva-runtime-${CACHE_VERSION}`;
+const CACHE_PREFIX = 'punyaseva-runtime-';
 const APP_SCOPE_URL = new URL(self.registration.scope);
 const APP_ORIGIN = APP_SCOPE_URL.origin;
 const APP_BASE_PATH = APP_SCOPE_URL.pathname.endsWith('/')

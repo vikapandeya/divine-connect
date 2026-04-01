@@ -18,15 +18,15 @@ const contactCards = [
   {
     title: 'Email Support',
     description: 'Reach us for bookings, order help, or partnership questions.',
-    value: 'support@divineconnect.com',
-    href: 'mailto:support@divineconnect.com',
+    value: 'support@punyaseva.in',
+    href: 'mailto:support@punyaseva.in',
     icon: Mail,
   },
   {
     title: 'Call Us',
     description: 'Speak with the team for puja bookings and service guidance.',
-    value: '+91 1800-DIVINE-00',
-    href: 'tel:+91180034846300',
+    value: '+91 1800-786-9272',
+    href: 'tel:+9118007869272',
     icon: Phone,
   },
   {
@@ -56,7 +56,7 @@ export default function Contact() {
       role: 'assistant',
       content: translateText(
         locale,
-        'Namaste. I am DivineConnect AI Support. I can help with bookings, orders, account access, and vendor onboarding.',
+        'Namaste. I am PunyaSeva AI Support. I can help with bookings, orders, account access, and vendor onboarding.',
       ),
     },
   ]);
@@ -94,7 +94,7 @@ export default function Contact() {
   return (
     <div className="mx-auto max-w-7xl space-y-10 px-4 py-12 sm:px-6 lg:px-8">
       <PageHero
-      eyebrow={translateText(locale, 'Contact DivineConnect')}
+      eyebrow={translateText(locale, 'Contact PunyaSeva')}
       title={translateText(locale, 'Get support for bookings, products, account questions, and spiritual guidance.')}
       description={translateText(locale, 'This support experience is designed to feel immediate and calm, with direct contact options and a built-in AI assistant for quick answers.')}
       stats={[
@@ -205,7 +205,7 @@ export default function Contact() {
               {isSending && (
                 <div className="flex justify-start">
                   <div className="rounded-[1.5rem] px-4 py-3 text-sm bg-white text-stone-500 border border-stone-200">
-                    {translateText(locale, 'DivineConnect AI is typing...')}
+                    {translateText(locale, 'PunyaSeva AI is typing...')}
                   </div>
                 </div>
               )}
@@ -276,3 +276,4 @@ export default function Contact() {
     </div>
   );
 }
+

@@ -478,7 +478,7 @@ export default function SpiritualKnowledge() {
                 Turn learning into a guided devotional journey
               </h2>
               <p className="mt-4 text-sm leading-relaxed text-stone-300">
-                Use this knowledge hub with the rest of DivineConnect. Read first, then move into
+                Use this knowledge hub with the rest of PunyaSeva. Read first, then move into
                 puja booking, temple products, darshan support, or yatra planning with better
                 confidence and context.
               </p>
@@ -503,3 +503,4 @@ export default function SpiritualKnowledge() {
     </div>
   );
 }
+

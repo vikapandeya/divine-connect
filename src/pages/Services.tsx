@@ -48,7 +48,7 @@ export default function Services() {
             duration: '1.5 Hours',
             samagriIncluded: true,
             mode: 'hybrid',
-            templeName: 'DivineConnect Certified Pandit Seva',
+            templeName: 'PunyaSeva Certified Pandit Seva',
             onlineTimings: ['06:30 AM - 08:00 AM', '07:00 PM - 08:30 PM'],
             offlineTimings: ['08:00 AM - 10:00 AM', '05:00 PM - 06:30 PM'],
             liveDarshanAvailable: false,
@@ -348,3 +348,4 @@ export default function Services() {
     </div>
   );
 }
+

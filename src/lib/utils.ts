@@ -40,7 +40,7 @@ export function getProductPlaceholderImage(
   const [start, end] = getProductGradient(category);
   const safeName = name.replace(/[&<>]/g, '');
   const safeCategory = category.replace(/[&<>]/g, '');
-  const safeDetail = (detail || 'DivineConnect Demo').replace(/[&<>]/g, '');
+  const safeDetail = (detail || 'PunyaSeva Demo').replace(/[&<>]/g, '');
   const svg = `
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800">
       <defs>
@@ -53,7 +53,7 @@ export function getProductPlaceholderImage(
       <circle cx="640" cy="160" r="120" fill="rgba(255,255,255,0.14)" />
       <circle cx="150" cy="650" r="150" fill="rgba(255,255,255,0.1)" />
       <rect x="72" y="88" width="656" height="624" rx="36" fill="rgba(255,255,255,0.18)" stroke="rgba(255,255,255,0.35)" />
-      <text x="110" y="170" fill="white" font-size="28" font-family="Georgia, serif" opacity="0.92" letter-spacing="6">DIVINECONNECT</text>
+      <text x="110" y="170" fill="white" font-size="28" font-family="Georgia, serif" opacity="0.92" letter-spacing="6">PUNYASEVA</text>
       <text x="110" y="260" fill="white" font-size="34" font-family="Arial, sans-serif" font-weight="700" opacity="0.95">${safeCategory.toUpperCase()}</text>
       <text x="110" y="360" fill="white" font-size="52" font-family="Georgia, serif" font-weight="700">${safeName}</text>
       <text x="110" y="430" fill="white" font-size="26" font-family="Arial, sans-serif" opacity="0.9">${safeDetail}</text>
@@ -86,7 +86,7 @@ export function getYatraPlaceholderImage(
       <path d="M0 620 C180 500, 300 520, 460 420 C620 320, 790 360, 980 270 C1130 200, 1260 250, 1400 180 L1400 900 L0 900 Z" fill="rgba(255,255,255,0.12)" />
       <path d="M0 720 C210 610, 380 650, 560 560 C760 460, 980 520, 1400 360 L1400 900 L0 900 Z" fill="rgba(255,255,255,0.18)" />
       <rect x="84" y="84" width="1232" height="732" rx="42" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.28)" />
-      <text x="140" y="170" fill="white" font-size="34" font-family="Arial, sans-serif" letter-spacing="8" opacity="0.92">DIVINECONNECT YATRA</text>
+      <text x="140" y="170" fill="white" font-size="34" font-family="Arial, sans-serif" letter-spacing="8" opacity="0.92">PUNYASEVA YATRA</text>
       <text x="140" y="280" fill="white" font-size="32" font-family="Arial, sans-serif" font-weight="700" opacity="0.9">${safeType.toUpperCase()}</text>
       <text x="140" y="390" fill="white" font-size="64" font-family="Georgia, serif" font-weight="700">${safeTitle}</text>
       <text x="140" y="470" fill="white" font-size="30" font-family="Arial, sans-serif" opacity="0.9">${safeDetail}</text>
@@ -97,3 +97,4 @@ export function getYatraPlaceholderImage(
 
   return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
 }
+

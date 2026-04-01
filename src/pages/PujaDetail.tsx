@@ -37,7 +37,7 @@ const fallbackPujas: Record<string, Puja> = {
     mode: 'hybrid',
     onlineTimings: ['06:30 AM - 08:00 AM', '07:00 PM - 08:30 PM'],
     offlineTimings: ['08:00 AM - 10:00 AM', '05:00 PM - 06:30 PM'],
-    templeName: 'DivineConnect Certified Pandit Seva',
+    templeName: 'PunyaSeva Certified Pandit Seva',
     liveDarshanAvailable: false,
   },
   'puja-satyanarayan': {
@@ -704,7 +704,7 @@ export default function PujaDetail() {
                 </div>
               )}
               <p className="text-center text-xs text-stone-400 mt-4">
-                Secure booking powered by DivineConnect. Offline bookings may include a location-based travel coordination charge after availability is checked.
+                Secure booking powered by PunyaSeva. Offline bookings may include a location-based travel coordination charge after availability is checked.
               </p>
             </div>
           </div>
@@ -713,3 +713,4 @@ export default function PujaDetail() {
     </div>
   );
 }
+

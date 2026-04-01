@@ -1,8 +1,8 @@
-# DivineConnect Architecture
+# PunyaSeva Architecture
 
 ## 1. Executive Summary
 
-DivineConnect is a spiritual services and devotional commerce platform that combines:
+PunyaSeva is a spiritual services and devotional commerce platform that combines:
 
 - Puja booking
 - Darshan support
@@ -121,7 +121,7 @@ It is not a microservices architecture.
 ## 5. Repository Structure
 
 ```text
-divine-connect/
+punyaseva/
   src/
     components/
     pages/
@@ -919,8 +919,8 @@ There are two build targets in `vite.config.ts` and `package.json`:
 
 The app uses different `base` paths depending on build mode:
 
-- `/divine-connect/`
-- `/divine-connect/docs/`
+- `/`
+- `/docs/` (Pages build output when using the docs target)
 
 This is important for route and asset resolution.
 
@@ -1103,7 +1103,7 @@ Missing layers:
 
 ## 21. Final Architectural Assessment
 
-DivineConnect already has a strong product shell and a surprisingly rich experiential layer:
+PunyaSeva already has a strong product shell and a surprisingly rich experiential layer:
 
 - polished responsive UI
 - coherent product architecture

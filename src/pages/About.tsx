@@ -57,14 +57,14 @@ const developers = [
     role: 'Product Builder & Full-Stack Developer',
     image: 'https://github.com/vikapandeya.png',
     github: 'https://github.com/vikapandeya',
-    bio: 'Focused on turning DivineConnect into a polished, trustworthy spiritual platform with strong UX, practical demo flows, and clear product thinking.',
+    bio: 'Focused on turning PunyaSeva into a polished, trustworthy spiritual platform with strong UX, practical demo flows, and clear product thinking.',
   },
   {
     name: 'Gautam Pince',
     role: 'Developer & Technical Collaborator',
     image: 'https://github.com/gautampince.png',
     github: 'https://github.com/gautampince',
-    bio: 'Contributed to shaping the engineering foundation and helping bring the original DivineConnect experience to life with practical implementation support.',
+    bio: 'Contributed to shaping the engineering foundation and helping bring the original PunyaSeva experience to life with practical implementation support.',
   },
 ];
 
@@ -78,7 +78,7 @@ export default function About() {
           tone="stone"
           eyebrow={translateText(locale, 'Our Mission')}
           title={translateText(locale, 'Bridging the Divine and the Digital with more clarity, warmth, and trust.')}
-          description={translateText(locale, 'DivineConnect is built to make spiritual services more accessible, organized, and reassuring for devotees everywhere while preserving the emotional warmth of tradition.')}
+          description={translateText(locale, 'PunyaSeva is built to make spiritual services more accessible, organized, and reassuring for devotees everywhere while preserving the emotional warmth of tradition.')}
           stats={[
             { label: translateText(locale, 'Primary Focus'), value: translateText(locale, 'Trust & Clarity') },
             { label: translateText(locale, 'Platform Pillars'), value: translateText(locale, '3 Core Areas') },
@@ -121,13 +121,13 @@ export default function About() {
           <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] gap-10 items-start">
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.3em] text-orange-500 mb-4">
-                {translateText(locale, 'What DivineConnect Is Building')}
+                {translateText(locale, 'What PunyaSeva Is Building')}
               </p>
               <h2 className="text-3xl md:text-4xl font-serif font-bold text-stone-900 mb-6">
                 {translateText(locale, 'A modern spiritual platform that feels helpful, not complicated.')}
               </h2>
               <p className="text-stone-600 leading-relaxed mb-6">
-                {translateText(locale, 'We want DivineConnect to become a dependable place where devotees can book services, discover products, get guided support, and stay connected to spiritual practices from anywhere.')}
+                {translateText(locale, 'We want PunyaSeva to become a dependable place where devotees can book services, discover products, get guided support, and stay connected to spiritual practices from anywhere.')}
               </p>
               <p className="text-stone-600 leading-relaxed">
                 {translateText(locale, 'Our focus is simple: reduce confusion, improve trust, and make spiritual access feel more organized for families, first-time users, and returning devotees alike.')}
@@ -166,7 +166,7 @@ export default function About() {
                   {translateText(locale, 'Meet the Developer Team')}
                 </p>
                 <h2 className="text-3xl md:text-4xl font-serif font-bold">
-                  {translateText(locale, 'The people shaping DivineConnect')}
+                  {translateText(locale, 'The people shaping PunyaSeva')}
                 </h2>
               </div>
               <Link
@@ -225,7 +225,7 @@ export default function About() {
               {translateText(locale, 'Why devotees can trust the platform')}
             </h3>
             <p className="text-stone-600 leading-relaxed">
-              {translateText(locale, 'DivineConnect is designed around clear flows, visible pricing, temple-linked offerings, and service records that stay accessible after booking or ordering. The goal is to make sacred services feel respectful, transparent, and dependable.')}
+              {translateText(locale, 'PunyaSeva is designed around clear flows, visible pricing, temple-linked offerings, and service records that stay accessible after booking or ordering. The goal is to make sacred services feel respectful, transparent, and dependable.')}
             </p>
           </div>
           <div className="bg-white border border-stone-200 rounded-[2rem] p-8">
@@ -241,3 +241,4 @@ export default function About() {
     </div>
   );
 }
+

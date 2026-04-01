@@ -8,7 +8,7 @@ export default defineConfig(({ mode }) => {
   const isPagesBuild = mode === 'pages';
 
   return {
-    base: isPagesBuild ? '/divine-connect/docs/' : '/divine-connect/',
+    base: '/',
     build: {
       outDir: isPagesBuild ? 'docs' : 'dist',
       emptyOutDir: true,

@@ -175,7 +175,7 @@ export default function Profile() {
     <div className="mx-auto max-w-7xl space-y-10 px-4 py-12 sm:px-6 lg:px-8">
       <PageHero
         tone="stone"
-        eyebrow={translateText(locale, 'My DivineConnect')}
+        eyebrow={translateText(locale, 'My PunyaSeva')}
         title={translateText(locale, 'A clearer account space for bookings, orders, certificates, and spiritual history.')}
         description={translateText(locale, 'This profile area is organized to reduce switching friction between service records, invoices, astrology outputs, and personal account details.')}
         stats={[
@@ -957,3 +957,4 @@ export default function Profile() {
     </div>
   );
 }
+

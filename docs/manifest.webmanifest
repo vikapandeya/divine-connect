@@ -1,7 +1,7 @@
 {
-  "name": "DivineConnect Spiritual Marketplace",
-  "short_name": "DivineConnect",
-  "description": "Hardcoded demo of a spiritual marketplace with puja booking, darshan support, prasad delivery, and astrology.",
+  "name": "PunyaSeva Spiritual Marketplace",
+  "short_name": "PunyaSeva",
+  "description": "PunyaSeva is a spiritual marketplace for puja booking, darshan support, prasad delivery, and astrology.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#f8f5f0",
