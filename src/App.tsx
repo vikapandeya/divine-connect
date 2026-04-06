@@ -1,5 +1,5 @@
 import React, { Suspense, lazy } from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, HashRouter, Route, Routes } from 'react-router-dom';
 import { Compass, Sparkles } from 'lucide-react';
 import Layout from './components/Layout';
 import ScrollToTop from './components/ScrollToTop';
@@ -48,6 +48,8 @@ function PageLoader() {
 }
 
 export default function App() {
+  const Router = import.meta.env.MODE === 'pages' ? HashRouter : BrowserRouter;
+
   return (
     <ErrorBoundary>
       <Router basename={import.meta.env.BASE_URL}>
