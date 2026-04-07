@@ -9,6 +9,19 @@
     <title>PunyaSeva</title>
     <script>
       (function () {
+        const base = '/divine-connect';
+        const docsBase = '/divine-connect/docs/';
+        const path = window.location.pathname.replace(new RegExp(`^${base}`), '') || '/';
+
+        if (window.location.pathname === base || window.location.pathname === base + '/') {
+          window.location.replace(docsBase);
+        } else if (window.location.pathname.startsWith(base + '/')) {
+          window.location.replace(docsBase + '#' + path + window.location.search + window.location.hash);
+        }
+      })();
+    </script>
+    <script>
+      (function () {
         if (!('serviceWorker' in navigator)) {
           return;
         }
