@@ -11,6 +11,10 @@
       (function () {
         const base = '/divine-connect';
         const docsBase = '/divine-connect/docs/';
+
+        // Already inside the SPA — do not redirect
+        if (window.location.pathname.startsWith(docsBase)) return;
+
         const path = window.location.pathname.replace(new RegExp(`^${base}`), '') || '/';
 
         if (window.location.pathname === base || window.location.pathname === base + '/') {
