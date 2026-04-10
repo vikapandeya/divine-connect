@@ -9,6 +9,19 @@
     <title>PunyaSeva</title>
     <script>
       (function () {
+        const base = '/divine-connect';
+        const docsBase = '/divine-connect/docs/';
+        const path = window.location.pathname.replace(new RegExp(`^${base}`), '') || '/';
+
+        if (window.location.pathname === base || window.location.pathname === base + '/') {
+          window.location.replace(docsBase);
+        } else if (window.location.pathname.startsWith(base + '/')) {
+          window.location.replace(docsBase + '#' + path + window.location.search + window.location.hash);
+        }
+      })();
+    </script>
+    <script>
+      (function () {
         if (!('serviceWorker' in navigator)) {
           return;
         }
@@ -41,12 +54,12 @@
         });
       }());
     </script>
-    <script type="module" crossorigin src="/divine-connect/assets/index-iQwDN0xq.js"></script>
+    <script type="module" crossorigin src="/divine-connect/assets/index-WcEgcLta.js"></script>
     <link rel="modulepreload" crossorigin href="/divine-connect/assets/vendor-BLqV_m0t.js">
     <link rel="modulepreload" crossorigin href="/divine-connect/assets/router-DIYUSfpU.js">
     <link rel="modulepreload" crossorigin href="/divine-connect/assets/icons-Bz6Sns4k.js">
     <link rel="modulepreload" crossorigin href="/divine-connect/assets/motion-D5xlclFS.js">
-    <link rel="stylesheet" crossorigin href="/divine-connect/assets/index-CGEExRbq.css">
+    <link rel="stylesheet" crossorigin href="/divine-connect/assets/index-C-7j56vT.css">
   </head>
   <body>
     <div id="root"></div>
