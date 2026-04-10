@@ -52,7 +52,7 @@ export default function App() {
 
   return (
     <ErrorBoundary>
-      <Router basename={import.meta.env.BASE_URL}>
+      <Router basename={import.meta.env.MODE === 'pages' ? '/' : import.meta.env.BASE_URL}>
         <ScrollToTop />
         <Layout>
           <Suspense fallback={<PageLoader />}>
