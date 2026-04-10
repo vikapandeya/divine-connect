@@ -1,22 +1,24 @@
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+
 export const spiritualImageLibrary = {
   mandir: {
-    src: '/assets/spiritual/mandir.jpg',
+    src: `${base}/assets/spiritual/mandir.jpg`,
     alt: 'Hindu temple mandir spiritual image',
   },
   prasad: {
-    src: '/assets/spiritual/prasad.jpg',
+    src: `${base}/assets/spiritual/prasad.jpg`,
     alt: 'Traditional Indian prasad thali spiritual image',
   },
   aarti: {
-    src: '/assets/spiritual/aarti.jpg',
+    src: `${base}/assets/spiritual/aarti.jpg`,
     alt: 'Hindu priest performing aarti spiritual image',
   },
   meditation: {
-    src: '/assets/spiritual/meditation.jpg',
+    src: `${base}/assets/spiritual/meditation.jpg`,
     alt: 'Meditation in temple with divine spiritual aura image',
   },
   pooja: {
-    src: '/assets/spiritual/pooja.jpg',
+    src: `${base}/assets/spiritual/pooja.jpg`,
     alt: 'Pooja samagri setup spiritual image',
   },
 } as const;
