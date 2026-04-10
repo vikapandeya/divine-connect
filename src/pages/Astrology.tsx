@@ -194,9 +194,10 @@ export default function Astrology() {
 
               <form onSubmit={generateReading} className="space-y-6">
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-stone-500 uppercase tracking-wider ml-1">Full Name</label>
+                  <label htmlFor="astro-name" className="text-xs font-bold text-stone-500 uppercase tracking-wider ml-1">Full Name</label>
                   <div className="relative">
                     <input
+                      id="astro-name"
                       required
                       type="text"
                       value={formData.name}
@@ -209,8 +210,9 @@ export default function Astrology() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="text-xs font-bold text-stone-500 uppercase tracking-wider ml-1">Date of Birth</label>
+                    <label htmlFor="astro-dob" className="text-xs font-bold text-stone-500 uppercase tracking-wider ml-1">Date of Birth</label>
                     <input
+                      id="astro-dob"
                       required
                       type="date"
                       value={formData.dob}
@@ -219,8 +221,9 @@ export default function Astrology() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-xs font-bold text-stone-500 uppercase tracking-wider ml-1">Time of Birth</label>
+                    <label htmlFor="astro-tob" className="text-xs font-bold text-stone-500 uppercase tracking-wider ml-1">Time of Birth</label>
                     <input
+                      id="astro-tob"
                       required
                       type="time"
                       value={formData.tob}
@@ -231,10 +234,11 @@ export default function Astrology() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-stone-500 uppercase tracking-wider ml-1">Place of Birth</label>
+                  <label htmlFor="astro-pob" className="text-xs font-bold text-stone-500 uppercase tracking-wider ml-1">Place of Birth</label>
                   <div className="relative">
                     <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-500" />
                     <input
+                      id="astro-pob"
                       required
                       type="text"
                       value={formData.pob}
@@ -375,7 +379,8 @@ export default function Astrology() {
                   {activeMode.label}
                 </h3>
                 {reading && (
-                  <button 
+                  <button
+                    type="button"
                     onClick={() => window.print()}
                     className="text-xs font-bold text-orange-400 hover:text-orange-300 transition-colors"
                   >

@@ -214,7 +214,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 <button
                   type="button"
                   onClick={() => navigate('/shop')}
-                  aria-label="Open search"
+                  aria-label="Go to shop"
                   className="hidden h-11 w-11 items-center justify-center rounded-full border border-stone-200 bg-white text-stone-700 shadow-sm hover:border-orange-200 hover:text-orange-600 xl:inline-flex 2xl:hidden"
                 >
                   <Search className="h-5 w-5" />

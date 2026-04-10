@@ -328,7 +328,7 @@ export default function Cart() {
 
             <div className="space-y-6">
               <div>
-                <label className="block text-sm font-bold text-stone-700 mb-2 flex items-center">
+                <label className="flex items-center text-sm font-bold text-stone-700 mb-2">
                   <MapPin className="w-4 h-4 mr-2" />
                   Delivery Details
                 </label>

@@ -257,7 +257,7 @@ export default function DarshanBooking() {
             ) : null}
 
             <div>
-              <label className="block text-sm font-bold text-stone-700 mb-2 flex items-center">
+              <label className="flex items-center text-sm font-bold text-stone-700 mb-2">
                 <Calendar className="w-4 h-4 mr-2" />
                 Select Date
               </label>
@@ -273,7 +273,7 @@ export default function DarshanBooking() {
             </div>
 
             <div>
-              <label className="block text-sm font-bold text-stone-700 mb-2 flex items-center">
+              <label className="flex items-center text-sm font-bold text-stone-700 mb-2">
                 <Clock className="w-4 h-4 mr-2" />
                 Available Slot
               </label>

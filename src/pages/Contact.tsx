@@ -234,7 +234,7 @@ export default function Contact() {
               <button
                 type="submit"
                 disabled={isSending || !draft.trim()}
-                className="bg-stone-900 text-white px-5 py-3 rounded-2xl font-bold hover:bg-orange-500 transition-colors disabled:opacity-50 inline-flex items-center justify-center gap-2"
+                className="bg-stone-900 text-white px-5 py-3 rounded-2xl font-bold hover:bg-orange-500 transition-colors disabled:opacity-50 disabled:hover:bg-stone-900 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2"
               >
                 <span>{translateText(locale, 'Send')}</span>
                 <Send className="w-4 h-4" />
