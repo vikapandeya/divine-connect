@@ -6,7 +6,7 @@ import { defineConfig, loadEnv } from 'vite';
 export default defineConfig(({ mode }) => {
   loadEnv(mode, '.', '');
   const isPagesBuild = mode === 'pages';
-  const base = isPagesBuild ? '/divine-connect/' : '/';
+  const base = isPagesBuild ? '/divine-connect/docs/' : '/';
 
   return {
     base,

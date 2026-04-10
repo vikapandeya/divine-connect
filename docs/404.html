@@ -6,22 +6,22 @@
     <title>Redirecting...</title>
     <script>
       (function () {
-        const base = '/divine-connect/';
+        const spaBase = '/divine-connect/docs/';
+        const repoBase = '/divine-connect/';
         let path = window.location.pathname;
 
-        if (path.startsWith(base)) {
-          path = path.slice(base.length);
+        // Extract the route portion by stripping the deployment prefix
+        if (path.startsWith(spaBase)) {
+          path = '/' + path.slice(spaBase.length);
+        } else if (path.startsWith(repoBase)) {
+          path = '/' + path.slice(repoBase.length);
+        } else {
+          path = '/';
         }
 
-        if (!path.startsWith('/')) {
-          path = '/' + path;
-        }
-
-        if (window.location.pathname !== base) {
-          window.location.replace(
-            base + '#' + path + window.location.search + window.location.hash,
-          );
-        }
+        window.location.replace(
+          spaBase + '#' + path + window.location.search + window.location.hash,
+        );
       })();
     </script>
   </head>
