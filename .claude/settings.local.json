@@ -5,7 +5,8 @@
       "Bash(grep -n \"data.fallbackApplied\\\\|dataset.fallbackApplied\" \"c:/Users/vikash.pandey/Desktop/Project/devin/Divin-Connect/divine-connect/src/pages/\"*.tsx)",
       "Bash(ls node_modules/react/*.d.ts)",
       "Bash(ls node_modules/@types/react)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "WebFetch(domain:commons.wikimedia.org)"
     ]
   }
 }
