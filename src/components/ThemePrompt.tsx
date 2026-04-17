@@ -33,7 +33,7 @@ export default function ThemePrompt() {
             <div className="flex justify-between items-start mb-6">
               <div>
                 <h2 className="text-2xl font-serif font-bold text-stone-900 dark:text-white mb-2">Choose Your Theme</h2>
-                <p className="text-stone-500 dark:text-stone-400 text-sm">Select how you'd like to experience DivineConnect.</p>
+                <p className="text-stone-500 dark:text-stone-400 text-sm">Select how you'd like to experience PunyaSeva.</p>
               </div>
               <button 
                 onClick={() => setShow(false)}

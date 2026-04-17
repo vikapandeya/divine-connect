@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { ToastProvider } from './components/Toast';
 import Layout from './components/Layout';
 import Home from './pages/Home';
 import Services from './pages/Services';
@@ -23,6 +24,7 @@ import VendorProfile from './pages/VendorProfile';
 
 function App() {
   return (
+    <ToastProvider>
     <Router>
       <Layout>
         <Routes>
@@ -48,6 +50,7 @@ function App() {
         </Routes>
       </Layout>
     </Router>
+    </ToastProvider>
   );
 }
 

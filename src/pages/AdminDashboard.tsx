@@ -3,8 +3,10 @@ import { useAuth } from '../hooks/useAuth';
 import { Product } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Edit2, Trash2, X, Save, Package, IndianRupee, Star, Tag, Database, Users, Store, Calendar } from 'lucide-react';
+import { useToast } from '../components/Toast';
 
 export default function AdminDashboard() {
+  const { toast } = useToast();
   const { user: currentUser, loading: authLoading } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -145,12 +147,12 @@ export default function AdminDashboard() {
     const rating = parseFloat(formData.rating);
 
     if (isNaN(price) || price <= 0) {
-      alert('Please enter a valid positive price.');
+      toast('Please enter a valid positive price.', 'warning');
       return;
     }
 
     if (isNaN(stock) || stock < 0) {
-      alert('Please enter a valid stock quantity (0 or more).');
+      toast('Please enter a valid stock quantity (0 or more).', 'warning');
       return;
     }
 
@@ -170,7 +172,7 @@ export default function AdminDashboard() {
       });
 
       if (response.ok) {
-        alert(editingProduct ? 'Product updated!' : 'Product added!');
+        toast(editingProduct ? 'Product updated!' : 'Product added!', 'success');
         setIsModalOpen(false);
         fetchProducts();
         fetchStats();
@@ -186,7 +188,7 @@ export default function AdminDashboard() {
     try {
       const response = await fetch(`/api/products/${id}`, { method: 'DELETE' });
       if (response.ok) {
-        alert('Product deleted!');
+        toast('Product deleted!', 'info');
         fetchProducts();
         fetchStats();
       }
@@ -204,7 +206,7 @@ export default function AdminDashboard() {
         body: JSON.stringify({ vendorId })
       });
       if (response.ok) {
-        alert('Vendor approved!');
+        toast('Vendor approved!', 'success');
         fetchPendingVendors();
         fetchStats();
       }
@@ -223,7 +225,7 @@ export default function AdminDashboard() {
         body: JSON.stringify({ vendorId, reason })
       });
       if (response.ok) {
-        alert('Vendor rejected.');
+        toast('Vendor rejected.', 'info');
         fetchPendingVendors();
         fetchStats();
       }

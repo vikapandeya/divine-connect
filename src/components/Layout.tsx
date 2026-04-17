@@ -8,10 +8,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import AuthModal from './AuthModal';
 import NotificationCenter from './NotificationCenter';
 import { getCartCount, subscribeToCart } from '../lib/cart';
-import logoMark from '../assets/divineconnect-mark.svg';
+
 import { useTheme } from '../contexts/ThemeContext';
 import ThemePrompt from './ThemePrompt';
 import { useTranslation } from 'react-i18next';
+import VedaAI from './VedaAI';
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const { t, i18n } = useTranslation();
@@ -153,9 +154,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
-            <Link to="/" className="flex items-center space-x-2">
-              <img src={logoMark} alt="DivineConnect logo" className="w-8 h-8" />
-              <span className="text-xl font-serif font-bold tracking-tight text-stone-900 dark:text-white">DivineConnect</span>
+            <Link to="/" className="flex items-center">
+              <img src="/logo/horizontal-logo.svg" alt="PunyaSeva" className="h-10 w-auto hidden sm:block dark:hidden" />
+              <img src="/logo/Dark-logo.svg" alt="PunyaSeva" className="h-10 w-auto hidden dark:sm:block" />
+              <img src="/logo/icon-only.svg" alt="PunyaSeva" className="h-8 w-auto sm:hidden" />
             </Link>
 
             {/* Desktop Nav */}
@@ -429,8 +431,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div className="col-span-1 md:col-span-2">
               <div className="flex items-center space-x-2 mb-4">
-                <img src={logoMark} alt="DivineConnect logo" className="w-8 h-8" />
-                <span className="text-xl font-serif font-bold tracking-tight text-white">DivineConnect</span>
+                <img src="/logo/full-logo.svg" alt="PunyaSeva" className="h-14 w-auto" />
               </div>
               <p className="max-w-xs text-sm leading-relaxed">
                 {t('Connecting devotees with divine services and spiritual essentials.')} {t('Experience the sacred from the comfort of your home.')}
@@ -449,14 +450,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <h4 className="text-white font-medium mb-4">{t('Connect')}</h4>
               <ul className="space-y-2 text-sm">
                 <li><Link to="/contact" className="hover:text-orange-500 transition-colors">{t('Contact Us')}</Link></li>
-                <li>support@divineconnect.com</li>
+                <li>support@punyaseva.com</li>
                 <li>+91 1800-DIVINE-00</li>
                 <li>Varanasi, Uttar Pradesh, India</li>
               </ul>
             </div>
           </div>
           <div className="mt-12 pt-8 border-t border-stone-800 flex flex-col md:flex-row justify-between items-center gap-4 text-xs">
-            <p>&copy; 2026 DivineConnect. {t('All spiritual rights reserved.')}</p>
+            <p>&copy; 2026 PunyaSeva. {t('All spiritual rights reserved.')}</p>
             <div className="flex space-x-6">
               <Link to="/terms" className="hover:text-orange-500 transition-colors">{t('Terms of Service')}</Link>
               <Link to="/privacy" className="hover:text-orange-500 transition-colors">{t('Privacy Policy')}</Link>
@@ -464,6 +465,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </div>
         </div>
       </footer>
+      <VedaAI />
     </div>
   );
 }

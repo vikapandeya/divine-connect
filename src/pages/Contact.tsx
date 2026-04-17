@@ -15,8 +15,8 @@ const contactCards = [
   {
     title: 'Email Support',
     description: 'Reach us for bookings, order help, or partnership questions.',
-    value: 'support@divineconnect.com',
-    href: 'mailto:support@divineconnect.com',
+    value: 'support@punyaseva.com',
+    href: 'mailto:support@punyaseva.com',
     icon: Mail,
   },
   {
@@ -47,7 +47,7 @@ type ChatMessage = {
 };
 
 const SYSTEM_INSTRUCTION = `
-You are DivineConnect AI Support.
+You are PunyaSeva AI Support.
 Your role is to help users with:
 - Puja bookings (online/offline)
 - Darshan and Prasad guidance
@@ -75,7 +75,7 @@ Rules:
 
 export default function Contact() {
   const [messages, setMessages] = useState<ChatMessage[]>(() => {
-    const saved = localStorage.getItem('divineconnect_chat_history');
+    const saved = localStorage.getItem('punyaseva_chat_history');
     if (saved) {
       try {
         return JSON.parse(saved);
@@ -87,7 +87,7 @@ export default function Contact() {
       {
         role: 'assistant',
         content:
-          'Namaste. I am DivineConnect AI Support. I can help with bookings, orders, account access, and vendor onboarding.',
+          'Namaste. I am PunyaSeva AI Support. I can help with bookings, orders, account access, and vendor onboarding.',
       },
     ];
   });
@@ -97,7 +97,7 @@ export default function Contact() {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    localStorage.setItem('divineconnect_chat_history', JSON.stringify(messages));
+    localStorage.setItem('punyaseva_chat_history', JSON.stringify(messages));
   }, [messages]);
 
   useEffect(() => {
@@ -109,10 +109,10 @@ export default function Contact() {
   const clearChat = () => {
     const initialMessage: ChatMessage = {
       role: 'assistant',
-      content: 'Namaste. I am DivineConnect AI Support. I can help with bookings, orders, account access, and vendor onboarding.',
+      content: 'Namaste. I am PunyaSeva AI Support. I can help with bookings, orders, account access, and vendor onboarding.',
     };
     setMessages([initialMessage]);
-    localStorage.removeItem('divineconnect_chat_history');
+    localStorage.removeItem('punyaseva_chat_history');
   };
 
   const sendMessage = async (messageText?: string) => {
@@ -182,7 +182,7 @@ export default function Contact() {
         <div className="absolute inset-0 z-0">
           <img
             src="https://picsum.photos/seed/contact-hero/1920/1080?blur=2"
-            alt="Contact DivineConnect"
+            alt="Contact PunyaSeva"
             className="w-full h-full object-cover"
             referrerPolicy="no-referrer"
           />
@@ -320,7 +320,7 @@ export default function Contact() {
               {isSending && (
                 <div className="flex justify-start">
                   <div className="rounded-[1.5rem] px-4 py-3 text-sm bg-white dark:bg-stone-900 text-stone-500 dark:text-stone-400 border border-stone-200 dark:border-stone-800">
-                    DivineConnect AI is typing...
+                    PunyaSeva AI is typing...
                   </div>
                 </div>
               )}

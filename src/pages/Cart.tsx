@@ -32,6 +32,7 @@ import {
   updateCartItemQuantity,
 } from '../lib/cart';
 import { formatIndianRupees } from '../lib/utils';
+import { useToast } from '../components/Toast';
 
 // Initialize Stripe
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || 'pk_test_demo');
@@ -121,6 +122,7 @@ const CheckoutForm = ({
 };
 
 export default function Cart() {
+  const { toast } = useToast();
   const { t } = useTranslation();
   const currentUser = auth?.currentUser;
   const navigate = useNavigate();
@@ -207,11 +209,11 @@ export default function Cart() {
 
   const handleCheckout = async (paymentIntentId?: string) => {
     if (!currentUser) {
-      alert('Please sign in to checkout.');
+      toast('Please sign in to checkout.', 'warning');
       return;
     }
     if (!address) {
-      alert(t('cart.provideAddress'));
+      toast(t('cart.provideAddress'), 'warning');
       return;
     }
 
@@ -256,7 +258,7 @@ export default function Cart() {
       }
     } catch (error) {
       console.error('Checkout error:', error);
-      alert(t('cart.failed'));
+      toast(t('cart.failed'), 'error');
     } finally {
       setIsCheckingOut(false);
     }
@@ -511,7 +513,7 @@ export default function Cart() {
                         <CheckoutForm 
                           amount={finalTotal} 
                           onSuccess={(id) => handleCheckout(id)}
-                          onError={(msg) => alert(msg)}
+                          onError={(msg) => toast(msg, 'error')}
                           isLoading={isCheckingOut}
                           setIsLoading={setIsCheckingOut}
                         />

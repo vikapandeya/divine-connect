@@ -6,6 +6,7 @@ import { User, Package, Calendar, Settings, Phone, Mail, Download, Printer, X, F
 import { formatIndianRupees } from '../lib/utils';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../hooks/useAuth';
+import { useToast } from '../components/Toast';
 
 interface ReceiptData {
   receiptId: string;
@@ -24,6 +25,7 @@ interface ReceiptData {
 }
 
 export default function Profile() {
+  const { toast } = useToast();
   const { user: currentUser, loading: authLoading } = useAuth();
   const { theme, setTheme } = useTheme();
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -96,11 +98,11 @@ export default function Profile() {
         const data = await response.json();
         setSelectedReceipt(data);
       } else {
-        alert('Failed to fetch receipt data.');
+        toast('Failed to fetch receipt data.', 'error');
       }
     } catch (error) {
       console.error('Receipt error:', error);
-      alert('Error fetching receipt.');
+      toast('Error fetching receipt.', 'error');
     } finally {
       setLoadingReceipt(false);
     }
@@ -125,7 +127,7 @@ export default function Profile() {
       });
       if (response.ok) {
         setIsVendorModalOpen(false);
-        alert('Vendor registration submitted successfully! Your account will be reviewed.');
+        toast('Vendor registration submitted successfully! Your account will be reviewed.', 'success');
         window.location.reload();
       }
     } catch (error) {
@@ -146,7 +148,7 @@ export default function Profile() {
         body: JSON.stringify({ uid: currentUser?.uid, newPassword })
       });
       if (response.ok) {
-        alert('Password reset successfully!');
+        toast('Password reset successfully!', 'success');
         setNewPassword('');
       }
     } catch (error) {
@@ -335,11 +337,11 @@ export default function Profile() {
                                 }),
                               });
                               if (response.ok) {
-                                alert('Profile updated successfully!');
+                                toast('Profile updated successfully!', 'success');
                               }
                             } catch (error) {
                               console.error('Error updating profile:', error);
-                              alert('Failed to update profile.');
+                              toast('Failed to update profile.', 'error');
                             }
                           }
                         }}
@@ -582,7 +584,7 @@ export default function Profile() {
 
             <div className="p-12 print:p-8" id="printable-receipt">
               <div className="text-center mb-12">
-                <h2 className="text-3xl font-serif font-bold text-stone-900 mb-2">DivineConnect</h2>
+                <h2 className="text-3xl font-serif font-bold text-stone-900 mb-2">PunyaSeva</h2>
                 <p className="text-stone-500 text-sm">Your Spiritual Companion</p>
                 <div className="mt-4 inline-block px-4 py-1 bg-orange-50 text-orange-600 rounded-full text-xs font-bold uppercase tracking-widest">
                   Official Receipt
@@ -675,7 +677,7 @@ export default function Profile() {
               )}
 
               <div className="text-center pt-8 border-t border-stone-100">
-                <p className="text-xs text-stone-400">Thank you for choosing DivineConnect. May your journey be blessed.</p>
+                <p className="text-xs text-stone-400">Thank you for choosing PunyaSeva. May your journey be blessed.</p>
                 <p className="text-[10px] text-stone-300 mt-2">This is a computer-generated receipt and does not require a physical signature.</p>
               </div>
             </div>

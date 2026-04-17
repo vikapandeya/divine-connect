@@ -16,12 +16,12 @@ export default function Terms() {
           <div className="prose dark:prose-invert max-w-none space-y-6 text-stone-600 dark:text-stone-400">
             <section>
               <h2 className="text-xl font-bold text-stone-900 dark:text-white mb-3">1. Acceptance of Terms</h2>
-              <p>By accessing and using DivineConnect, you agree to be bound by these Terms of Service and all applicable laws and regulations.</p>
+              <p>By accessing and using PunyaSeva, you agree to be bound by these Terms of Service and all applicable laws and regulations.</p>
             </section>
 
             <section>
               <h2 className="text-xl font-bold text-stone-900 dark:text-white mb-3">2. Description of Service</h2>
-              <p>DivineConnect provides a platform for spiritual services, including puja bookings, darshan slots, and a spiritual marketplace. We act as an intermediary between devotees and spiritual service providers.</p>
+              <p>PunyaSeva provides a platform for spiritual services, including puja bookings, darshan slots, and a spiritual marketplace. We act as an intermediary between devotees and spiritual service providers.</p>
             </section>
 
             <section>
@@ -36,7 +36,7 @@ export default function Terms() {
 
             <section>
               <h2 className="text-xl font-bold text-stone-900 dark:text-white mb-3">5. Limitation of Liability</h2>
-              <p>DivineConnect shall not be liable for any indirect, incidental, special, consequential, or punitive damages resulting from your use of the service.</p>
+              <p>PunyaSeva shall not be liable for any indirect, incidental, special, consequential, or punitive damages resulting from your use of the service.</p>
             </section>
 
             <section>

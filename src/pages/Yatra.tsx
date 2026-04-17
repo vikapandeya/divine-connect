@@ -289,9 +289,9 @@ export default function Yatra() {
                     <Phone className="w-4 h-4" />
                     <span className="text-sm font-medium">+91 12345 67890</span>
                   </a>
-                  <a href="mailto:yatra@divineconnect.com" className="flex items-center gap-3 text-stone-700 dark:text-stone-300 hover:text-orange-500 transition-colors">
+                  <a href="mailto:yatra@punyaseva.com" className="flex items-center gap-3 text-stone-700 dark:text-stone-300 hover:text-orange-500 transition-colors">
                     <Mail className="w-4 h-4" />
-                    <span className="text-sm font-medium">yatra@divineconnect.com</span>
+                    <span className="text-sm font-medium">yatra@punyaseva.com</span>
                   </a>
                 </div>
               </div>

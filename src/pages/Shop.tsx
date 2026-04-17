@@ -7,6 +7,7 @@ import { addToCart } from '../lib/cart';
 import { formatIndianRupees } from '../lib/utils';
 import { addToWishlist, removeFromWishlist, isInWishlist } from '../lib/wishlist';
 import { auth, db } from '../firebase';
+import { useToast } from '../components/Toast';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { VendorProfile } from '../types';
 
@@ -97,18 +98,7 @@ function normalizeCategory(category: string | null) {
 }
 
 export default function Shop() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [vendors, setVendors] = useState<VendorProfile[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchParams, setSearchParams] = useSearchParams();
-  const selectedCategory = normalizeCategory(searchParams.get('category'));
-  const [searchInput, setSearchInput] = useState(searchParams.get('q') ?? '');
-  const [selectedTemple, setSelectedTemple] = useState<string>('all');
-  const [selectedVendor, setSelectedVendor] = useState<string>('all');
-  const [priceRange, setPriceRange] = useState({ min: 0, max: 10000 });
-  const [sortBy, setSortBy] = useState<string>('featured');
-  const [selectedOptions, setSelectedOptions] = useState<Record<string, any>>({});
-  const [wishlistItems, setWishlistItems] = useState<Set<string>>(new Set());
+  const { toast } = useToast();
 
   useEffect(() => {
     const fetchWishlist = async () => {
@@ -232,12 +222,12 @@ export default function Shop() {
       selectedOption: option ? option.label : undefined
     };
     addToCart(itemToAdd);
-    alert(`Added ${product.name}${option ? ` (${option.label})` : ''} to cart!`);
+    toast(`Added ${product.name}${option ? ` (${option.label})` : ''} to cart!`, 'success');
   };
 
   const toggleWishlist = async (productId: string) => {
     if (!auth.currentUser) {
-      alert('Please login to add items to wishlist');
+      toast('Please sign in to save items to your wishlist', 'warning');
       return;
     }
 
@@ -263,7 +253,7 @@ export default function Shop() {
       <section className="relative h-[40vh] flex items-center overflow-hidden mb-12">
         <div className="absolute inset-0 z-0">
           <img
-            src="https://picsum.photos/seed/shop-hero/1920/1080?blur=2"
+            src="https://picsum.photos/seed/spiritual-bazaar/1920/1080?blur=2"
             alt="Spiritual Marketplace"
             className="w-full h-full object-cover"
             referrerPolicy="no-referrer"

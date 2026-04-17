@@ -73,112 +73,55 @@ export default function Astrology() {
     setReading(null);
 
     try {
-      const apiKey = process.env.GEMINI_API_KEY;
-      if (!apiKey) {
-        throw new Error('AI astrology is not configured yet. Add GEMINI_API_KEY before using this feature.');
-      }
+      const responseArr = await fetch('/api/ai/spiritual-guidance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: activeTab === 'birth-chart' ? `
+            You are an expert Vedic Astrologer. Provide a detailed, spiritual, and insightful reading based on the following birth details:
+            Name: ${formData.name}
+            Date of Birth: ${formData.dob}
+            Time of Birth: ${formData.tob}
+            Place of Birth: ${formData.pob}
+            User's Query: ${formData.query || 'General life reading and spiritual guidance'}
 
-      const ai = new GoogleGenAI({ apiKey });
-      
-      let prompt = '';
-      let systemInstruction = "You are a divine Vedic Astrologer named 'Jyotish AI'. You provide accurate and spiritual guidance based on birth details.";
+            Please include:
+            1. A brief analysis of their planetary positions.
+            2. Insights into their personality and spiritual path.
+            3. Guidance for the current period (Dasha/Transit).
+            4. A specific remedy (Mantra or Puja) related to their query.
 
-      if (activeTab === 'birth-chart') {
-        prompt = `
-          You are an expert Vedic Astrologer. Provide a detailed, spiritual, and insightful reading based on the following birth details:
-          Name: ${formData.name}
-          Date of Birth: ${formData.dob}
-          Time of Birth: ${formData.tob}
-          Place of Birth: ${formData.pob}
-          User's Query: ${formData.query || 'General life reading and spiritual guidance'}
+            Format the response in clear, beautiful Markdown. Keep the tone compassionate and divine.
+          ` : activeTab === 'rashifal' ? `
+            Provide a detailed ${rashifalData.timeframe} Rashifal (Horoscope) for the zodiac sign ${rashifalData.sign}.
+            Focus on:
+            1. General Outlook
+            2. Career & Finance
+            3. Health & Well-being
+            4. Love & Relationships
+            5. Lucky Color & Number
+            6. A spiritual tip for the period.
 
-          Please include:
-          1. A brief analysis of their planetary positions.
-          2. Insights into their personality and spiritual path.
-          3. Guidance for the current period (Dasha/Transit).
-          4. A specific remedy (Mantra or Puja) related to their query.
-
-          Format the response in clear, beautiful Markdown. Keep the tone compassionate and divine.
-        `;
-      } else if (activeTab === 'rashifal') {
-        prompt = `
-          Provide a detailed ${rashifalData.timeframe} Rashifal (Horoscope) for the zodiac sign ${rashifalData.sign}.
-          Focus on:
-          1. General Outlook
-          2. Career & Finance
-          3. Health & Well-being
-          4. Love & Relationships
-          5. Lucky Color & Number
-          6. A spiritual tip for the period.
-
-          Format the response in clear, beautiful Markdown. Keep the tone inspiring and practical.
-        `;
-        systemInstruction = "You are an expert Vedic Astrologer providing accurate Rashifal (Horoscope) insights.";
-      } else if (activeTab === 'kundli') {
-        prompt = `
-          You are an advanced Vedic Astrology engine specializing in Kundli Milan (Ashta-Koota matching) using classical Panchang calculations.
-          Strictly follow traditional Jyotish principles and compute compatibility based on accurate astronomical logic, not assumptions.
-
-          -----------------------------------
-          🔹 INPUT PARAMETERS
-          -----------------------------------
-          Bride Details (Female):
-          - Name: ${kundliData.p2Name}
-          - Date of Birth (YYYY-MM-DD): ${kundliData.p2Dob}
-          - Time of Birth (HH:MM): ${kundliData.p2Tob}
-          - Place of Birth (City, State, Country): ${kundliData.p2Pob}
-
-          Groom Details (Male):
-          - Name: ${kundliData.p1Name}
-          - Date of Birth (YYYY-MM-DD): ${kundliData.p1Dob}
-          - Time of Birth (HH:MM): ${kundliData.p1Tob}
-          - Place of Birth (City, State, Country): ${kundliData.p1Pob}
-
-          -----------------------------------
-          🔹 CORE CALCULATION RULES
-          -----------------------------------
-          1. Calculate: Moon Rashi, Nakshatra, Nakshatra Pada, Lagna, and Planetary positions using Panchang principles.
-          2. Perform Ashta-Koota Milan (36 Gun System): Varna (1), Vashya (2), Tara (3), Yoni (4), Graha Maitri (5), Gana (6), Bhakoot (7), Nadi (8).
-          3. Use traditional Panchang tables for Nakshatra compatibility, Gana classification, Yoni matching, Nadi Dosha, and Bhakoot Dosha.
-          4. Detect Doshas: Mangal Dosha (1,4,7,8,12 houses), Nadi Dosha, Bhakoot Dosha, Gana mismatch.
-          5. Apply cancellation rules (Dosha Nivaran): Mangal Dosha cancellation, Same Nadi exceptions, Bhakoot exceptions based on Rashi lord.
-
-          -----------------------------------
-          🔹 OUTPUT FORMAT (STRICT)
-          -----------------------------------
-          1. Basic Details Table: Rashi, Nakshatra, Gana, Nadi, Yoni
-          2. Gun Milan Score: Each Koota with score, Total score out of 36
-          3. Dosha Analysis: Present / Not Present, Severity: Low / Medium / High
-          4. Compatibility Verdict: 30–36: Excellent, 24–29: Good, 18–23: Average, <18: Not Recommended
-          5. Detailed Explanation: Why points were deducted, Emotional, physical, and mental compatibility
-          6. Remedies (if Dosha present): Vedic remedies (Puja, Mantra, fasting, etc.)
-
-          -----------------------------------
-          🔹 STRICT RULES
-          -----------------------------------
-          - Do NOT guess birth time. If time is missing → clearly state reduced accuracy.
-          - Name-based matching is NOT reliable → use only as fallback.
-          - Always base Nakshatra on Moon position.
-          - Follow classical Jyotish only (no modern shortcuts).
-
-          -----------------------------------
-          🔹 WARNING
-          -----------------------------------
-          Astrology is interpretative and not deterministic. Results should be used for guidance only.
-        `;
-        systemInstruction = "You are an advanced Vedic Astrology engine specializing in Kundli Milan (Ashta-Koota matching) using classical Panchang calculations. You follow traditional Jyotish principles strictly.";
-      }
-
-      const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: prompt,
-        config: {
-          systemInstruction,
-          temperature: 0.7,
-        },
+            Format the response in clear, beautiful Markdown. Keep the tone inspiring and practical.
+          ` : `
+            You are an advanced Vedic Astrology engine specializing in Kundli Milan (Ashta-Koota matching).
+            Bride: ${kundliData.p2Name}, DOB: ${kundliData.p2Dob}, TOB: ${kundliData.p2Tob}, POB: ${kundliData.p2Pob}
+            Groom: ${kundliData.p1Name}, DOB: ${kundliData.p1Dob}, TOB: ${kundliData.p1Tob}, POB: ${kundliData.p1Pob}
+            Perform Gun Milan (36 points) and provide a compatibility verdict and remedies.
+          `,
+          systemInstruction: activeTab === 'kundli' 
+            ? "You are an advanced Vedic Astrology engine specializing in Kundli Milan."
+            : "You are a divine Vedic Astrologer named 'Jyotish AI'."
+        })
       });
 
-      setReading(response.text);
+      if (!responseArr.ok) {
+        const errData = await responseArr.json();
+        throw new Error(errData.error || 'The stars are temporarily obscured.');
+      }
+
+      const data = await responseArr.json();
+      setReading(data.text);
     } catch (err) {
       console.error('Astrology error:', err);
       setError(err instanceof Error ? err.message : 'The stars are currently obscured. Please try again later.');

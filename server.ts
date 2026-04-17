@@ -11,7 +11,8 @@ import Stripe from "stripe";
 
 dotenv.config();
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
+const stripeKey = process.env.STRIPE_SECRET_KEY || "sk_test_dummy";
+const stripe = new Stripe(stripeKey, {
   apiVersion: "2026-03-25.dahlia",
 });
 
@@ -19,6 +20,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 let db: admin.firestore.Firestore;
+let dbAvailable = false; // true only when Firestore credentials are valid
 let firebaseConfig: any = {};
 
 async function initFirebaseAdmin() {
@@ -60,21 +62,120 @@ async function initFirebaseAdmin() {
       db = admin.firestore();
       console.log("Using default Firestore database.");
     }
-  } catch (e) {
-    console.error("Firestore initialization failed", e);
+    // Probe Firestore with a lightweight call to verify credentials work
+    await db.collection("_health_check").limit(1).get();
+    dbAvailable = true;
+    console.log("Firestore connection verified.");
+  } catch (e: any) {
+    const isCredentialError = e?.message?.includes("default credentials") || e?.message?.includes("credentials");
+    if (isCredentialError) {
+      console.warn(
+        "[Firebase] No Google Application Default Credentials found. Running in OFFLINE mode with mock data.\n" +
+        "  To connect to Firestore, set GOOGLE_APPLICATION_CREDENTIALS env var pointing to a service account JSON.\n" +
+        "  The app will still work fully with demo data."
+      );
+    } else {
+      console.error("Firestore initialization failed", e);
+    }
+    dbAvailable = false;
+  }
+}
+
+// --- MOCK DATA (used when Firestore credentials are not set up) ---
+const MOCK_PUJAS = [
+  { id: '1', title: 'Ganesh Puja', description: 'Invoke the blessings of Lord Ganesha for new beginnings and removing obstacles.', onlinePrice: 2100, offlinePrice: 3100, samagriPrice: 500, duration: '1.5 Hours', samagriList: 'Flowers, Sweets, Incense', category: 'Daily', templeName: 'Siddhivinayak Temple', vendorId: 'v1', isOnline: true, samagriIncluded: true, rating: 4.8 },
+  { id: '2', title: 'Satyanarayan Katha', description: 'A sacred ritual dedicated to Lord Vishnu for peace, prosperity, and happiness.', onlinePrice: 5100, offlinePrice: 7500, samagriPrice: 1500, duration: '3 Hours', samagriList: 'Fruits, Panchamrit, Flowers', category: 'Special', templeName: 'ISKCON Temple', vendorId: 'v2', isOnline: true, samagriIncluded: false, rating: 4.9 },
+  { id: '3', title: 'Lakshmi Puja', description: 'Attract wealth and prosperity with this special puja dedicated to Goddess Lakshmi.', onlinePrice: 3500, offlinePrice: 5000, samagriPrice: 1000, duration: '2 Hours', samagriList: 'Lotus, Coins, Sweets', category: 'Festive', templeName: 'Mahalakshmi Temple', vendorId: 'v3', isOnline: false, samagriIncluded: true, rating: 4.7 },
+  { id: '4', title: 'Maha Mrityunjaya Jaap', description: 'Powerful Vedic chanting for health, longevity, and spiritual protection.', onlinePrice: 11000, offlinePrice: 15000, samagriPrice: 3000, duration: '5 Hours', samagriList: 'Rudraksha Mala, Ghee, Herbs', category: 'Special', templeName: 'Kashi Vishwanath', vendorId: 'v4', isOnline: true, samagriIncluded: true, rating: 5.0 },
+  { id: '5', title: 'Navgraha Shanti Puja', description: 'Harmonize planetary influences and bring balance to your life and destiny.', onlinePrice: 7500, offlinePrice: 10000, samagriPrice: 2000, duration: '3 Hours', samagriList: 'Nine grains, Colored cloths, Ghee', category: 'Special', templeName: 'Tirupati Balaji', vendorId: 'v1', isOnline: true, samagriIncluded: true, rating: 4.6 },
+  { id: '6', title: 'Rudrabhishek', description: 'Sacred ritual bathing of Shivalinga with holy substances for divine blessings.', onlinePrice: 4500, offlinePrice: 6500, samagriPrice: 1200, duration: '2.5 Hours', samagriList: 'Milk, Honey, Ghee, Bel leaves', category: 'Daily', templeName: 'Somnath Temple', vendorId: 'v2', isOnline: false, samagriIncluded: true, rating: 4.9 },
+];
+
+const MOCK_PRODUCTS = [
+  { id: 'p1', name: 'Brass Ganesha Idol', price: 1299, category: 'Idols', rating: 4.8, image: 'https://picsum.photos/seed/ganesha/400/400', stock: 50, vendorId: 'v1' },
+  { id: 'p2', name: 'Sandalwood Incense Sticks', price: 250, category: 'Incense', rating: 4.5, image: 'https://picsum.photos/seed/incense/400/400', stock: 200, vendorId: 'v2' },
+  { id: 'p3', name: 'Rudraksha Mala (108 beads)', price: 599, category: 'Mala', rating: 4.9, image: 'https://picsum.photos/seed/mala/400/400', stock: 75, vendorId: 'v1' },
+  { id: 'p4', name: 'Bhagavad Gita (Hindi)', price: 450, category: 'Books', rating: 5.0, image: 'https://picsum.photos/seed/gita/400/400', stock: 100, vendorId: 'v3' },
+  { id: 'p5', name: 'Shree Yantra (Copper)', price: 899, category: 'Yantras', rating: 4.7, image: 'https://picsum.photos/seed/yantra/400/400', stock: 30, vendorId: 'v2' },
+  { id: 'p6', name: 'Kashi Vishwanath Prasad', price: 250, category: 'Prasad', rating: 4.9, image: 'https://picsum.photos/seed/kashi-prasad/400/400', stock: 500, templeName: 'Kashi Vishwanath', vendorId: 'system', weightOptions: [{ label: '250g', price: 250 }, { label: '500g', price: 450 }] },
+  { id: 'p7', name: 'Tirupati Laddu', price: 350, category: 'Prasad', rating: 5.0, image: 'https://picsum.photos/seed/tirupati-prasad/400/400', stock: 300, templeName: 'Tirupati Balaji', vendorId: 'system', weightOptions: [{ label: '1 Unit', price: 350 }, { label: '2 Units', price: 650 }] },
+  { id: 'p8', name: 'Puja Thali Set (Brass)', price: 799, category: 'Puja Essentials', rating: 4.6, image: 'https://picsum.photos/seed/puja-thali/400/400', stock: 60, vendorId: 'v3' },
+];
+
+const MOCK_VENDORS: any[] = [];
+
+async function setupDatabase() {
+  try {
+    console.log("Checking Firestore data...");
+    
+    // Ensure Admin User exists regardless of other data
+    const adminQuery = await db.collection("users").where("email", "==", "pg2331427@gmail.com").limit(1).get();
+    if (adminQuery.empty) {
+      console.log("Seeding admin user...");
+      await db.collection("users").doc("admin_1").set({
+        uid: "admin_1",
+        email: "pg2331427@gmail.com",
+        password: await bcrypt.hash("admin123", 10),
+        displayName: "Admin User",
+        role: "admin",
+        createdAt: admin.firestore.FieldValue.serverTimestamp()
+      });
+    }
+
+    // Seed Stats
+    const statsDoc = await db.collection("stats").doc("visitors").get();
+    if (!statsDoc.exists) {
+      await db.collection("stats").doc("visitors").set({
+        total: 0,
+        new: 0,
+        lastReset: admin.firestore.FieldValue.serverTimestamp()
+      });
+    }
+
+    const usersSnap = await db.collection("users").limit(1).get();
+    if (usersSnap.size <= 1) {
+      console.log("Seeding initial Firestore data...");
+      const users = [
+        {
+          uid: "user_1",
+          email: "user@test.com",
+          password: await bcrypt.hash("user123", 10),
+          displayName: "Test User",
+          role: "devotee",
+          createdAt: admin.firestore.FieldValue.serverTimestamp()
+        },
+        {
+          uid: "vendor_1",
+          email: "vendor@test.com",
+          password: await bcrypt.hash("vendor123", 10),
+          displayName: "Test Vendor",
+          role: "vendor",
+          createdAt: admin.firestore.FieldValue.serverTimestamp()
+        }
+      ];
+      for (const user of users) {
+        const existing = await db.collection("users").doc(user.uid).get();
+        if (!existing.exists) {
+          await db.collection("users").doc(user.uid).set(user);
+        }
+      }
+    }
+  } catch (error) {
+    console.error("Setup database error:", error);
   }
 }
 
 async function startServer() {
-  console.log("Starting server initialization...");
   try {
     const app = express();
-    const PORT = 3000;
+    const PORT = parseInt(process.env.PORT || "3000");
 
-    // Health check early
-    app.get("/api/health", (req, res) => {
-      res.json({ status: "ok" });
-    });
+    await initFirebaseAdmin();
+    if (dbAvailable) {
+      await setupDatabase();
+    } else {
+      console.log("[Server] Skipping database seeding — running in offline/demo mode.");
+    }
 
     app.use(express.json());
     console.log("Express middleware configured.");
@@ -114,158 +215,74 @@ async function startServer() {
       }
     });
 
-    // --- AUTO SETUP DATABASE (Firestore Seeding) ---
-    const setupDatabase = async () => {
-      try {
-        console.log("Checking Firestore data...");
-        
-        // Ensure Admin User exists regardless of other data
-        const adminQuery = await db.collection("users").where("email", "==", "pg2331427@gmail.com").limit(1).get();
-        if (adminQuery.empty) {
-          console.log("Seeding admin user...");
-          await db.collection("users").doc("admin_1").set({
-            uid: "admin_1",
-            email: "pg2331427@gmail.com",
-            password: await bcrypt.hash("admin123", 10),
-            displayName: "Admin User",
-            role: "admin",
-            createdAt: admin.firestore.FieldValue.serverTimestamp()
-          });
-        }
+    // --- AI PROXY ENDPOINT ---
+    app.post("/api/ai/spiritual-guidance", async (req, res) => {
+      const { prompt, systemInstruction, history } = req.body;
+      const apiKey = process.env.GEMINI_API_KEY;
 
-        // Seed Stats
-        const statsDoc = await db.collection("stats").doc("visitors").get();
-        if (!statsDoc.exists) {
-          await db.collection("stats").doc("visitors").set({
-            total: 0,
-            new: 0,
-            lastReset: admin.firestore.FieldValue.serverTimestamp()
-          });
-        }
-
-        const usersSnap = await db.collection("users").limit(1).get();
-        // If only the admin exists or no users, seed the rest
-        if (usersSnap.size <= 1) {
-          console.log("Seeding initial Firestore data...");
-          
-          // Seed other Users
-          const users = [
-            {
-              uid: "user_1",
-              email: "user@test.com",
-              password: await bcrypt.hash("user123", 10),
-              displayName: "Test User",
-              role: "devotee",
-              createdAt: admin.firestore.FieldValue.serverTimestamp()
-            },
-            {
-              uid: "vendor_1",
-              email: "vendor@test.com",
-              password: await bcrypt.hash("vendor123", 10),
-              displayName: "Test Vendor",
-              role: "vendor",
-              createdAt: admin.firestore.FieldValue.serverTimestamp()
-            }
-          ];
-          for (const user of users) {
-            // Don't overwrite if exists
-            const existing = await db.collection("users").doc(user.uid).get();
-            if (!existing.exists) {
-              await db.collection("users").doc(user.uid).set(user);
-            }
-          }
-
-          // Seed Products
-          const products = [
-            {
-              name: "Premium Brass Diya",
-              description: "Handcrafted brass diya for your daily puja needs.",
-              spiritualSignificance: "The Diya represents the triumph of light over darkness and knowledge over ignorance. Lighting a brass diya in the home is believed to attract the grace of Goddess Lakshmi, bringing prosperity and peace. This handcrafted piece follows traditional designs used in ancient Indian temples.",
-              price: 499,
-              category: "Puja Essentials",
-              stock: 50,
-              rating: 4.8,
-              image: "https://picsum.photos/seed/diya/400/400",
-              vendorId: "system"
-            },
-            {
-              name: "Sandalwood Incense Sticks",
-              description: "Pure sandalwood fragrance for a peaceful atmosphere.",
-              spiritualSignificance: "Sandalwood (Chandan) has been used for millennia in Vedic rituals for its cooling and purifying properties. The fragrance is said to calm the mind, making it ideal for meditation and prayer. It is traditionally associated with Lord Vishnu and is believed to create a protective spiritual shield around the home.",
-              price: 150,
-              category: "Incense",
-              stock: 100,
-              rating: 4.5,
-              image: "https://picsum.photos/seed/incense/400/400",
-              vendorId: "system"
-            }
-          ];
-          for (const product of products) {
-            await db.collection("products").add(product);
-          }
-
-          // Seed Pujas
-          const pujas = [
-            {
-              title: "Ganesh Puja",
-              description: "Seek blessings from Lord Ganesha for new beginnings.",
-              onlinePrice: 1100,
-              offlinePrice: 2100,
-              duration: "1.5 Hours",
-              vendorId: "system",
-              samagriList: ["Flowers", "Sweets", "Incense"]
-            }
-          ];
-          for (const puja of pujas) {
-            await db.collection("pujas").add(puja);
-          }
-
-          // Seed Feedback
-          const feedback = [
-            {
-              name: "Rahul Sharma",
-              city: "Delhi",
-              rating: 5,
-              message: "Amazing experience! The puja was performed with great devotion.",
-              createdAt: admin.firestore.FieldValue.serverTimestamp()
-            },
-            {
-              name: "Priya Singh",
-              city: "Mumbai",
-              rating: 4,
-              message: "Very convenient service. Pandit ji was very knowledgeable.",
-              createdAt: admin.firestore.FieldValue.serverTimestamp()
-            }
-          ];
-          for (const f of feedback) {
-            await db.collection("feedback").add(f);
-          }
-
-          // Seed Coupons
-          const coupons = [
-            { code: "DIVINE10", discount: 10, type: "percentage", minAmount: 500, active: true },
-            { code: "WELCOME50", discount: 50, type: "fixed", minAmount: 200, active: true },
-            { code: "FESTIVE20", discount: 20, type: "percentage", minAmount: 1000, active: true }
-          ];
-          for (const coupon of coupons) {
-            await db.collection("coupons").add(coupon);
-          }
-
-          console.log("Firestore seeded successfully.");
-        } else {
-          console.log("Firestore already has data, skipping seed.");
-        }
-      } catch (error) {
-        console.error("Auto-setup Firestore error:", error);
+      if (!apiKey) {
+        return res.status(500).json({ error: "AI Astrology is not configured on the server." });
       }
-    };
 
-    // Initialize Firebase before registering routes
-    await initFirebaseAdmin();
-    console.log("Firebase Admin initialized.");
-    
-    // Run database setup in background
-    setupDatabase().catch(e => console.error("Background database setup failed:", e));
+      try {
+        const messages = history || [];
+        
+        // Gemini API requires the first message to be from the user.
+        let parsedContents = messages.map((m: any) => ({
+          role: m.role === "assistant" ? "model" : "user",
+          parts: [{ text: m.content || m.parts?.[0]?.text }]
+        }));
+
+        if (parsedContents.length > 0 && parsedContents[0].role === 'model') {
+          parsedContents.shift(); // Remove leading model message (e.g. the initial greeting)
+        }
+
+        const contents = [...parsedContents];
+        
+        if (prompt) {
+          contents.push({
+            role: "user",
+            parts: [{ text: prompt }]
+          });
+        }
+
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents,
+            systemInstruction: {
+              parts: [{ text: systemInstruction || "You are a wise Vedic scholar and spiritual guide." }]
+            },
+            generationConfig: {
+              temperature: 0.7,
+              maxOutputTokens: 1000,
+            }
+          })
+        });
+
+        const data = await response.json();
+        
+        if (data.error) {
+          throw new Error(data.error.message || "Gemini API error");
+        }
+
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (!text) {
+          throw new Error("Empty response from AI engine");
+        }
+
+        res.json({ text });
+      } catch (error) {
+        console.error("[AI Proxy Error]:", error);
+        res.status(500).json({ error: (error as Error).message });
+      }
+    });
+
+    // Health check
+    app.get("/api/health", (req, res) => {
+      res.json({ status: "ok" });
+    });
     
     // --- STRIPE ENDPOINTS ---
     app.post("/api/create-payment-intent", async (req, res) => {
@@ -445,6 +462,7 @@ async function startServer() {
   });
 
   app.get("/api/admin/stats", async (req, res) => {
+    if (!dbAvailable) return res.json({ totalUsers: 3, totalVendors: 2, totalProducts: MOCK_PRODUCTS.length, totalBookings: 7 });
     try {
       const usersSnap = await db.collection("users").where("role", "==", "devotee").get();
       const vendorsSnap = await db.collection("users").where("role", "==", "vendor").get();
@@ -464,6 +482,7 @@ async function startServer() {
   });
 
   app.get("/api/admin/vendors-performance", async (req, res) => {
+    if (!dbAvailable) return res.json(MOCK_VENDORS);
     try {
       const vendorsSnap = await db.collection("users").where("role", "==", "vendor").get();
       const vendors = vendorsSnap.docs.map(doc => ({ uid: doc.id, ...doc.data() }));
@@ -533,6 +552,13 @@ async function startServer() {
 
   // Products
   app.get("/api/products", async (req, res) => {
+    if (!dbAvailable) {
+      const { category, vendorId } = req.query;
+      let results = MOCK_PRODUCTS;
+      if (category && category !== "all") results = results.filter(p => p.category === category);
+      if (vendorId) results = results.filter(p => p.vendorId === vendorId);
+      return res.json(results);
+    }
     try {
       const { category, vendorId } = req.query;
       let query: admin.firestore.Query = db.collection("products");
@@ -610,6 +636,11 @@ async function startServer() {
 
   // Pujas
   app.get("/api/pujas", async (req, res) => {
+    if (!dbAvailable) {
+      const { vendorId } = req.query;
+      const results = vendorId ? MOCK_PUJAS.filter(p => p.vendorId === vendorId) : MOCK_PUJAS;
+      return res.json(results);
+    }
     try {
       const { vendorId } = req.query;
       let query: admin.firestore.Query = db.collection("pujas");
@@ -1065,7 +1096,7 @@ async function startServer() {
       const html = `
         <html>
           <body style="font-family: sans-serif; padding: 40px; max-width: 600px; margin: auto; border: 1px solid #eee;">
-            <h1 style="color: #f97316;">DivineConnect Receipt</h1>
+            <h1 style="color: #f97316;">PunyaSeva Receipt</h1>
             <p>Order ID: ${doc.id}</p>
             <p>Date: ${order?.createdAt?.toDate().toLocaleDateString()}</p>
             <hr/>
@@ -1300,12 +1331,12 @@ async function startServer() {
   }
   console.log("Vite middleware/static serving configured.");
 
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server listening on port ${PORT}`);
-  });
-} catch (error) {
-  console.error("Failed to start server:", error);
-}
+    app.listen(PORT, "0.0.0.0", () => {
+      console.log(`Server listening on port ${PORT}`);
+    });
+  } catch (error) {
+    console.error("Failed to start server:", error);
+  }
 }
 
 startServer();

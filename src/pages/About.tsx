@@ -55,14 +55,14 @@ const developers = [
     role: 'Product Builder & Full-Stack Developer',
     image: 'https://github.com/vikapandeya.png',
     github: 'https://github.com/vikapandeya',
-    bio: 'Focused on turning DivineConnect into a polished, trustworthy spiritual platform with strong UX, scalable backend workflows, and clear product thinking.',
+    bio: 'Focused on turning PunyaSeva into a polished, trustworthy spiritual platform with strong UX, scalable backend workflows, and clear product thinking.',
   },
   {
     name: 'Gautam Pince',
     role: 'Developer & Technical Collaborator',
     image: 'https://github.com/gautampince.png',
     github: 'https://github.com/gautampince',
-    bio: 'Contributed to shaping the engineering foundation and helping bring the original DivineConnect experience to life with practical implementation support.',
+    bio: 'Contributed to shaping the engineering foundation and helping bring the original PunyaSeva experience to life with practical implementation support.',
   },
 ];
 
@@ -73,7 +73,7 @@ export default function About() {
         <div className="absolute inset-0 z-0">
           <img
             src="https://picsum.photos/seed/about-hero/1920/1080?blur=2"
-            alt="About DivineConnect"
+            alt="About PunyaSeva"
             className="w-full h-full object-cover"
             referrerPolicy="no-referrer"
           />
@@ -94,7 +94,7 @@ export default function About() {
               <span className="text-orange-400 italic">Digital</span>
             </h1>
             <p className="text-xl text-stone-200 max-w-3xl mx-auto leading-relaxed">
-              DivineConnect is designed to make spiritual services more accessible,
+              PunyaSeva is designed to make spiritual services more accessible,
               organized, and trustworthy for devotees everywhere.
             </p>
           </motion.div>
@@ -127,13 +127,13 @@ export default function About() {
           <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] gap-10 items-start">
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.3em] text-orange-500 mb-4">
-                What DivineConnect Is Building
+                What PunyaSeva Is Building
               </p>
               <h2 className="text-3xl md:text-4xl font-serif font-bold text-stone-900 dark:text-white mb-6">
                 A modern spiritual platform that feels helpful, not complicated.
               </h2>
               <p className="text-stone-600 dark:text-stone-300 leading-relaxed mb-6">
-                We want DivineConnect to become a dependable place where devotees
+                We want PunyaSeva to become a dependable place where devotees
                 can book services, discover products, get guided support, and
                 stay connected to spiritual practices from anywhere.
               </p>
@@ -176,7 +176,7 @@ export default function About() {
                   Meet the Developer Team
                 </p>
                 <h2 className="text-3xl md:text-4xl font-serif font-bold">
-                  The people shaping DivineConnect
+                  The people shaping PunyaSeva
                 </h2>
               </div>
               <Link

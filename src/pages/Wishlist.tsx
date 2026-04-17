@@ -7,8 +7,10 @@ import { Heart, ShoppingCart, Trash2, IndianRupee, ArrowRight } from 'lucide-rea
 import { Link } from 'react-router-dom';
 import { addToCart } from '../lib/cart';
 import { formatIndianRupees } from '../lib/utils';
+import { useToast } from '../components/Toast';
 
 export default function Wishlist() {
+  const { toast } = useToast();
   const [items, setItems] = useState<(Product & { wishlistId: string })[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -59,13 +61,8 @@ export default function Wishlist() {
   };
 
   const handleAddToCart = (product: Product) => {
-    addToCart({
-      id: product.id,
-      name: product.name,
-      price: product.price,
-      image: product.image
-    });
-    alert(`Added ${product.name} to cart!`);
+    addToCart({ id: product.id, name: product.name, price: product.price, image: product.image });
+    toast(`${product.name} added to cart!`, 'success');
   };
 
   if (loading) {

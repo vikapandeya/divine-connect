@@ -91,7 +91,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
             <div className="p-8 sm:p-10">
               <div className="text-center mb-8">
                 <h2 className="text-3xl font-serif font-bold text-stone-900 mb-2">
-                  {isLogin ? 'Welcome Back' : 'Join DivineConnect'}
+                  {isLogin ? 'Welcome Back' : 'Join PunyaSeva'}
                 </h2>
                 <p className="text-stone-500 text-sm">
                   {isLogin 

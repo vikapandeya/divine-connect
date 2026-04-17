@@ -14,6 +14,7 @@ import {
   Area
 } from 'recharts';
 import { Plus, Edit2, Trash2, X, Save, Package, IndianRupee, Star, Calendar, Clock, User, CheckCircle, XCircle, ChevronLeft, ChevronRight, List, Filter, TrendingUp, LayoutDashboard, Wallet, Menu, Settings, LogOut } from 'lucide-react';
+import { useToast } from '../components/Toast';
 import { 
   startOfMonth, 
   endOfMonth, 
@@ -32,6 +33,7 @@ import {
 } from 'date-fns';
 
 export default function VendorDashboard() {
+  const { toast } = useToast();
   const { user: currentUser, loading: authLoading } = useAuth();
   const [activeTab, setActiveTab] = useState<'products' | 'pujas' | 'bookings' | 'wallet'>('products');
   const [products, setProducts] = useState<Product[]>([]);
@@ -175,12 +177,12 @@ export default function VendorDashboard() {
     const stock = parseInt(productForm.stock);
 
     if (isNaN(price) || price <= 0) {
-      alert('Please enter a valid positive price.');
+      toast('Please enter a valid positive price.', 'warning');
       return;
     }
 
     if (isNaN(stock) || stock < 0) {
-      alert('Please enter a valid stock quantity (0 or more).');
+      toast('Please enter a valid stock quantity (0 or more).', 'warning');
       return;
     }
 
@@ -212,7 +214,7 @@ export default function VendorDashboard() {
     const price = parseFloat(pujaForm.price);
 
     if (isNaN(price) || price <= 0) {
-      alert('Please enter a valid positive price.');
+      toast('Please enter a valid positive price.', 'warning');
       return;
     }
 
@@ -283,7 +285,7 @@ export default function VendorDashboard() {
         fetchData();
       } else {
         const err = await response.json();
-        alert(err.error || "Payout failed");
+        toast(err.error || "Payout failed", 'error');
       }
     } catch (error) {
       console.error('Error requesting payout:', error);

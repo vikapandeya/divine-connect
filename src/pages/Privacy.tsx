@@ -41,7 +41,7 @@ export default function Privacy() {
 
             <section>
               <h2 className="text-xl font-bold text-stone-900 dark:text-white mb-3">6. Contact Us</h2>
-              <p>If you have any questions about this Privacy Policy, please contact us at support@divineconnect.com.</p>
+              <p>If you have any questions about this Privacy Policy, please contact us at support@punyaseva.com.</p>
             </section>
           </div>
           

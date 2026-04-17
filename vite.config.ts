@@ -16,6 +16,9 @@ export default defineConfig(({ mode }) => {
     build: {
       outDir: isPagesBuild ? 'docs' : 'dist',
       emptyOutDir: true,
+      rollupOptions: {
+        external: ['express', 'firebase-admin', 'stripe', 'bcryptjs', 'mysql2', 'mysql2/promise'],
+      },
     },
     plugins: [react(), tailwindcss()],
     define: {
