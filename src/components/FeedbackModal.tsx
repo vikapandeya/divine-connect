@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Star, X, Send, MapPin, User } from 'lucide-react';
-import { Star, X, Send, MapPin, User } from 'lucide-react';
 import { auth } from '../firebase';
-import { useToast } from './Toast';
 
 interface FeedbackModalProps {
   isOpen: boolean;
@@ -14,7 +12,6 @@ interface FeedbackModalProps {
 }
 
 export default function FeedbackModal({ isOpen, onClose, serviceId, type, serviceName }: FeedbackModalProps) {
-  const { toast } = useToast();
   const currentUser = auth?.currentUser;
   const [rating, setRating] = useState(5);
   const [hoverRating, setHoverRating] = useState(0);
@@ -26,7 +23,7 @@ export default function FeedbackModal({ isOpen, onClose, serviceId, type, servic
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !message || rating === 0) {
-      toast('Please fill in all required fields.', 'warning');
+      alert('Please fill in all required fields.');
       return;
     }
 
@@ -47,7 +44,7 @@ export default function FeedbackModal({ isOpen, onClose, serviceId, type, servic
       });
 
       if (response.ok) {
-        toast('Thank you for your feedback!', 'success');
+        alert('Thank you for your feedback!');
         onClose();
         // Reset form
         setMessage('');
@@ -57,7 +54,7 @@ export default function FeedbackModal({ isOpen, onClose, serviceId, type, servic
       }
     } catch (error) {
       console.error('Feedback submission error:', error);
-      toast('Failed to submit feedback. Please try again.', 'error');
+      alert('Failed to submit feedback. Please try again.');
     } finally {
       setIsSubmitting(false);
     }

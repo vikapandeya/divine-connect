@@ -8,7 +8,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import AuthModal from './AuthModal';
 import NotificationCenter from './NotificationCenter';
 import { getCartCount, subscribeToCart } from '../lib/cart';
-
 import { useTheme } from '../contexts/ThemeContext';
 import ThemePrompt from './ThemePrompt';
 import { useTranslation } from 'react-i18next';
@@ -155,9 +154,18 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
             <Link to="/" className="flex items-center">
-              <img src="/logo/horizontal-logo.svg" alt="PunyaSeva" className="h-10 w-auto hidden sm:block dark:hidden" />
-              <img src="/logo/Dark-logo.svg" alt="PunyaSeva" className="h-10 w-auto hidden dark:sm:block" />
-              <img src="/logo/icon-only.svg" alt="PunyaSeva" className="h-8 w-auto sm:hidden" />
+              <img 
+                src={resolvedTheme === 'dark' ? '/logo/dark-logo.png' : '/logo/full-logo.png'} 
+                alt="PunyaSeva" 
+                className="h-10 w-auto hidden md:block" 
+                referrerPolicy="no-referrer"
+              />
+              <img 
+                src="/logo/icon-only.png" 
+                alt="PunyaSeva" 
+                className="h-8 w-auto md:hidden" 
+                referrerPolicy="no-referrer"
+              />
             </Link>
 
             {/* Desktop Nav */}
@@ -383,12 +391,20 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               className="md:hidden bg-white dark:bg-stone-900 border-t border-stone-100 dark:border-stone-800 overflow-hidden"
             >
               <div className="px-4 pt-2 pb-6 space-y-1">
+                <div className="px-3 py-4 border-b border-stone-100 dark:border-stone-800 mb-2">
+                  <img 
+                    src="/logo/icon-only.png" 
+                    alt="PunyaSeva" 
+                    className="h-10 w-auto" 
+                    referrerPolicy="no-referrer"
+                  />
+                </div>
                 <form onSubmit={handleSearch} className="px-3 py-2">
                   <div className="flex items-center bg-stone-100 dark:bg-stone-800 rounded-full px-3 py-2">
                     <Search className="w-4 h-4 text-stone-400" />
                     <input
                       type="text"
-                      placeholder="Search..."
+                      placeholder={t('Search...')}
                       value={searchTerm}
                       onChange={(event) => setSearchTerm(event.target.value)}
                       className="w-full bg-transparent border-none focus:ring-0 text-sm ml-2 text-stone-900 dark:text-white"
@@ -430,8 +446,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div className="col-span-1 md:col-span-2">
-              <div className="flex items-center space-x-2 mb-4">
-                <img src="/logo/full-logo.svg" alt="PunyaSeva" className="h-14 w-auto" />
+              <div className="mb-6">
+                <img 
+                  src="/logo/full-logo.png" 
+                  alt="PunyaSeva" 
+                  className="h-16 w-auto brightness-0 invert" 
+                  referrerPolicy="no-referrer"
+                />
               </div>
               <p className="max-w-xs text-sm leading-relaxed">
                 {t('Connecting devotees with divine services and spiritual essentials.')} {t('Experience the sacred from the comfort of your home.')}
@@ -450,7 +471,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <h4 className="text-white font-medium mb-4">{t('Connect')}</h4>
               <ul className="space-y-2 text-sm">
                 <li><Link to="/contact" className="hover:text-orange-500 transition-colors">{t('Contact Us')}</Link></li>
-                <li>support@punyaseva.com</li>
+                <li><a href="https://punyaseva.in" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors">www.punyaseva.in</a></li>
+                <li>support@punyaseva.in</li>
                 <li>+91 1800-DIVINE-00</li>
                 <li>Varanasi, Uttar Pradesh, India</li>
               </ul>

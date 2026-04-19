@@ -61,6 +61,7 @@ service cloud.firestore {
     //   - totalAmount: number (required)
     //   - status: string (required)
     //   - shippingAddress: string (required)
+    //   - signatureURL: string (optional)
     //   - couponUsed: string (optional)
     //   - discountAmount: number (optional)
     //   - createdAt: timestamp (required)
@@ -115,6 +116,18 @@ service cloud.firestore {
     //   - message: string (required)
     //   - type: string (required, enum: ['order', 'booking', 'system'])
     //   - read: bool (required)
+    //   - createdAt: timestamp (required)
+    //
+    // Collection: whatsapp_bookings
+    // Document ID: {bookingId}
+    // Fields:
+    //   - userId: string (required)
+    //   - vendorId: string (required)
+    //   - pujaTitle: string (required)
+    //   - status: string (required, enum: ['pending', 'approved', 'rejected'])
+    //   - userLocation: map (optional)
+    //   - distance: number (optional)
+    //   - whatsappNumber: string (optional)
     //   - createdAt: timestamp (required)
     //
     // ===============================================================
@@ -192,22 +205,23 @@ service cloud.firestore {
     }
 
     function isValidBooking(data) {
-      return hasOnlyAllowedFields(['userId', 'serviceId', 'vendorId', 'type', 'date', 'time', 'totalAmount', 'isOnline', 'status', 'createdAt', 'timeSlot', 'bringSamagri', 'samagriList']) &&
+      return hasOnlyAllowedFields(['userId', 'serviceId', 'vendorId', 'type', 'date', 'time', 'totalAmount', 'isOnline', 'status', 'createdAt', 'timeSlot', 'bringSamagri', 'samagriList', 'travelers', 'contactNumber', 'specialRequests']) &&
              data.userId is string &&
              data.serviceId is string &&
              data.vendorId is string &&
-             data.type in ['puja', 'darshan'] &&
+             data.type in ['puja', 'darshan', 'yatra'] &&
              data.status in ['pending', 'confirmed', 'completed', 'cancelled'] &&
              data.totalAmount is number && data.totalAmount >= 0;
     }
 
     function isValidOrder(data) {
-      return hasOnlyAllowedFields(['userId', 'items', 'totalAmount', 'status', 'shippingAddress', 'couponUsed', 'discountAmount', 'createdAt', 'paymentMethod', 'paymentStatus', 'paymentId']) &&
+      return data.keys().hasOnly(['userId', 'items', 'totalAmount', 'status', 'shippingAddress', 'couponUsed', 'discountAmount', 'createdAt', 'paymentMethod', 'paymentStatus', 'paymentId', 'signatureURL', 'trackingHistory']) &&
              data.userId is string &&
              data.items is list &&
              data.totalAmount is number && data.totalAmount >= 0 &&
              data.status is string &&
              data.shippingAddress is string &&
+             (!('signatureURL' in data) || (data.signatureURL is string || data.signatureURL == null)) &&
              (!('couponUsed' in data) || (data.couponUsed is string || data.couponUsed == null)) &&
              (!('discountAmount' in data) || (data.discountAmount is number && data.discountAmount >= 0));
     }
@@ -236,14 +250,26 @@ service cloud.firestore {
              data.read is bool;
     }
 
+    function isValidWhatsAppBooking(data) {
+      return hasOnlyAllowedFields(['userId', 'vendorId', 'pujaTitle', 'status', 'userLocation', 'distance', 'whatsappNumber', 'createdAt']) &&
+             data.userId is string &&
+             data.vendorId is string &&
+             data.pujaTitle is string &&
+             data.status in ['pending', 'approved', 'rejected'] &&
+             (!('userLocation' in data) || (data.userLocation is map && data.userLocation.lat is number && data.userLocation.lng is number)) &&
+             (!('distance' in data) || data.distance is number) &&
+             (!('whatsappNumber' in data) || data.whatsappNumber is string);
+    }
+
     function isValidFeedback(data) {
-      return hasOnlyAllowedFields(['userId', 'userName', 'city', 'rating', 'message', 'serviceId', 'type', 'createdAt']) &&
+      return hasOnlyAllowedFields(['userId', 'userName', 'city', 'rating', 'message', 'serviceId', 'type', 'createdAt', 'imageURL']) &&
              data.userName is string && data.userName.size() > 0 && data.userName.size() < 100 &&
              data.rating is number && data.rating >= 1 && data.rating <= 5 &&
              data.message is string && data.message.size() > 0 && data.message.size() < 1000 &&
              (!('city' in data) || (data.city is string && data.city.size() < 100)) &&
              (!('userId' in data) || (data.userId is string || data.userId == null)) &&
              (!('serviceId' in data) || (data.serviceId is string || data.serviceId == null)) &&
+             (!('imageURL' in data) || (data.imageURL is string && data.imageURL.size() < 1000)) &&
              (!('type' in data) || data.type in ['puja', 'product', 'general']);
     }
 
@@ -324,6 +350,18 @@ service cloud.firestore {
       allow update: if isAuthenticated() && isOwner(resource.data.userId) && 
                     request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']);
       allow delete: if isAuthenticated() && isOwner(resource.data.userId);
+    }
+
+    match /whatsapp_bookings/{bookingId} {
+      allow read: if isAuthenticated() && (isOwner(resource.data.userId) || isOwner(resource.data.vendorId) || isAdmin());
+      allow create: if isAuthenticated() && isOwner(request.resource.data.userId) && isValidWhatsAppBooking(request.resource.data);
+      allow update: if isAdmin() && isValidWhatsAppBooking(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /stats/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
     match /health/{docId} {

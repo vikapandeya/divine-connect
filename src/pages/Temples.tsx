@@ -8,7 +8,7 @@ const temples = [
     id: 'kashi',
     name: 'Kashi Vishwanath Temple',
     location: 'Varanasi, Uttar Pradesh',
-    image: 'https://picsum.photos/seed/varanasi-temple/800/600',
+    image: 'https://picsum.photos/seed/kashi/800/600',
     description: 'One of the most famous Hindu temples dedicated to Lord Shiva. It is located in Varanasi, the holiest city for Hindus.',
     rating: 4.9,
     services: ['Puja', 'Prasad Delivery', 'Darshan Guidance'],
@@ -18,7 +18,7 @@ const temples = [
     id: 'tirupati',
     name: 'Tirupati Balaji Temple',
     location: 'Tirumala, Andhra Pradesh',
-    image: 'https://picsum.photos/seed/tirumala-balaji/800/600',
+    image: 'https://picsum.photos/seed/tirupati/800/600',
     description: 'Dedicated to Lord Venkateswara, an incarnation of Vishnu, who is believed to have appeared here to save mankind from trials and troubles of Kali Yuga.',
     rating: 5.0,
     services: ['Laddu Prasad', 'Special Entry Darshan', 'Seva Booking'],
@@ -28,7 +28,7 @@ const temples = [
     id: 'somnath',
     name: 'Somnath Temple',
     location: 'Prabhas Patan, Gujarat',
-    image: 'https://picsum.photos/seed/somnath-shore/800/600',
+    image: 'https://picsum.photos/seed/somnath/800/600',
     description: 'The first among the twelve Jyotirlinga shrines of Shiva. It is an important pilgrimage and tourist spot of Gujarat.',
     rating: 4.8,
     services: ['Aarti Booking', 'Prasad Delivery', 'Accommodation'],
@@ -38,7 +38,7 @@ const temples = [
     id: 'meenakshi',
     name: 'Meenakshi Amman Temple',
     location: 'Madurai, Tamil Nadu',
-    image: 'https://picsum.photos/seed/meenakshi-madurai/800/600',
+    image: 'https://picsum.photos/seed/madurai/800/600',
     description: 'A historic Hindu temple located on the southern bank of the Vaigai River in the temple city of Madurai.',
     rating: 4.9,
     services: ['Guided Tour', 'Special Puja', 'Cultural Events'],
@@ -48,7 +48,7 @@ const temples = [
     id: 'jagannath',
     name: 'Jagannath Temple',
     location: 'Puri, Odisha',
-    image: 'https://picsum.photos/seed/jagannath-puri/800/600',
+    image: 'https://picsum.photos/seed/puri/800/600',
     description: 'An important Hindu temple dedicated to Jagannath, a form of Vishnu, in Puri in the state of Odisha on the eastern coast of India.',
     rating: 4.8,
     services: ['Mahaprasad', 'Ratha Yatra Guidance', 'Puja'],
@@ -70,7 +70,7 @@ export default function Temples() {
       <section className="relative h-[50vh] flex items-center overflow-hidden mb-12">
         <div className="absolute inset-0 z-0">
           <img
-            src="https://picsum.photos/seed/ancient-india/1920/1080?blur=2"
+            src="https://picsum.photos/seed/temples-hero/1920/1080?blur=2"
             alt="Famous Temples of India"
             className="w-full h-full object-cover"
             referrerPolicy="no-referrer"
@@ -83,6 +83,14 @@ export default function Temples() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
+            <div className="flex justify-center mb-8">
+              <img 
+                src="/logo/full-logo.png" 
+                alt="PunyaSeva" 
+                className="h-20 w-auto brightness-0 invert" 
+                referrerPolicy="no-referrer"
+              />
+            </div>
             <h1 className="text-4xl md:text-6xl font-serif font-bold text-white mb-4">
               Famous Temples
             </h1>

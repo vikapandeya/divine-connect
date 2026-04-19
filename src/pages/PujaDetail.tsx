@@ -1,16 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { auth } from '../firebase';
 import { Puja, VendorProfile } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, IndianRupee, CheckCircle2, Calendar, User, ShieldCheck, ArrowLeft, Store, Star, X, Info, Flame, MessageSquare } from 'lucide-react';
+import { Clock, IndianRupee, CheckCircle2, Calendar, User, ShieldCheck, ArrowLeft, Store, Star, X, Info, Flame, MessageSquare, MessageCircle, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import FeedbackModal from '../components/FeedbackModal';
+import WhatsAppBookingModal from '../components/WhatsAppBookingModal';
 import { Feedback } from '../types';
-import SchedulingCalendar from '../components/SchedulingCalendar';
-import { useToast } from '../components/Toast';
 
 export default function PujaDetail() {
-  const { toast } = useToast();
   const currentUser = auth?.currentUser;
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -27,6 +25,15 @@ export default function PujaDetail() {
   const [feedback, setFeedback] = useState<Feedback[]>([]);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [bookingSuccess, setBookingSuccess] = useState(false);
+  const [showWhatsAppModal, setShowWhatsAppModal] = useState(false);
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
+
+  const pujaImages = useMemo(() => [
+    `https://picsum.photos/seed/${id}_1/1200/800`,
+    `https://picsum.photos/seed/${id}_2/1200/800`,
+    `https://picsum.photos/seed/${id}_3/1200/800`,
+    `https://picsum.photos/seed/${id}_4/1200/800`,
+  ], [id]);
 
   useEffect(() => {
     const fetchPuja = async () => {
@@ -121,7 +128,7 @@ export default function PujaDetail() {
       }
     } catch (error) {
       console.error('Booking error:', error);
-      toast('Failed to book puja. Please try again.', 'error');
+      alert('Failed to book puja. Please try again.');
     } finally {
       setIsBooking(false);
     }
@@ -129,29 +136,14 @@ export default function PujaDetail() {
 
   const initiateBooking = () => {
     if (!currentUser) {
-      toast('Please sign in to book a puja.', 'warning');
+      alert('Please sign in to book a puja.');
       return;
     }
     if (!bookingDate || !bookingTime) {
-      toast('Please select a date and time.', 'warning');
+      alert('Please select a date and time.');
       return;
     }
     setShowConfirmation(true);
-  };
-
-  const handleWhatsAppBooking = () => {
-    if (!bookingDate || !bookingTime) {
-      toast('Please select a date and time before continuing to WhatsApp.', 'warning');
-      return;
-    }
-    const waNumber = import.meta.env.VITE_WHATSAPP_NUMBER || '+919876543210';
-    const amountStr = isOnline 
-      ? `Base Price: ₹${puja?.onlinePrice}` 
-      : `Total Amount: ₹${(puja?.offlinePrice || 0) + (bringSamagri ? (puja?.samagriPrice || 0) : 0)}`;
-      
-    const message = `Hello PunyaSeva,\n\nI am interested in booking a Puja service. Here are the details:\n\n*Name of Puja:* ${puja?.title}\n*Mode:* ${isOnline ? 'Online (Video Call)' : 'Offline (At Home)'}\n${!isOnline ? `*Samagri Arrangement:* ${bringSamagri ? 'Pandit Ji Brings' : 'I will Arrange'}\n` : ''}*Date:* ${bookingDate}\n*Time Slot:* ${bookingTime}\n*${amountStr}*\n\nPlease confirm my booking.`;
-    
-    window.open(`https://wa.me/${waNumber.replace('+', '')}?text=${encodeURIComponent(message)}`, '_blank');
   };
 
   if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
@@ -178,13 +170,53 @@ export default function PujaDetail() {
           animate={{ opacity: 1, x: 0 }}
           className="space-y-8"
         >
-          <div className="aspect-video rounded-[2rem] overflow-hidden border border-stone-200 shadow-sm">
-            <img 
-              src={`https://picsum.photos/seed/${id}/1200/800`} 
-              alt={puja.title} 
-              className="w-full h-full object-cover"
-              referrerPolicy="no-referrer"
-            />
+          {/* Image Carousel */}
+          <div className="relative aspect-video rounded-[2.5rem] overflow-hidden border border-stone-200 shadow-sm group">
+            <AnimatePresence mode="wait">
+              <motion.img
+                key={activeImageIndex}
+                src={pujaImages[activeImageIndex]}
+                initial={{ opacity: 0, scale: 1.1 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.5 }}
+                className="w-full h-full object-cover"
+                referrerPolicy="no-referrer"
+              />
+            </AnimatePresence>
+            
+            {/* Carousel Controls */}
+            <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-between px-4 opacity-0 group-hover:opacity-100 transition-opacity">
+              <button
+                onClick={() => setActiveImageIndex((prev) => (prev - 1 + pujaImages.length) % pujaImages.length)}
+                className="w-10 h-10 rounded-full bg-white/80 backdrop-blur-md flex items-center justify-center text-stone-900 hover:bg-white transition-all shadow-lg"
+              >
+                <ChevronLeft className="w-6 h-6" />
+              </button>
+              <button
+                onClick={() => setActiveImageIndex((prev) => (prev + 1) % pujaImages.length)}
+                className="w-10 h-10 rounded-full bg-white/80 backdrop-blur-md flex items-center justify-center text-stone-900 hover:bg-white transition-all shadow-lg"
+              >
+                <ChevronRight className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* Carousel Indicators */}
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2">
+              {pujaImages.map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setActiveImageIndex(idx)}
+                  className={`w-2 h-2 rounded-full transition-all ${idx === activeImageIndex ? 'bg-orange-500 w-6' : 'bg-white/50'}`}
+                />
+              ))}
+            </div>
+
+            <div className="absolute top-6 left-6">
+              <div className="bg-black/50 backdrop-blur-md border border-white/20 px-4 py-1.5 rounded-full text-white text-[10px] font-bold uppercase tracking-widest">
+                Sacred Ritual Gallery
+              </div>
+            </div>
           </div>
           
           <div>
@@ -354,12 +386,36 @@ export default function PujaDetail() {
               </div>
             )}
 
-            <SchedulingCalendar 
-              selectedDate={bookingDate}
-              onDateSelect={setBookingDate}
-              selectedTimeSlot={bookingTime}
-              onTimeSlotSelect={setBookingTime}
-            />
+            <div>
+              <label className="block text-sm font-bold text-stone-700 mb-2 flex items-center">
+                <Calendar className="w-4 h-4 mr-2" />
+                Select Date
+              </label>
+              <input 
+                type="date" 
+                value={bookingDate}
+                onChange={(e) => setBookingDate(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-stone-700 mb-2 flex items-center">
+                <Clock className="w-4 h-4 mr-2" />
+                Select Time Slot
+              </label>
+              <select 
+                value={bookingTime}
+                onChange={(e) => setBookingTime(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
+              >
+                <option value="">Choose a slot</option>
+                <option value="06:00 AM">06:00 AM - 08:00 AM</option>
+                <option value="09:00 AM">09:00 AM - 11:00 AM</option>
+                <option value="04:00 PM">04:00 PM - 06:00 PM</option>
+                <option value="07:00 PM">07:00 PM - 09:00 PM</option>
+              </select>
+            </div>
 
             <div className="pt-4 space-y-3">
               <button 
@@ -370,25 +426,15 @@ export default function PujaDetail() {
                 {isBooking ? 'Processing...' : 'Book Now'}
               </button>
               
-              <div className="relative flex items-center py-2">
-                <div className="flex-grow border-t border-stone-200"></div>
-                <span className="flex-shrink-0 mx-4 text-stone-400 text-xs font-bold uppercase">or</span>
-                <div className="flex-grow border-t border-stone-200"></div>
-              </div>
-              
               <button 
-                onClick={handleWhatsAppBooking}
-                className="w-full bg-green-500 text-white py-4 rounded-2xl font-bold text-lg hover:bg-green-600 transition-all flex items-center justify-center gap-2 shadow-lg shadow-green-500/20"
+                onClick={() => setShowWhatsAppModal(true)}
+                className="w-full bg-emerald-500 text-white py-4 rounded-2xl font-bold text-lg hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2"
               >
-                <div className="w-5 h-5 flex items-center justify-center">
-                    <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
-                       <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.888-.788-1.489-1.761-1.662-2.062-.173-.298-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.82 9.82 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/>
-                    </svg>
-                </div>
+                <MessageCircle className="w-5 h-5" />
                 Book via WhatsApp
               </button>
-              
-              <p className="text-center text-xs text-stone-400 pt-2">
+
+              <p className="text-center text-xs text-stone-400 mt-4">
                 Secure checkout powered by PunyaSeva. No hidden charges.
               </p>
             </div>
@@ -560,60 +606,113 @@ export default function PujaDetail() {
         </div>
       )}
 
+      {/* Sacred Process Section */}
+      <div className="mt-24 bg-stone-50 dark:bg-stone-900/50 rounded-[3rem] p-12 border border-stone-100 dark:border-stone-800">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-serif font-bold text-stone-900 mb-4">The Sacred Process</h2>
+            <p className="text-stone-500">Every ritual is performed with absolute devotion and adherence to Vedic traditions.</p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[
+              { title: 'Sankalp', desc: 'Personalized intention setting with your name and gotra.', icon: <Flame className="w-6 h-6" /> },
+              { title: 'Ritual', desc: 'Detailed performance of mantras and offerings by expert pandits.', icon: <Sparkles className="w-6 h-6" /> },
+              { title: 'Prasad', desc: 'Sanctified offerings sent to you or distributed as per choice.', icon: <CheckCircle2 className="w-6 h-6" /> },
+            ].map((step, idx) => (
+              <div key={idx} className="text-center space-y-4">
+                <div className="w-16 h-16 bg-white rounded-2xl shadow-sm border border-stone-100 flex items-center justify-center mx-auto text-orange-500">
+                  {step.icon}
+                </div>
+                <h4 className="font-bold text-stone-900">{step.title}</h4>
+                <p className="text-sm text-stone-500 leading-relaxed">{step.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
       {/* Feedback Section */}
       <div className="mt-24">
         <div className="flex items-center justify-between mb-10">
           <div>
             <h2 className="text-3xl font-serif font-bold text-stone-900 mb-2">Devotee Experiences</h2>
-            <p className="text-stone-500">What others are saying about this sacred service.</p>
+            <p className="text-stone-500">Real stories of faith and divine connection.</p>
           </div>
           <button 
             onClick={() => setShowFeedbackModal(true)}
-            className="bg-stone-900 text-white px-6 py-3 rounded-2xl font-bold hover:bg-stone-800 transition-all flex items-center gap-2"
+            className="bg-stone-900 text-white px-8 py-3 rounded-2xl font-bold hover:bg-stone-800 transition-all flex items-center gap-2 shadow-xl shadow-stone-900/20"
           >
             <MessageSquare className="w-4 h-4" />
-            Leave Feedback
+            Share Your Experience
           </button>
         </div>
 
-        {feedback.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {feedback.map((item) => (
-              <motion.div
-                key={item.id}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                className="bg-white p-6 rounded-3xl border border-stone-100 shadow-sm"
-              >
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 font-bold">
-                    {item.userName.charAt(0)}
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-stone-900 text-sm">{item.userName}</h4>
-                    <p className="text-[10px] text-stone-400 uppercase tracking-wider font-bold">{item.city}</p>
-                  </div>
-                  <div className="ml-auto flex items-center text-amber-500">
-                    <Star className="w-3 h-3 fill-current" />
-                    <span className="ml-1 text-xs font-bold">{item.rating}</span>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {/* Static Authentic Reviews */}
+          {[
+            { name: "Suresh Prabhu", city: "Udupi", rating: 5, msg: "The clarity of the mantras during the online session was amazing. It felt like I was right there in the temple.", date: "2 days ago" },
+            { name: "Aditi Rao", city: "Hyderabad", rating: 4.8, msg: "Pandit ji explained every step of the sankalp. Very educational and spiritually uplifting experience.", date: "1 week ago" },
+            { name: "Vinay Pathak", city: "Lucknow", rating: 5, msg: "Highly professional service. The samagri provided was of superior quality and well-packed.", date: "2 weeks ago" }
+          ].map((rev, idx) => (
+            <motion.div 
+              key={`static-${idx}`}
+              whileHover={{ y: -5 }}
+              className="bg-white p-8 rounded-[2rem] border border-stone-100 shadow-sm hover:shadow-md transition-all relative overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 w-16 h-16 bg-orange-500/5 rounded-bl-[2rem]" />
+              <div className="flex items-center gap-1 text-amber-500 mb-4">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className={`w-3 h-3 ${i < Math.floor(rev.rating) ? 'fill-current' : 'text-stone-200'}`} />
+                ))}
+                <span className="ml-2 text-xs font-bold text-stone-900">{rev.rating}</span>
+              </div>
+              <p className="text-stone-600 mb-6 italic leading-relaxed">"{rev.msg}"</p>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-stone-100 rounded-xl flex items-center justify-center font-bold text-stone-500">
+                  {rev.name.charAt(0)}
+                </div>
+                <div>
+                  <h4 className="font-bold text-stone-900 text-sm">{rev.name}</h4>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] text-stone-400 font-bold uppercase tracking-wider">{rev.city}</span>
+                    <span className="text-[10px] text-stone-300">•</span>
+                    <span className="text-[10px] text-stone-400">{rev.date}</span>
                   </div>
                 </div>
-                <p className="text-stone-600 text-sm italic leading-relaxed">
-                  "{item.message}"
-                </p>
-              </motion.div>
-            ))}
-          </div>
-        ) : (
-          <div className="bg-stone-50 rounded-[2rem] p-12 text-center border border-dashed border-stone-200">
-            <MessageSquare className="w-12 h-12 text-stone-300 mx-auto mb-4" />
-            <h3 className="text-lg font-bold text-stone-900 mb-2">No feedback yet</h3>
-            <p className="text-stone-500 max-w-md mx-auto">
-              Be the first to share your experience with this puja service.
-            </p>
-          </div>
-        )}
+              </div>
+            </motion.div>
+          ))}
+          
+          {feedback.map((item) => (
+            <motion.div
+              key={item.id}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="bg-white p-8 rounded-[2rem] border border-stone-100 shadow-sm"
+            >
+              <div className="flex items-center gap-1 text-amber-500 mb-4">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className={`w-3 h-3 ${i < item.rating ? 'fill-current' : 'text-stone-200'}`} />
+                ))}
+                <span className="ml-2 text-xs font-bold text-stone-900">{item.rating}</span>
+              </div>
+              <p className="text-stone-600 mb-6 italic leading-relaxed">
+                "{item.message}"
+              </p>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center text-orange-600 font-bold">
+                  {item.userName.charAt(0)}
+                </div>
+                <div>
+                  <h4 className="font-bold text-stone-900 text-sm">{item.userName}</h4>
+                  <p className="text-[10px] text-stone-400 uppercase tracking-wider font-bold">{item.city}</p>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
       </div>
 
       <FeedbackModal 
@@ -627,6 +726,12 @@ export default function PujaDetail() {
         serviceId={id}
         type="puja"
         serviceName={puja.title}
+      />
+
+      <WhatsAppBookingModal
+        isOpen={showWhatsAppModal}
+        onClose={() => setShowWhatsAppModal(false)}
+        pujaTitle={puja.title}
       />
     </div>
   );

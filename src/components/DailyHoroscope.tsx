@@ -1,21 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles, Star, ChevronRight, ChevronLeft, Clock, Calendar } from 'lucide-react';
+import { Sparkles, Star, ChevronRight, ChevronLeft, Clock, Calendar, Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { fetchLiveHoroscope } from '../services/geminiService';
 
 const zodiacSigns = [
-  { name: 'Aries', symbol: '♈', date: 'Mar 21-2026 - Apr 19-2026' },
-  { name: 'Taurus', symbol: '♉', date: 'Apr 20-2026 - May 20-2026' },
-  { name: 'Gemini', symbol: '♊', date: 'May 21-2026 - Jun 20-2026' },
-  { name: 'Cancer', symbol: '♋', date: 'Jun 21-2026 - Jul 22-2026' },
-  { name: 'Leo', symbol: '♌', date: 'Jul 23-2026 - Aug 22-2026' },
-  { name: 'Virgo', symbol: '♍', date: 'Aug 23-2026 - Sep 22-2026' },
-  { name: 'Libra', symbol: '♎', date: 'Sep 23-2026 - Oct 22-2026' },
-  { name: 'Scorpio', symbol: '♏', date: 'Oct 23-2026 - Nov 21-2026' },
-  { name: 'Sagittarius', symbol: '♐', date: 'Nov 22-2026 - Dec 21-2026' },
-  { name: 'Capricorn', symbol: '♑', date: 'Dec 22-2026 - Jan 19-2027' },
-  { name: 'Aquarius', symbol: '♒', date: 'Jan 20-2026 - Feb 18-2026' },
-  { name: 'Pisces', symbol: '♓', date: 'Feb 19-2026 - Mar 20-2026' },
+  { name: 'Aries', symbol: '♈', date: 'Mar 21 - Apr 19' },
+  { name: 'Taurus', symbol: '♉', date: 'Apr 20 - May 20' },
+  { name: 'Gemini', symbol: '♊', date: 'May 21 - Jun 20' },
+  { name: 'Cancer', symbol: '♋', date: 'Jun 21 - Jul 22' },
+  { name: 'Leo', symbol: '♌', date: 'Jul 23 - Aug 22' },
+  { name: 'Virgo', symbol: '♍', date: 'Aug 23 - Sep 22' },
+  { name: 'Libra', symbol: '♎', date: 'Sep 23 - Oct 22' },
+  { name: 'Scorpio', symbol: '♏', date: 'Oct 23 - Nov 21' },
+  { name: 'Sagittarius', symbol: '♐', date: 'Nov 22 - Dec 21' },
+  { name: 'Capricorn', symbol: '♑', date: 'Dec 22 - Jan 19' },
+  { name: 'Aquarius', symbol: '♒', date: 'Jan 20 - Feb 18' },
+  { name: 'Pisces', symbol: '♓', date: 'Feb 19 - Mar 20' },
 ];
 
 export default function DailyHoroscope() {
@@ -23,6 +24,7 @@ export default function DailyHoroscope() {
   const [selectedSign, setSelectedSign] = useState(zodiacSigns[0]);
   const [horoscope, setHoroscope] = useState('');
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -32,8 +34,21 @@ export default function DailyHoroscope() {
   }, []);
 
   useEffect(() => {
-    setHoroscope(t(`horoscope.predictions.${selectedSign.name}`));
-  }, [selectedSign, t]);
+    const getHoroscope = async () => {
+      try {
+        setIsLoading(true);
+        const prediction = await fetchLiveHoroscope(selectedSign.name, i18n.language);
+        setHoroscope(prediction);
+      } catch (error) {
+        console.error('Failed to fetch live horoscope:', error);
+        setHoroscope(t(`horoscope.predictions.${selectedSign.name}`));
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    getHoroscope();
+  }, [selectedSign, i18n.language, t]);
 
   const formattedDate = currentTime.toLocaleDateString(
     i18n.language === 'hi' ? 'hi-IN' : i18n.language === 'sa' ? 'sa-IN' : 'en-IN',
@@ -97,10 +112,19 @@ export default function DailyHoroscope() {
         </div>
 
         <div className="relative p-6 bg-amber-50 dark:bg-amber-900/10 rounded-3xl border border-amber-100 dark:border-amber-900/20 flex-grow flex items-center justify-center">
-          <Star className="absolute top-4 right-4 w-4 h-4 text-amber-300 dark:text-amber-900/30" />
-          <p className="text-stone-700 dark:text-stone-300 text-center leading-relaxed italic">
-            &ldquo;{horoscope}&rdquo;
-          </p>
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center text-amber-500">
+              <Loader2 className="w-8 h-8 animate-spin mb-2" />
+              <p className="text-xs font-bold animate-pulse uppercase tracking-widest">{t('horoscope.fetching') || 'Fetching...'}</p>
+            </div>
+          ) : (
+            <>
+              <Star className="absolute top-4 right-4 w-4 h-4 text-amber-300 dark:text-amber-900/30" />
+              <p className="text-stone-700 dark:text-stone-300 text-center leading-relaxed italic">
+                &ldquo;{horoscope}&rdquo;
+              </p>
+            </>
+          )}
         </div>
 
         <div className="mt-8 grid grid-cols-6 gap-2">

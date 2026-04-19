@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
+import { GoogleGenAI } from "@google/genai";
 import {
   Mail,
   MapPin,
@@ -15,8 +16,8 @@ const contactCards = [
   {
     title: 'Email Support',
     description: 'Reach us for bookings, order help, or partnership questions.',
-    value: 'support@punyaseva.com',
-    href: 'mailto:support@punyaseva.com',
+    value: 'support@punyaseva.in',
+    href: 'mailto:support@punyaseva.in',
     icon: Mail,
   },
   {
@@ -128,22 +129,27 @@ export default function Contact() {
     setChatError('');
 
     try {
-      const response = await fetch('/api/support/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messages: nextMessages,
-          systemInstruction: SYSTEM_INSTRUCTION,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to get AI response');
+      const apiKey = process.env.GEMINI_API_KEY;
+      if (!apiKey) {
+        throw new Error('AI support is not configured yet. Add GEMINI_API_KEY before using this feature.');
       }
 
-      const data = await response.json();
-      const reply = data.text?.trim();
+      const ai = new GoogleGenAI({ apiKey });
+      
+      const history = nextMessages.map(m => ({
+        role: m.role === 'assistant' ? 'model' : 'user',
+        parts: [{ text: m.content }]
+      }));
+
+      const result = await ai.models.generateContent({
+        model: "gemini-3-flash-preview",
+        contents: history,
+        config: {
+          systemInstruction: SYSTEM_INSTRUCTION,
+        }
+      });
+
+      const reply = result.text?.trim();
 
       if (!reply) {
         throw new Error("The AI support response was empty.");
@@ -194,6 +200,14 @@ export default function Contact() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
+            <div className="flex justify-center mb-8">
+              <img 
+                src="/logo/full-logo.png" 
+                alt="PunyaSeva" 
+                className="h-20 w-auto brightness-0 invert" 
+                referrerPolicy="no-referrer"
+              />
+            </div>
             <div className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-orange-500/20 text-orange-300 text-xs font-bold uppercase tracking-widest mb-6 border border-orange-500/30">
               <Sparkles className="w-4 h-4" />
               <span>Contact Us</span>

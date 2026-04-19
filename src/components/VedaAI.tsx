@@ -1,135 +1,166 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Send, Sparkles, Flame } from 'lucide-react';
+import { X, Send, Sparkles } from 'lucide-react';
+import { GoogleGenAI } from "@google/genai";
 import { useAuth } from '../hooks/useAuth';
+import { useTheme } from '../contexts/ThemeContext';
+
+const SYSTEM_INSTRUCTION = `
+You are Veda AI, a divine Vedic Scholar and spiritual assistant for the PunyaSeva platform. 
+Your purpose is to provide sacred wisdom, explain Vedic traditions, guide users through puja bookings, and offer peace and clarity.
+
+Tone: 
+- Compassionate, wise, and serene.
+- Use spiritual metaphors where appropriate.
+- Be respectful of all traditions while focusing on Vedic/Hindu spirituality.
+- Address the user with respect (e.g., "Dear Seeker" or "Namaste").
+
+Capabilities:
+- Explain the significance of various pujas (Ganesh Puja, Lakshmi Puja, etc.).
+- Provide mantra explanations and their benefits.
+- Guide users on how to use the PunyaSeva platform (booking pujas, ordering prasad, checking astrology).
+- Offer general spiritual guidance and meditation tips.
+
+Rules:
+- If a user asks about booking a puja, guide them to the /services page.
+- If a user asks about their future or horoscope, guide them to the /astrology page.
+- Do not provide medical, legal, or financial advice.
+- Keep responses concise but meaningful.
+`;
+
+const QUICK_ACTIONS = [
+  "Significance of Shivaratri",
+  "Benefits of meditation",
+  "How to book a puja?",
+  "Mantra for peace",
+];
 
 export default function VedaAI() {
-  const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
-  const [input, setInput] = useState('');
-  const [messages, setMessages] = useState<{ role: 'user' | 'assistant'; content: string }[]>([
-    { role: 'assistant', content: 'Namaste. I am Veda AI, your spiritual guide. How may I assist your journey today?' }
+  const [messages, setMessages] = useState<{ role: 'user' | 'assistant', content: string }[]>([
+    { role: 'assistant', content: "Namaste. I am Veda AI, your spiritual guide. How may I assist your journey today?" }
   ]);
+  const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+  const { user } = useAuth();
+  const { resolvedTheme } = useTheme();
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    scrollToBottom();
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
   }, [messages]);
 
-  const handleSend = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    if (!input.trim() || isLoading) return;
+  const handleSend = async (text: string = input) => {
+    if (!text.trim() || isLoading) return;
 
-    const userMessage = input.trim();
+    const userMessage = { role: 'user' as const, content: text };
+    setMessages(prev => [...prev, userMessage]);
     setInput('');
-    setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
     setIsLoading(true);
 
     try {
-      const responseArr = await fetch('/api/ai/spiritual-guidance', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          prompt: userMessage,
-          history: messages,
-          systemInstruction: "You are a wise Vedic scholar and spiritual guide named 'Veda AI'."
-        })
+      const apiKey = process.env.GEMINI_API_KEY;
+      if (!apiKey) throw new Error("AI not configured");
+
+      const ai = new GoogleGenAI({ apiKey });
+      const history = messages.map(m => ({
+        role: m.role === 'assistant' ? 'model' : 'user',
+        parts: [{ text: m.content }]
+      }));
+      history.push({ role: 'user', parts: [{ text }] });
+
+      const response = await ai.models.generateContent({
+        model: "gemini-3-flash-preview",
+        contents: history,
+        config: {
+          systemInstruction: SYSTEM_INSTRUCTION,
+          temperature: 0.7,
+        }
       });
 
-      if (!responseArr.ok) throw new Error('Failed to connect.');
-
-      const data = await responseArr.json();
-      setMessages(prev => [...prev, { role: 'assistant', content: data.text }]);
+      const reply = response.text || "I am currently in deep meditation. Please try again later.";
+      setMessages(prev => [...prev, { role: 'assistant', content: reply }]);
     } catch (error) {
-      console.error('Veda AI Error:', error);
-      setMessages(prev => [...prev, { role: 'assistant', content: 'I apologize, but my connection to the spiritual realms is temporarily obscured.' }]);
+      console.error("Veda AI Error:", error);
+      setMessages(prev => [...prev, { role: 'assistant', content: "The divine connection is temporarily interrupted. Please try again soon." }]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handlePillClick = (text: string) => {
-    setInput(text);
-  };
-
   return (
     <>
-      {/* Floating Action Button */}
+      {/* FAB */}
       <motion.button
         initial={{ scale: 0, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        whileHover={{ scale: 1.1 }}
+        whileHover={{ scale: 1.1, boxShadow: "0 0 20px rgba(249, 115, 22, 0.5)" }}
         whileTap={{ scale: 0.9 }}
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 z-[100] w-14 h-14 bg-orange-600 text-white rounded-full flex items-center justify-center shadow-2xl group overflow-hidden"
+        className="fixed bottom-6 right-6 z-[60] w-14 h-14 bg-orange-500 text-white rounded-full shadow-2xl flex items-center justify-center hover:bg-orange-600 transition-colors"
       >
-        <div className="absolute inset-0 bg-gradient-to-tr from-orange-600 to-amber-500 opacity-0 group-hover:opacity-100 transition-opacity" />
-        {isOpen ? <X className="w-6 h-6 relative z-10" /> : <Flame className="w-6 h-6 relative z-10 animate-pulse" />}
+        <Sparkles className="w-6 h-6" />
       </motion.button>
 
-      {/* Chat Drawer */}
+      {/* Drawer */}
       <AnimatePresence>
         {isOpen && (
-          <div className="fixed inset-0 z-[110] flex justify-end">
+          <>
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsOpen(false)}
-              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+              className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[70]"
             />
-            
             <motion.div
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="relative w-full max-w-[400px] h-full bg-[#111111] flex flex-col shadow-2xl border-l-2 border-orange-500/20"
+              className="fixed top-0 right-0 h-full w-full max-w-md bg-stone-50 dark:bg-stone-950 shadow-2xl z-[80] flex flex-col border-l border-stone-200 dark:border-stone-800"
             >
-              <div className="absolute top-0 left-0 right-0 h-1 bg-orange-600" />
-              
               {/* Header */}
-              <div className="p-6 border-b border-[#222222] bg-[#1a1a1a]">
-                <div className="flex justify-between items-start">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-[#ff6b00] rounded-xl flex items-center justify-center shadow-lg shadow-orange-500/20">
-                      <Sparkles className="w-6 h-6 text-white" />
-                    </div>
-                    <div className="flex flex-col justify-center">
-                      <h3 className="font-serif font-black text-white text-xl tracking-wide">Veda AI</h3>
-                      <div className="flex items-center gap-2 mt-1">
-                        <div className="w-1.5 h-1.5 bg-[#00ff88] rounded-full" />
-                        <span className="text-[10px] text-stone-400 font-bold uppercase tracking-[0.15em]">Spiritual Guide Online</span>
-                      </div>
+              <div className="p-6 border-b border-stone-200 dark:border-stone-800 flex items-center justify-between bg-white dark:bg-stone-900 relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-500 via-amber-500 to-orange-500" />
+                <div className="flex items-center gap-3 relative z-10">
+                  <div className="w-10 h-10 bg-orange-500 rounded-xl flex items-center justify-center text-white shadow-lg shadow-orange-500/20">
+                    <Sparkles className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-serif font-bold text-stone-900 dark:text-white">Veda AI</h3>
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+                      <span className="text-[10px] text-stone-500 dark:text-stone-400 uppercase tracking-widest font-bold">Spiritual Guide Online</span>
                     </div>
                   </div>
-                  <button 
-                    onClick={() => setIsOpen(false)}
-                    className="p-1.5 text-stone-500 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
                 </div>
+                <button 
+                  onClick={() => setIsOpen(false)}
+                  className="p-2 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-full transition-colors"
+                >
+                  <X className="w-5 h-5 text-stone-400" />
+                </button>
               </div>
 
               {/* Messages */}
-              <div className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar">
-                {messages.map((m, idx) => (
+              <div 
+                ref={scrollRef}
+                className="flex-1 overflow-y-auto p-6 space-y-6 scroll-smooth"
+              >
+                {messages.map((m, i) => (
                   <motion.div
+                    key={i}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    key={idx}
                     className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
                   >
-                    <div className={`p-4 rounded-xl text-sm leading-relaxed max-w-[90%] font-medium ${
-                      m.role === 'assistant' 
-                        ? 'bg-[#1a1a1a] text-[#cccccc] border border-[#222222]' 
-                        : 'bg-[#ff6b00] text-white'
+                    <div className={`max-w-[85%] p-4 rounded-2xl text-sm leading-relaxed ${
+                      m.role === 'user' 
+                        ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/20' 
+                        : 'bg-white dark:bg-stone-900 text-stone-700 dark:text-stone-200 border border-stone-200 dark:border-stone-800 shadow-sm'
                     }`}>
                       {m.content}
                     </div>
@@ -137,62 +168,53 @@ export default function VedaAI() {
                 ))}
                 {isLoading && (
                   <div className="flex justify-start">
-                    <div className="p-4 rounded-xl bg-[#1a1a1a] border border-[#222222] flex items-center justify-center">
-                      <div className="flex gap-1.5 align-middle">
-                        <span className="w-1.5 h-1.5 bg-[#555] rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                        <span className="w-1.5 h-1.5 bg-[#555] rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                        <span className="w-1.5 h-1.5 bg-[#555] rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-                      </div>
+                    <div className="bg-white dark:bg-stone-900 p-4 rounded-2xl border border-stone-200 dark:border-stone-800 flex gap-1">
+                      <div className="w-1.5 h-1.5 bg-stone-300 rounded-full animate-bounce" />
+                      <div className="w-1.5 h-1.5 bg-stone-300 rounded-full animate-bounce [animation-delay:0.2s]" />
+                      <div className="w-1.5 h-1.5 bg-stone-300 rounded-full animate-bounce [animation-delay:0.4s]" />
                     </div>
                   </div>
                 )}
-                <div ref={messagesEndRef} />
               </div>
 
               {/* Input Area */}
-              <div className="p-6 bg-[#1a1a1a] border-t border-[#222222]">
-                <div className="flex flex-wrap gap-2.5 mb-6">
-                  {[
-                    'Significance of Shivaratri',
-                    'Benefits of meditation',
-                    'How to book a puja?',
-                    'Mantra for peace'
-                  ].map((tip) => (
-                    <button
-                      key={tip}
-                      onClick={() => handlePillClick(tip)}
-                      className="px-4 py-2 rounded-full border border-[#333333] text-[#999999] text-xs font-medium hover:border-[#ff6b00] hover:text-[#ff6b00] transition-colors bg-transparent"
-                    >
-                      {tip}
-                    </button>
-                  ))}
-                </div>
-
-                <form onSubmit={handleSend} className="relative mb-6">
+              <div className="p-6 border-t border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900">
+                {messages.length === 1 && (
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {QUICK_ACTIONS.map(action => (
+                      <button
+                        key={action}
+                        onClick={() => handleSend(action)}
+                        className="text-[10px] px-3 py-1.5 rounded-full border border-stone-200 dark:border-stone-800 hover:border-orange-500 hover:text-orange-500 transition-all text-stone-500 dark:text-stone-400"
+                      >
+                        {action}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                <form 
+                  onSubmit={(e) => { e.preventDefault(); handleSend(); }}
+                  className="relative"
+                >
                   <input
                     type="text"
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     placeholder="Ask Veda AI..."
-                    className="w-full bg-[#111111] border border-[#333333] rounded-[2rem] pl-5 pr-14 py-4 text-sm text-white placeholder:text-[#666666] focus:ring-1 focus:ring-[#ff6b00] focus:border-[#ff6b00] outline-none transition-all"
+                    className="w-full bg-stone-50 dark:bg-stone-950 border border-stone-200 dark:border-stone-800 rounded-2xl px-4 py-3 pr-12 text-sm outline-none focus:border-orange-500 transition-colors dark:text-white"
                   />
                   <button
                     type="submit"
                     disabled={!input.trim() || isLoading}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-[#9c4c1a] hover:bg-[#ff6b00] text-white rounded-full flex items-center justify-center disabled:opacity-50 disabled:hover:bg-[#9c4c1a] transition-all"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-orange-500 text-white rounded-xl flex items-center justify-center hover:bg-orange-600 disabled:opacity-50 transition-all"
                   >
-                    <Send className="w-4 h-4 ml-[-2px] mt-[1px]" />
+                    <Send className="w-4 h-4" />
                   </button>
                 </form>
-
-                <div className="text-center w-full pb-2">
-                  <span className="text-[10px] text-[#aa8855] font-black uppercase tracking-[0.2em]">
-                    Guided by Eternal Wisdom
-                  </span>
-                </div>
+                <p className="text-[10px] text-center text-stone-400 mt-4 uppercase tracking-[0.2em] font-bold">Guided by Eternal Wisdom</p>
               </div>
             </motion.div>
-          </div>
+          </>
         )}
       </AnimatePresence>
     </>

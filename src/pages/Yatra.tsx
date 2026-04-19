@@ -103,6 +103,14 @@ export default function Yatra() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
+            <div className="flex justify-center mb-8">
+              <img 
+                src="/logo/full-logo.png" 
+                alt="PunyaSeva" 
+                className="h-20 w-auto brightness-0 invert" 
+                referrerPolicy="no-referrer"
+              />
+            </div>
             <h1 className="text-5xl md:text-7xl font-serif font-bold text-white mb-6">
               Divine Yatra Services
             </h1>
@@ -289,9 +297,9 @@ export default function Yatra() {
                     <Phone className="w-4 h-4" />
                     <span className="text-sm font-medium">+91 12345 67890</span>
                   </a>
-                  <a href="mailto:yatra@punyaseva.com" className="flex items-center gap-3 text-stone-700 dark:text-stone-300 hover:text-orange-500 transition-colors">
+                  <a href="mailto:yatra@punyaseva.in" className="flex items-center gap-3 text-stone-700 dark:text-stone-300 hover:text-orange-500 transition-colors">
                     <Mail className="w-4 h-4" />
-                    <span className="text-sm font-medium">yatra@punyaseva.com</span>
+                    <span className="text-sm font-medium">yatra@punyaseva.in</span>
                   </a>
                 </div>
               </div>

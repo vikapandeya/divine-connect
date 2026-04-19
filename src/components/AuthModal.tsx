@@ -90,6 +90,14 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
             <div className="p-8 sm:p-10">
               <div className="text-center mb-8">
+                <div className="flex justify-center mb-6">
+                  <img 
+                    src="/logo/icon-only.svg" 
+                    alt="PunyaSeva" 
+                    className="h-16 w-auto" 
+                    referrerPolicy="no-referrer"
+                  />
+                </div>
                 <h2 className="text-3xl font-serif font-bold text-stone-900 mb-2">
                   {isLogin ? 'Welcome Back' : 'Join PunyaSeva'}
                 </h2>

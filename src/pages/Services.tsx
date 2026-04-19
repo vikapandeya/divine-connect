@@ -1,14 +1,22 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Puja, VendorProfile } from '../types';
+import { Puja, VendorProfile, Yatra, Product } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Flame, Clock, IndianRupee, CheckCircle2, Search, Filter, X, MapPin, User, Star, Navigation, Info } from 'lucide-react';
+import { Flame, Clock, IndianRupee, CheckCircle2, Search, Filter, X, MapPin, User, Star, Navigation, Info, Compass, Calendar, Sparkles, ShoppingBag, Heart, ShoppingCart } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { formatIndianRupees } from '../lib/utils';
+import { addToCart } from '../lib/cart';
+import { addToWishlist, removeFromWishlist, isInWishlist } from '../lib/wishlist';
+import { auth } from '../firebase';
 
 export default function Services() {
   const [pujas, setPujas] = useState<Puja[]>([]);
+  const [yatras, setYatras] = useState<Yatra[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [vendors, setVendors] = useState<VendorProfile[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeService, setActiveService] = useState<'all' | 'puja' | 'yatra' | 'product'>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [wishlistItems, setWishlistItems] = useState<Set<string>>(new Set());
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedVendor, setSelectedVendor] = useState('all');
   const [selectedTemple, setSelectedTemple] = useState('all');
@@ -57,18 +65,28 @@ export default function Services() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [pujasRes, vendorsRes] = await Promise.all([
+        const [pujasRes, yatrasRes, vendorsRes, productsRes] = await Promise.all([
           fetch('/api/pujas'),
-          fetch('/api/admin/vendors-performance') // Reusing this to get vendor list
+          fetch('/api/yatras'),
+          fetch('/api/admin/vendors-performance'),
+          fetch('/api/products')
         ]);
         
         if (pujasRes.ok) {
           const data = await pujasRes.json();
           setPujas(data);
         }
+        if (yatrasRes.ok) {
+          const data = await yatrasRes.json();
+          setYatras(data);
+        }
         if (vendorsRes.ok) {
           const data = await vendorsRes.json();
-          setVendors(data.filter((v: any) => v.type === 'priest' || v.type === 'temple'));
+          setVendors(data.filter((v: any) => v.type === 'priest' || v.type === 'temple' || v.type === 'shop'));
+        }
+        if (productsRes.ok) {
+          const data = await productsRes.json();
+          setProducts(data);
         }
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -81,7 +99,7 @@ export default function Services() {
 
   // Mock data if Firestore is empty
   const displayPujas = useMemo(() => {
-    const basePujas = pujas.length > 0 ? pujas : [
+    const basePujas = (pujas.length > 0 ? pujas : [
       {
         id: '1',
         title: 'Ganesh Puja',
@@ -134,7 +152,7 @@ export default function Services() {
         templeName: 'Kashi Vishwanath',
         vendorId: 'v4'
       }
-    ];
+    ]) as Puja[];
 
     return basePujas.filter(puja => {
       const matchesSearch = puja.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -170,20 +188,102 @@ export default function Services() {
     });
   }, [pujas, searchQuery, selectedCategory, selectedVendor, selectedTemple, priceRange, showNearbyOnly, userLocation, vendors]);
 
+  const displayYatras = useMemo(() => {
+    const baseYatras = (yatras.length > 0 ? yatras : [
+      {
+        id: 'y1',
+        title: 'Chardham Yatra 2026',
+        description: 'A complete spiritual journey to Yamunotri, Gangotri, Kedarnath, and Badrinath.',
+        price: 45000,
+        duration: '12 Days / 11 Nights',
+        location: 'Uttarakhand',
+        category: 'Pilgrimage',
+        vendorId: 'v1',
+        rating: 4.9
+      },
+      {
+        id: 'y2',
+        title: 'Varanasi Spiritual Tour',
+        description: 'Experience the ancient city of Kashi, Ganga Aarti, and holy temples.',
+        price: 8500,
+        duration: '3 Days / 2 Nights',
+        location: 'Varanasi, UP',
+        category: 'Spiritual',
+        vendorId: 'v2',
+        rating: 4.8
+      },
+      {
+        id: 'y3',
+        title: 'Tirupati Balaji Darshan',
+        description: 'Seamless darshan experience with accommodation and local visits.',
+        price: 5500,
+        duration: '2 Days / 1 Night',
+        location: 'Tirupathi, AP',
+        category: 'Darshan',
+        vendorId: 'v3',
+        rating: 4.7
+      }
+    ]) as Yatra[];
+
+    return baseYatras.filter(yatra => {
+      const matchesSearch = yatra.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          yatra.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          yatra.location.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesPrice = yatra.price >= priceRange.min && yatra.price <= priceRange.max;
+      const matchesVendor = selectedVendor === 'all' || yatra.vendorId === selectedVendor;
+
+      return matchesSearch && matchesPrice && matchesVendor;
+    });
+  }, [yatras, searchQuery, priceRange, selectedVendor]);
+
+  const displayProducts = useMemo(() => {
+    const baseProducts = (products.length > 0 ? products : [
+      {
+        id: 'p1',
+        name: 'Brass Ganesh Idol',
+        description: 'Handcrafted premium brass idol for your home altar.',
+        price: 1299,
+        category: 'Idols',
+        rating: 4.8,
+        image: 'https://picsum.photos/seed/ganesh/400/400',
+        vendorId: 'v4'
+      },
+      {
+        id: 'p2',
+        name: 'Rudraksha Mala (108 Beads)',
+        description: 'Authentic 5-mukhi Rudraksha beads for meditation and peace.',
+        price: 599,
+        category: 'Mala',
+        rating: 4.9,
+        image: 'https://picsum.photos/seed/mala/400/400',
+        vendorId: 'v5'
+      }
+    ]) as any[];
+
+    return baseProducts.filter(product => {
+      const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          product.description.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory;
+      const matchesPrice = product.price >= priceRange.min && product.price <= priceRange.max;
+      
+      return matchesSearch && matchesCategory && matchesPrice;
+    });
+  }, [products, searchQuery, selectedCategory, priceRange]);
+
   const categories = ['all', 'Daily', 'Special', 'Festive', 'Havan', 'Katha'];
   const temples = Array.from(new Set(pujas.map(p => p.templeName).filter(Boolean)));
 
   return (
     <div className="pb-20 bg-stone-50 min-h-screen">
-      <section className="relative h-[40vh] flex items-center overflow-hidden mb-8">
+      <section className="relative h-[45vh] flex items-center overflow-hidden mb-8">
         <div className="absolute inset-0 z-0">
           <img
-            src="https://picsum.photos/seed/puja-hero/1920/1080?blur=2"
+            src="https://picsum.photos/seed/spiritual-services/1920/1080?blur=1"
             alt="Sacred Services"
             className="w-full h-full object-cover"
             referrerPolicy="no-referrer"
           />
-          <div className="absolute inset-0 bg-stone-950/60 backdrop-blur-[2px]" />
+          <div className="absolute inset-0 bg-stone-950/70 backdrop-blur-[2px]" />
         </div>
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <motion.div
@@ -191,51 +291,84 @@ export default function Services() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <h1 className="text-4xl md:text-6xl font-serif font-bold text-white mb-4">
-              Sacred Puja Services
+            <div className="flex justify-center mb-8">
+              <img 
+                src="/logo/full-logo.png" 
+                alt="PunyaSeva" 
+                className="h-24 w-auto brightness-0 invert" 
+                referrerPolicy="no-referrer"
+              />
+            </div>
+            <h1 className="text-5xl md:text-7xl font-serif font-bold text-white mb-6">
+              Our Spiritual Services
             </h1>
-            <p className="text-lg text-stone-200 max-w-2xl mx-auto">
-              Connect with experienced pandits for authentic Vedic rituals performed with devotion and precision.
+            <p className="text-xl text-stone-200 max-w-2xl mx-auto leading-relaxed">
+              Explore a world of divine connection through our traditional pujas and soul-stirring pilgrimage yatras.
             </p>
           </motion.div>
         </div>
       </section>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Search and Filter Bar */}
-        <div className="bg-white rounded-3xl shadow-sm border border-stone-200 p-4 mb-8">
-          <div className="flex flex-col md:flex-row gap-4 items-center">
-            <div className="relative flex-grow w-full">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 w-5 h-5" />
-              <input
-                type="text"
-                placeholder="Search for pujas, temples, or rituals..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 bg-stone-50 border-none rounded-2xl focus:ring-2 focus:ring-orange-500 transition-all"
-              />
-            </div>
-            
-            <button
-              onClick={() => setShowNearbyOnly(!showNearbyOnly)}
-              className={`flex items-center space-x-2 px-6 py-3 rounded-2xl font-bold transition-all ${
-                showNearbyOnly ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'bg-stone-100 text-stone-700 hover:bg-stone-200'
-              }`}
-            >
-              <Navigation className={`w-5 h-5 ${showNearbyOnly ? 'animate-pulse' : ''}`} />
-              <span>Nearby (5km)</span>
-            </button>
+        {/* Navigation & Search Bar */}
+        <div className="bg-white rounded-[2.5rem] shadow-xl shadow-stone-200/50 border border-stone-100 p-6 mb-12 sticky top-24 z-40 backdrop-blur-md bg-white/95">
+          <div className="flex flex-col space-y-6">
+            <div className="flex flex-wrap items-center justify-between gap-6">
+              <div className="flex bg-stone-100 p-1.5 rounded-2xl overflow-x-auto no-scrollbar">
+                {[
+                  { id: 'all', label: 'All', icon: <Compass className="w-4 h-4" /> },
+                  { id: 'puja', label: 'Pujas', icon: <Flame className="w-4 h-4" /> },
+                  { id: 'yatra', label: 'Yatras', icon: <Navigation className="w-4 h-4" /> },
+                  { id: 'product', label: 'Products', icon: <ShoppingBag className="w-4 h-4" /> }
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveService(tab.id as any)}
+                    className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${
+                      activeService === tab.id
+                        ? 'bg-white text-stone-900 shadow-md'
+                        : 'text-stone-500 hover:text-stone-700'
+                    }`}
+                  >
+                    {tab.icon}
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
 
-            <button
-              onClick={() => setShowFilters(!showFilters)}
-              className={`flex items-center space-x-2 px-6 py-3 rounded-2xl font-bold transition-all ${
-                showFilters ? 'bg-orange-500 text-white' : 'bg-stone-100 text-stone-700 hover:bg-stone-200'
-              }`}
-            >
-              <Filter className="w-5 h-5" />
-              <span>Filters</span>
-            </button>
-          </div>
+              <div className="relative flex-grow max-w-md">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 w-5 h-5" />
+                <input
+                  type="text"
+                  placeholder="Search for pujas, locations, or yatras..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-12 pr-4 py-3 bg-stone-50 border-stone-100 border rounded-2xl focus:ring-2 focus:ring-orange-500 transition-all outline-none"
+                />
+              </div>
+
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setShowNearbyOnly(!showNearbyOnly)}
+                  className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-bold text-sm transition-all ${
+                    showNearbyOnly ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'bg-stone-50 text-stone-600 hover:bg-stone-100 border border-stone-100'
+                  }`}
+                >
+                  <Navigation className="w-4 h-4" />
+                  Nearby
+                </button>
+
+                <button
+                  onClick={() => setShowFilters(!showFilters)}
+                  className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-bold text-sm transition-all ${
+                    showFilters ? 'bg-orange-500 text-white' : 'bg-stone-50 text-stone-600 hover:bg-stone-100 border border-stone-100'
+                  }`}
+                >
+                  <Filter className="w-4 h-4" />
+                  Filters
+                </button>
+              </div>
+            </div>
 
           <AnimatePresence>
             {locationError && (
@@ -260,7 +393,7 @@ export default function Services() {
                 <div className="pt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 border-t border-stone-100 mt-4">
                   {/* Category Filter */}
                   <div>
-                    <label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-2">Category</label>
+                    <label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-2">Puja Category</label>
                     <div className="flex flex-wrap gap-2">
                       {categories.map(cat => (
                         <button
@@ -350,123 +483,299 @@ export default function Services() {
             )}
           </AnimatePresence>
         </div>
+      </div>
 
-        {/* Results */}
-        {loading ? (
+      {/* Results Sectioned */}
+      {loading ? (
           <div className="flex justify-center py-20">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600" />
           </div>
-        ) : displayPujas.length > 0 ? (
-          <div className="flex flex-wrap justify-center gap-8">
-            {displayPujas.map((puja, index) => (
-              <motion.div
-                key={puja.id}
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: index * 0.1 }}
-                className="bg-white rounded-3xl border border-stone-200 overflow-hidden hover:shadow-xl transition-all flex flex-col group w-full md:w-[calc(50%-1.5rem)] lg:w-[calc(33.33%-1.5rem)] min-w-[300px] max-w-sm"
-              >
-                <div className="h-48 bg-orange-100 relative overflow-hidden">
-                  <img 
-                    src={`https://picsum.photos/seed/${puja.id}/800/400`} 
-                    alt={puja.title} 
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                    referrerPolicy="no-referrer"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                  <div className="absolute top-4 left-4 flex flex-col gap-2">
-                    <div className="bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full flex items-center space-x-1 shadow-sm">
-                      <Flame className="w-4 h-4 text-orange-500" />
-                      <span className="text-xs font-bold text-stone-900">{puja.category || 'Sacred'}</span>
+        ) : (
+          <div className="space-y-32">
+            {(activeService === 'all' || activeService === 'yatra') && (
+              /* Yatra Section */
+              <section id="yatras" className="scroll-mt-32">
+                <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
+                  <div className="flex items-center gap-6">
+                    <div className="bg-emerald-500 p-5 rounded-[2rem] text-white shadow-xl shadow-emerald-500/20">
+                      <Navigation className="w-10 h-10" />
                     </div>
-                    {puja.isLive && (
-                      <div className="bg-red-600 text-white px-3 py-1 rounded-full flex items-center space-x-1 shadow-lg animate-pulse">
-                        <div className="w-2 h-2 bg-white rounded-full" />
-                        <span className="text-[10px] font-bold uppercase tracking-wider">Live</span>
-                      </div>
-                    )}
+                    <div>
+                      <h2 className="text-4xl md:text-5xl font-serif font-bold text-stone-900 leading-tight">Divine Yatra Packages</h2>
+                      <p className="text-stone-500 font-medium text-lg">Curated spiritual journeys to the soul of India</p>
+                    </div>
                   </div>
-                  {puja.templeName && (
-                    <div className="absolute bottom-4 left-4 flex items-center text-white text-xs font-medium">
-                      <MapPin className="w-3 h-3 mr-1" />
-                      {puja.templeName}
-                    </div>
+                  {activeService === 'all' && (
+                    <Link to="/yatras" className="text-emerald-600 font-bold hover:underline flex items-center">
+                      View all yatras <Navigation className="w-4 h-4 ml-2" />
+                    </Link>
                   )}
                 </div>
-                
-                <div className="p-6 flex-grow">
-                  <h3 className="text-xl font-serif font-bold text-stone-900 mb-2">{puja.title}</h3>
-                  <p className="text-stone-600 text-sm mb-4 line-clamp-2">{puja.description}</p>
-                  
-                  <div className="space-y-2 mb-6">
-                    <div className="flex items-center text-stone-500 text-xs">
-                      <Clock className="w-3.5 h-3.5 mr-2" />
-                      <span>Duration: {puja.duration}</span>
-                    </div>
-                    <div className="flex items-center text-stone-500 text-xs">
-                      <CheckCircle2 className="w-3.5 h-3.5 mr-2 text-emerald-500" />
-                      <span>Samagri Included</span>
-                    </div>
-                    <div className="flex items-center text-stone-500 text-xs">
-                      <User className="w-3.5 h-3.5 mr-2" />
-                      {puja.vendorId && (puja.vendor || vendors.find(v => v.uid === puja.vendorId)) ? (
-                        <div className="flex items-center gap-2">
-                          <Link 
-                            to={`/vendor/${puja.vendorId}`}
-                            className="hover:text-orange-600 font-bold transition-colors underline decoration-stone-200 underline-offset-2"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            {puja.vendor?.businessName || vendors.find(v => v.uid === puja.vendorId)?.businessName}
-                          </Link>
-                          <div className="flex items-center text-amber-500 ml-2">
-                            <Star className="w-3 h-3 fill-current mr-0.5" />
-                            <span className="font-bold">{puja.vendor?.rating || vendors.find(v => v.uid === puja.vendorId)?.rating || '4.5'}</span>
+
+                {displayYatras.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+                    {displayYatras.map((yatra, index) => (
+                      <motion.div
+                        key={yatra.id}
+                        initial={{ opacity: 0, y: 30 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.1, duration: 0.5 }}
+                        viewport={{ once: true }}
+                        className="bg-white rounded-[3rem] border border-stone-200 overflow-hidden hover:shadow-2xl hover:shadow-stone-200/50 transition-all flex flex-col group h-full"
+                      >
+                        <div className="aspect-[16/10] bg-emerald-100 relative overflow-hidden">
+                          <img 
+                            src={`https://picsum.photos/seed/${yatra.id}/1200/800`} 
+                            alt={yatra.title} 
+                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                            referrerPolicy="no-referrer"
+                          />
+                          <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-stone-950/90 via-stone-950/40 to-transparent" />
+                          <div className="absolute top-8 left-8">
+                            <div className="bg-white/95 backdrop-blur-md px-5 py-2 rounded-full flex items-center space-x-2 shadow-xl border border-white/50">
+                              <Compass className="w-4 h-4 text-emerald-600" />
+                              <span className="text-[10px] font-black text-stone-900 uppercase tracking-[0.2em]">{yatra.category || 'Pilgrimage'}</span>
+                            </div>
+                          </div>
+                          
+                          <div className="absolute bottom-8 left-8 right-8 flex items-end justify-between">
+                            <div className="flex items-center text-white font-bold group-hover:translate-x-2 transition-transform">
+                              <MapPin className="w-5 h-5 mr-2 text-emerald-400" />
+                              <span className="text-lg">{yatra.location}</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 bg-white/10 backdrop-blur-md px-3 py-1.5 rounded-full text-white border border-white/20">
+                              <Star className="w-3.5 h-3.5 fill-yellow-500 text-yellow-500" />
+                              <span className="text-xs font-bold">{yatra.rating || '4.9'}</span>
+                            </div>
                           </div>
                         </div>
-                      ) : (
-                        <span>Verified Pandit</span>
-                      )}
-                    </div>
+                        
+                        <div className="p-10 flex-grow flex flex-col">
+                          <h3 className="text-2xl font-serif font-bold text-stone-900 mb-4 group-hover:text-emerald-600 transition-colors line-clamp-1">{yatra.title}</h3>
+                          <p className="text-stone-500 text-sm mb-8 leading-relaxed line-clamp-2">{yatra.description}</p>
+                          
+                          <div className="grid grid-cols-2 gap-6 mb-10">
+                            <div className="bg-emerald-50/50 p-4 rounded-3xl flex items-center gap-4 border border-emerald-100/50">
+                              <Calendar className="w-6 h-6 text-emerald-600" />
+                              <div className="flex flex-col">
+                                <span className="text-[10px] font-bold text-stone-400 uppercase tracking-widest leading-none mb-1.5">Duration</span>
+                                <span className="text-sm font-black text-stone-800">{yatra.duration.split('/')[0]}</span>
+                              </div>
+                            </div>
+                            <div className="bg-stone-50 p-4 rounded-3xl flex items-center gap-4 border border-stone-100">
+                              <CheckCircle2 className="w-6 h-6 text-emerald-600" />
+                              <div className="flex flex-col">
+                                <span className="text-[10px] font-bold text-stone-400 uppercase tracking-widest leading-none mb-1.5">Comfort</span>
+                                <span className="text-sm font-black text-stone-800">Premium</span>
+                              </div>
+                            </div>
+                          </div>
+  
+                          <div className="mt-auto flex items-center justify-between pt-8 border-t border-stone-100">
+                            <div className="flex flex-col">
+                              <span className="text-[10px] uppercase tracking-[0.3em] text-stone-400 font-black mb-1.5">STARTING AT</span>
+                              <div className="flex items-center text-3xl font-serif font-black text-stone-900">
+                                <IndianRupee className="w-6 h-6 text-emerald-600" />
+                                <span>{formatIndianRupees(yatra.price)}</span>
+                              </div>
+                            </div>
+                            <Link 
+                              to={`/yatras/${yatra.id}`}
+                              className="bg-emerald-600 text-white px-8 py-4 rounded-[1.5rem] text-sm font-black hover:bg-stone-900 transition-all shadow-xl shadow-emerald-600/20 active:scale-95 group/btn"
+                            >
+                              Explore 
+                              <Navigation className="w-4 h-4 inline-block ml-2 group-hover/btn:translate-x-1 transition-transform" />
+                            </Link>
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))}
                   </div>
+                ) : (
+                  <div className="text-center py-24 bg-white rounded-[3rem] border border-stone-100 shadow-inner">
+                    <Compass className="w-16 h-16 text-stone-200 mx-auto mb-6" />
+                    <p className="text-stone-500 text-lg font-medium">No pilgrimage packages matching your search.</p>
+                    <button onClick={() => setSearchQuery('')} className="mt-4 text-emerald-600 font-bold hover:underline">Clear search filters</button>
+                  </div>
+                )}
+              </section>
+            )}
 
-                  <div className="flex items-center justify-between pt-4 border-t border-stone-100">
-                    <div className="flex flex-col">
-                      <span className="text-[10px] uppercase tracking-wider text-stone-400 font-bold">Starts from</span>
-                      <div className="flex items-center text-xl font-serif font-bold text-orange-600">
-                        <IndianRupee className="w-4 h-4" />
-                        <span>{puja.onlinePrice}</span>
-                      </div>
+            {(activeService === 'all' || activeService === 'puja') && (
+              /* Puja Section */
+              <section id="pujas" className="scroll-mt-32">
+                <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
+                  <div className="flex items-center gap-6">
+                    <div className="bg-orange-500 p-5 rounded-[2rem] text-white shadow-xl shadow-orange-500/20">
+                      <Flame className="w-10 h-10" />
                     </div>
-                    <Link 
-                      to={`/pujas/${puja.id}`}
-                      className="bg-stone-900 text-white px-5 py-2 rounded-xl text-sm font-bold hover:bg-orange-500 transition-colors shadow-sm"
-                    >
-                      Book Now
-                    </Link>
+                    <div>
+                      <h2 className="text-4xl md:text-5xl font-serif font-bold text-stone-900 leading-tight">Sacred Puja Services</h2>
+                      <p className="text-stone-500 font-medium text-lg">Traditional rituals performed by expert Ved-pathis</p>
+                    </div>
                   </div>
                 </div>
-              </motion.div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-20 bg-white rounded-3xl border border-stone-200">
-            <div className="bg-stone-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Search className="w-8 h-8 text-stone-400" />
-            </div>
-            <h3 className="text-xl font-serif font-bold text-stone-900 mb-2">No services found</h3>
-            <p className="text-stone-500 mb-6">Try adjusting your filters or search query to find what you're looking for.</p>
-            <button
-              onClick={() => {
-                setSelectedCategory('all');
-                setSelectedVendor('all');
-                setSelectedTemple('all');
-                setPriceRange({ min: 0, max: 50000 });
-                setSearchQuery('');
-              }}
-              className="bg-stone-900 text-white px-6 py-2 rounded-xl font-bold hover:bg-orange-500 transition-colors"
-            >
-              Clear All Filters
-            </button>
+
+                {displayPujas.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+                    {(displayPujas as any[]).map((puja, index) => (
+                      <motion.div
+                        key={puja.id}
+                        initial={{ opacity: 0, y: 30 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.1, duration: 0.5 }}
+                        viewport={{ once: true }}
+                        className="bg-white rounded-[3rem] border border-stone-200 overflow-hidden hover:shadow-2xl hover:shadow-stone-200/50 transition-all flex flex-col group h-full"
+                      >
+                        <div className="aspect-[16/10] bg-orange-100 relative overflow-hidden">
+                          <img 
+                            src={`https://picsum.photos/seed/${puja.id}/1200/800`} 
+                            alt={puja.title} 
+                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                            referrerPolicy="no-referrer"
+                          />
+                          <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-stone-950/90 via-stone-950/40 to-transparent" />
+                          <div className="absolute top-8 left-8">
+                            <div className="bg-white/95 backdrop-blur-md px-5 py-2 rounded-full flex items-center space-x-2 shadow-xl border border-white/50">
+                              <Sparkles className="w-4 h-4 text-orange-500" />
+                              <span className="text-[10px] font-black text-stone-900 uppercase tracking-[0.2em]">{puja.category || 'Sacred'}</span>
+                            </div>
+                          </div>
+                      
+                          <div className="absolute bottom-8 left-8 flex items-center text-white font-bold group-hover:translate-x-2 transition-transform">
+                            <MapPin className="w-5 h-5 mr-2 text-orange-400" />
+                            <span className="text-lg">{puja.templeName || 'Sacred Location'}</span>
+                          </div>
+                        </div>
+                        
+                        <div className="p-10 flex-grow flex flex-col">
+                          <h3 className="text-2xl font-serif font-bold text-stone-900 mb-4 group-hover:text-orange-600 transition-colors line-clamp-1">{puja.title}</h3>
+                          <p className="text-stone-500 text-sm mb-8 leading-relaxed line-clamp-2">{puja.description}</p>
+                          
+                          <div className="grid grid-cols-2 gap-6 mb-10">
+                            <div className="bg-orange-50/50 p-4 rounded-3xl flex items-center gap-4 border border-orange-100/50">
+                              <Clock className="w-6 h-6 text-orange-600" />
+                              <div className="flex flex-col">
+                                <span className="text-[10px] font-bold text-stone-400 uppercase tracking-widest leading-none mb-1.5">Duration</span>
+                                <span className="text-sm font-black text-stone-800">{puja.duration}</span>
+                              </div>
+                            </div>
+                            <div className="bg-stone-50 p-4 rounded-3xl flex items-center gap-4 border border-stone-100">
+                              <CheckCircle2 className="w-6 h-6 text-orange-600" />
+                              <div className="flex flex-col">
+                                <span className="text-[10px] font-bold text-stone-400 uppercase tracking-widest leading-none mb-1.5">Samagri</span>
+                                <span className="text-sm font-black text-stone-800">Available</span>
+                              </div>
+                            </div>
+                          </div>
+  
+                          <div className="mt-auto flex items-center justify-between pt-8 border-t border-stone-100">
+                            <div className="flex flex-col">
+                              <span className="text-[10px] uppercase tracking-[0.3em] text-stone-400 font-black mb-1.5">DASHINA FROM</span>
+                              <div className="flex items-center text-3xl font-serif font-black text-stone-900">
+                                <IndianRupee className="w-6 h-6 text-orange-600" />
+                                <span>{formatIndianRupees(puja.onlinePrice)}</span>
+                              </div>
+                            </div>
+                            <Link 
+                              to={`/pujas/${puja.id}`}
+                              className="bg-stone-900 text-white px-10 py-4 rounded-[1.5rem] text-sm font-black hover:bg-orange-600 transition-all shadow-xl hover:shadow-orange-600/20 active:scale-95"
+                            >
+                              Details
+                            </Link>
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-24 bg-white rounded-[3rem] border border-stone-100 shadow-inner">
+                    <Flame className="w-16 h-16 text-stone-200 mx-auto mb-6" />
+                    <p className="text-stone-500 text-lg font-medium">No puja services matching your search.</p>
+                    <button onClick={() => setSearchQuery('')} className="mt-4 text-orange-600 font-bold hover:underline">Clear search filters</button>
+                  </div>
+                )}
+              </section>
+            )}
+
+            {(activeService === 'all' || activeService === 'product') && (
+              /* Product Section */
+              <section id="products" className="scroll-mt-32">
+                <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
+                  <div className="flex items-center gap-6">
+                    <div className="bg-stone-900 p-5 rounded-[2rem] text-white shadow-xl shadow-stone-900/20">
+                      <ShoppingBag className="w-10 h-10" />
+                    </div>
+                    <div>
+                      <h2 className="text-4xl md:text-5xl font-serif font-bold text-stone-900 leading-tight">Spiritual Essentials</h2>
+                      <p className="text-stone-500 font-medium text-lg">Holy idols, malas, and pure puja essentials</p>
+                    </div>
+                  </div>
+                  {activeService === 'all' && (
+                    <Link to="/shop" className="text-stone-900 font-bold hover:underline flex items-center">
+                      Browse all products <ShoppingBag className="w-4 h-4 ml-2" />
+                    </Link>
+                  )}
+                </div>
+
+                {displayProducts.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                    {displayProducts.map((product, index) => (
+                      <motion.div
+                        key={product.id}
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        whileInView={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: index * 0.05 }}
+                        className="bg-white rounded-[2.5rem] border border-stone-200 overflow-hidden group hover:shadow-2xl transition-all flex flex-col"
+                      >
+                        <div className="aspect-square relative overflow-hidden">
+                          <img 
+                            src={product.image || `https://picsum.photos/seed/${product.id}/400/400`} 
+                            alt={product.name} 
+                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                            referrerPolicy="no-referrer"
+                          />
+                          <div className="absolute top-6 left-6">
+                            <span className="bg-white/90 backdrop-blur-md px-4 py-1 rounded-full text-[10px] font-black tracking-widest text-stone-800 border border-white/50">{product.category}</span>
+                          </div>
+                          <div className="absolute top-6 right-6">
+                            <button className="bg-white/90 backdrop-blur-md p-2 rounded-full text-stone-400 hover:text-red-500 transition-colors shadow-lg">
+                              <Heart className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                        <div className="p-8 flex flex-col flex-grow">
+                          <h3 className="text-lg font-bold text-stone-900 mb-2 group-hover:text-orange-500 transition-colors line-clamp-1">{product.name}</h3>
+                          <div className="flex items-center gap-1.5 mb-6">
+                            <Star className="w-3.5 h-3.5 fill-yellow-500 text-yellow-500" />
+                            <span className="text-xs font-bold text-stone-600">{product.rating || '4.8'}</span>
+                          </div>
+                          <div className="mt-auto flex items-center justify-between">
+                            <div className="flex items-center text-xl font-serif font-black text-stone-900">
+                              <IndianRupee className="w-4 h-4 text-stone-400" />
+                              <span>{formatIndianRupees(product.price)}</span>
+                            </div>
+                            <button 
+                              onClick={() => {
+                                addToCart({ id: product.id, name: product.name, price: product.price, image: product.image });
+                                alert('Added to cart!');
+                              }}
+                              className="bg-stone-950 text-white p-3 rounded-2xl hover:bg-orange-500 transition-all active:scale-90"
+                            >
+                              <ShoppingCart className="w-5 h-5" />
+                            </button>
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-20 bg-stone-50 rounded-[3rem] border border-dashed border-stone-200">
+                    <p className="text-stone-400 font-medium">No products matching your search.</p>
+                  </div>
+                )}
+              </section>
+            )}
           </div>
         )}
       </div>

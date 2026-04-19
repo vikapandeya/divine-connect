@@ -11,6 +11,14 @@ export default function Terms() {
           transition={{ duration: 0.6 }}
           className="bg-white dark:bg-stone-900 rounded-[2.5rem] p-8 md:p-12 border border-stone-200 dark:border-stone-800 shadow-sm"
         >
+          <div className="mb-8">
+            <img 
+              src="/logo/icon-only.png" 
+              alt="PunyaSeva" 
+              className="h-12 w-auto" 
+              referrerPolicy="no-referrer"
+            />
+          </div>
           <h1 className="text-4xl font-serif font-bold text-stone-900 dark:text-white mb-8">Terms of Service</h1>
           
           <div className="prose dark:prose-invert max-w-none space-y-6 text-stone-600 dark:text-stone-400">

@@ -7,12 +7,9 @@ import { Feedback } from '../types';
 import { addToCart } from '../lib/cart';
 import { formatIndianRupees } from '../lib/utils';
 import { auth } from '../firebase';
-import { auth } from '../firebase';
 import { VendorProfile } from '../types';
-import { useToast } from '../components/Toast';
 
 export default function ProductDetail() {
-  const { toast } = useToast();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [product, setProduct] = useState<Product | null>(null);
@@ -95,8 +92,12 @@ export default function ProductDetail() {
         addToCart(itemToAdd);
     }
     
-    // Custom toast/notification 
-    toast(`Added ${quantity} items to cart`, 'success');
+    // Custom toast/notification would be better than alert
+    const toast = document.createElement('div');
+    toast.className = 'fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] bg-stone-900 text-white px-6 py-3 rounded-2xl shadow-2xl flex items-center space-x-3 animate-bounce';
+    toast.innerHTML = `<span>Added ${quantity} items to cart</span>`;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
   };
 
   const handleShare = (platform: string) => {
@@ -123,7 +124,7 @@ export default function ProductDetail() {
   const handleSubmitReview = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!auth.currentUser) {
-      toast("Please sign in to submit a review", 'warning');
+      alert("Please sign in to submit a review");
       return;
     }
 
@@ -147,10 +148,10 @@ export default function ProductDetail() {
         const updatedReviews = await fetch(`/api/feedback?serviceId=${id}&type=product`).then(r => r.json());
         setReviews(updatedReviews);
         setNewReview({ rating: 5, comment: '', city: '' });
-        toast("Thank you for your review!", 'success');
+        alert("Thank you for your review!");
       } else {
         const data = await res.json();
-        toast(data.message || "Failed to submit review", 'error');
+        alert(data.message || "Failed to submit review");
       }
     } catch (error) {
       console.error("Error submitting review:", error);
@@ -192,6 +193,14 @@ export default function ProductDetail() {
   return (
     <div className="bg-stone-50 dark:bg-stone-950 pb-20 transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+        <div className="flex justify-center mb-8">
+          <img 
+            src="/logo/icon-only.png" 
+            alt="PunyaSeva" 
+            className="h-10 w-auto dark:brightness-0 dark:invert" 
+            referrerPolicy="no-referrer"
+          />
+        </div>
         <button 
           onClick={() => navigate(-1)}
           className="flex items-center space-x-2 text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white transition-colors mb-8 group"
@@ -514,7 +523,7 @@ export default function ProductDetail() {
                         <div>
                           <h4 className="font-bold text-stone-900 dark:text-white">{review.userName}</h4>
                           <span className="text-xs text-stone-400">
-                            {review.createdAt?.seconds ? new Date(review.createdAt.seconds * 1000).toLocaleDateString() : 'Just now'}
+                            {review.createdAt ? new Date(review.createdAt).toLocaleDateString() : 'Just now'}
                           </span>
                         </div>
                       </div>

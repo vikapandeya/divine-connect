@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { auth } from '../firebase';
 import { UserProfile, Booking, Order } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, Package, Calendar, Settings, Phone, Mail, Download, Printer, X, FileText, Moon, Sun, Monitor, Store, Briefcase, ChevronRight, XCircle, ShoppingBag } from 'lucide-react';
+import { User, Package, Calendar, Settings, Phone, Mail, Download, Printer, X, FileText, Moon, Sun, Monitor, Store, Briefcase, ChevronRight, XCircle, ShoppingBag, Truck } from 'lucide-react';
 import { formatIndianRupees } from '../lib/utils';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../hooks/useAuth';
-import { useToast } from '../components/Toast';
+import { VendorRegistrationModal } from '../components/VendorRegistrationModal';
 
 interface ReceiptData {
   receiptId: string;
@@ -25,7 +25,6 @@ interface ReceiptData {
 }
 
 export default function Profile() {
-  const { toast } = useToast();
   const { user: currentUser, loading: authLoading } = useAuth();
   const { theme, setTheme } = useTheme();
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -64,11 +63,21 @@ export default function Profile() {
     // Fetch Bookings
     const fetchBookings = async () => {
       try {
-        const response = await fetch(`/api/bookings/${currentUser.uid}`);
-        if (response.ok) {
-          const data = await response.json();
-          setBookings(data);
+        const [regRes, waRes] = await Promise.all([
+          fetch(`/api/bookings/${currentUser.uid}`),
+          fetch(`/api/whatsapp-bookings?userId=${currentUser.uid}`)
+        ]);
+        
+        let allBookings: any[] = [];
+        if (regRes.ok) {
+          const regData = await regRes.json();
+          allBookings = [...allBookings, ...regData.map((b: any) => ({ ...b, source: 'Regular' }))];
         }
+        if (waRes.ok) {
+          const waData = await waRes.json();
+          allBookings = [...allBookings, ...waData.map((b: any) => ({ ...b, source: 'WhatsApp' }))];
+        }
+        setBookings(allBookings.sort((a, b) => new Date(b.date || b.createdAt).getTime() - new Date(a.date || a.createdAt).getTime()));
       } catch (error) {
         console.error('Error fetching bookings:', error);
       }
@@ -98,11 +107,11 @@ export default function Profile() {
         const data = await response.json();
         setSelectedReceipt(data);
       } else {
-        toast('Failed to fetch receipt data.', 'error');
+        alert('Failed to fetch receipt data.');
       }
     } catch (error) {
       console.error('Receipt error:', error);
-      toast('Error fetching receipt.', 'error');
+      alert('Error fetching receipt.');
     } finally {
       setLoadingReceipt(false);
     }
@@ -127,7 +136,7 @@ export default function Profile() {
       });
       if (response.ok) {
         setIsVendorModalOpen(false);
-        toast('Vendor registration submitted successfully! Your account will be reviewed.', 'success');
+        alert('Vendor registration submitted successfully! Your account will be reviewed.');
         window.location.reload();
       }
     } catch (error) {
@@ -148,7 +157,7 @@ export default function Profile() {
         body: JSON.stringify({ uid: currentUser?.uid, newPassword })
       });
       if (response.ok) {
-        toast('Password reset successfully!', 'success');
+        alert('Password reset successfully!');
         setNewPassword('');
       }
     } catch (error) {
@@ -337,11 +346,11 @@ export default function Profile() {
                                 }),
                               });
                               if (response.ok) {
-                                toast('Profile updated successfully!', 'success');
+                                alert('Profile updated successfully!');
                               }
                             } catch (error) {
                               console.error('Error updating profile:', error);
-                              toast('Failed to update profile.', 'error');
+                              alert('Failed to update profile.');
                             }
                           }
                         }}
@@ -475,18 +484,27 @@ export default function Profile() {
                         <p className="text-stone-400 dark:text-stone-500">No bookings found.</p>
                       </div>
                     ) : (
-                      bookings.map((booking) => (
+                      bookings.map((booking: any) => (
                         <div key={booking.id} className="flex items-center justify-between p-6 rounded-2xl border border-stone-100 dark:border-stone-800 hover:border-orange-100 dark:hover:border-orange-900/30 transition-colors bg-white dark:bg-stone-900">
                           <div className="flex items-center space-x-4">
                             <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900/30 rounded-xl flex items-center justify-center">
                               <Calendar className="w-6 h-6 text-orange-600 dark:text-orange-400" />
                             </div>
                             <div>
-                              <h4 className="font-bold text-stone-900 dark:text-white capitalize">{booking.type} Booking</h4>
-                              <p className="text-xs text-stone-500 dark:text-stone-400">{booking.date} at {booking.timeSlot}</p>
+                              <div className="flex items-center gap-2 mb-1">
+                                <h4 className="font-bold text-stone-900 dark:text-white capitalize">{booking.type || booking.pujaTitle} Booking</h4>
+                                <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full ${
+                                  booking.source === 'WhatsApp' ? 'bg-green-100 dark:bg-green-900/30 text-green-700' : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700'
+                                }`}>
+                                  {booking.source}
+                                </span>
+                              </div>
+                              <p className="text-xs text-stone-500 dark:text-stone-400">
+                                {booking.date ? `${booking.date} at ${booking.timeSlot}` : `Requested on ${new Date(booking.createdAt).toLocaleDateString()}`}
+                              </p>
                               <div className="flex items-center mt-1 space-x-2">
                                 <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full ${
-                                  booking.status === 'confirmed' ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' : 
+                                  ['confirmed', 'approved'].includes(booking.status) ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' : 
                                   booking.status === 'pending' ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400' : 'bg-stone-100 dark:bg-stone-800 text-stone-500 dark:text-stone-400'
                                 }`}>
                                   {booking.status}
@@ -499,7 +517,32 @@ export default function Profile() {
                           </div>
                           <div className="flex items-center space-x-4">
                             <div className="text-right">
-                              <p className="font-bold text-stone-900 dark:text-white">₹{booking.totalAmount}</p>
+                              <p className="font-bold text-stone-900 dark:text-white">₹{booking.totalAmount || 0}</p>
+                              {booking.source === 'WhatsApp' && booking.status === 'approved' && (booking.paidAmount || 0) < (booking.totalAmount || 0) / 2 && (
+                                <button 
+                                  onClick={async () => {
+                                    const amount = prompt('Enter amount to pay (at least half for confirmation):');
+                                    if (amount) {
+                                      try {
+                                        const res = await fetch(`/api/whatsapp-bookings/${booking.id}/payment`, {
+                                          method: 'PATCH',
+                                          headers: { 'Content-Type': 'application/json' },
+                                          body: JSON.stringify({ amount: Number(amount) })
+                                        });
+                                        if (res.ok) {
+                                          alert('Payment successful!');
+                                          window.location.reload();
+                                        }
+                                      } catch (error) {
+                                        console.error('Payment error:', error);
+                                      }
+                                    }
+                                  }}
+                                  className="text-[10px] text-orange-600 font-bold hover:underline"
+                                >
+                                  Pay Now
+                                </button>
+                              )}
                             </div>
                             <button 
                               onClick={() => handleFetchReceipt('booking', booking.id)}
@@ -539,13 +582,22 @@ export default function Profile() {
                                   {order.status}
                                 </span>
                               </div>
-                              <button 
-                                onClick={() => handleFetchReceipt('order', order.id)}
-                                className="p-2 text-stone-400 hover:text-orange-500 transition-colors"
-                                title="Download Receipt"
-                              >
-                                <FileText className="w-5 h-5" />
-                              </button>
+                              <div className="flex items-center space-x-2">
+                                <button 
+                                  onClick={() => window.location.href = `/order-tracking/${order.id}`}
+                                  className="p-2 text-stone-400 hover:text-orange-500 transition-colors"
+                                  title="Track Order"
+                                >
+                                  <Truck className="w-5 h-5" />
+                                </button>
+                                <button 
+                                  onClick={() => handleFetchReceipt('order', order.id)}
+                                  className="p-2 text-stone-400 hover:text-orange-500 transition-colors"
+                                  title="Download Receipt"
+                                >
+                                  <FileText className="w-5 h-5" />
+                                </button>
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -584,7 +636,12 @@ export default function Profile() {
 
             <div className="p-12 print:p-8" id="printable-receipt">
               <div className="text-center mb-12">
-                <h2 className="text-3xl font-serif font-bold text-stone-900 mb-2">PunyaSeva</h2>
+                <img 
+                  src="/logo/horizontal-logo.png" 
+                  alt="PunyaSeva" 
+                  className="h-12 w-auto mx-auto mb-2" 
+                  referrerPolicy="no-referrer"
+                />
                 <p className="text-stone-500 text-sm">Your Spiritual Companion</p>
                 <div className="mt-4 inline-block px-4 py-1 bg-orange-50 text-orange-600 rounded-full text-xs font-bold uppercase tracking-widest">
                   Official Receipt
@@ -685,99 +742,15 @@ export default function Profile() {
         </div>
       )}
       {/* Vendor Registration Modal */}
-      <AnimatePresence>
-        {isVendorModalOpen && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setIsVendorModalOpen(false)}
-              className="absolute inset-0 bg-stone-900/60 backdrop-blur-sm"
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-lg bg-white rounded-[2.5rem] shadow-2xl overflow-hidden"
-            >
-              <div className="p-8 sm:p-10">
-                <div className="flex items-center justify-between mb-8">
-                  <div>
-                    <h2 className="text-2xl font-serif font-bold text-stone-900">Become a Vendor</h2>
-                    <p className="text-stone-500 text-sm">Join our community of spiritual service providers</p>
-                  </div>
-                  <button onClick={() => setIsVendorModalOpen(false)} className="p-2 text-stone-400 hover:text-stone-900">
-                    <XCircle className="w-6 h-6" />
-                  </button>
-                </div>
-
-                <form onSubmit={handleVendorRegister} className="space-y-6">
-                  <div>
-                    <label className="block text-sm font-bold text-stone-700 mb-2">Business/Pandit Name</label>
-                    <input
-                      type="text"
-                      required
-                      value={vendorForm.businessName}
-                      onChange={(e) => setVendorForm({ ...vendorForm, businessName: e.target.value })}
-                      className="w-full p-4 bg-stone-50 border border-stone-100 rounded-2xl focus:ring-2 focus:ring-orange-500 outline-none"
-                      placeholder="e.g., Pandit Sharma or Spiritual Store"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-bold text-stone-700 mb-2">Business Type</label>
-                    <div className="grid grid-cols-2 gap-4">
-                      <button
-                        type="button"
-                        onClick={() => setVendorForm({ ...vendorForm, businessType: 'Pandit' })}
-                        className={`p-4 rounded-2xl border flex items-center justify-center space-x-2 transition-all ${vendorForm.businessType === 'Pandit' ? 'bg-orange-50 border-orange-500 text-orange-600' : 'bg-white border-stone-100 text-stone-500'}`}
-                      >
-                        <User className="w-5 h-5" />
-                        <span className="font-bold">Pandit</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setVendorForm({ ...vendorForm, businessType: 'Shop' })}
-                        className={`p-4 rounded-2xl border flex items-center justify-center space-x-2 transition-all ${vendorForm.businessType === 'Shop' ? 'bg-orange-50 border-orange-500 text-orange-600' : 'bg-white border-stone-100 text-stone-500'}`}
-                      >
-                        <ShoppingBag className="w-5 h-5" />
-                        <span className="font-bold">Shop</span>
-                      </button>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-bold text-stone-700 mb-2">Description</label>
-                    <textarea
-                      required
-                      value={vendorForm.description}
-                      onChange={(e) => setVendorForm({ ...vendorForm, description: e.target.value })}
-                      className="w-full p-4 bg-stone-50 border border-stone-100 rounded-2xl focus:ring-2 focus:ring-orange-500 outline-none h-32 resize-none"
-                      placeholder="Tell us about your services or products..."
-                    />
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={vendorLoading}
-                    className="w-full bg-stone-900 text-white py-4 rounded-2xl font-bold hover:bg-stone-800 transition-all flex items-center justify-center space-x-2 disabled:opacity-50"
-                  >
-                    {vendorLoading ? (
-                      <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    ) : (
-                      <>
-                        <Briefcase className="w-5 h-5" />
-                        <span>Submit Registration</span>
-                      </>
-                    )}
-                  </button>
-                </form>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+      <VendorRegistrationModal
+        isOpen={isVendorModalOpen}
+        onClose={() => setIsVendorModalOpen(false)}
+        userId={currentUser.uid}
+        onSuccess={() => {
+          // Refresh profile data
+          window.location.reload();
+        }}
+      />
     </div>
   );
 }

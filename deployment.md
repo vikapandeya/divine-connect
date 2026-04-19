@@ -1,10 +1,10 @@
-# VedaVibe Deployment Guide
+# PunyaSeva Deployment Guide
 
-This guide outlines the steps for deploying the VedaVibe application to a production environment.
+This guide outlines the steps for deploying the PunyaSeva application to a production environment.
 
 ## Deployment Strategy
 
-VedaVibe is designed for deployment on Google Cloud Run, leveraging its serverless architecture for scalability and cost-efficiency.
+PunyaSeva is designed for deployment on Google Cloud Run, leveraging its serverless architecture for scalability and cost-efficiency.
 
 ### Prerequisites
 - **Google Cloud Project**: Access to a Google Cloud project with billing enabled.
@@ -29,11 +29,11 @@ In your deployment environment (e.g., Cloud Run), configure the following enviro
 - `NODE_ENV`: Set to `production`.
 
 ### 3. Deploy to Cloud Run
-VedaVibe can be deployed to Cloud Run using the `gcloud` CLI or through a CI/CD pipeline.
+PunyaSeva can be deployed to Cloud Run using the `gcloud` CLI or through a CI/CD pipeline.
 
 #### Using `gcloud` CLI:
 ```bash
-gcloud run deploy vedavibe \
+gcloud run deploy punyaseva \
   --source . \
   --platform managed \
   --region your_region \

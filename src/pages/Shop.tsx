@@ -1,26 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { Product } from '../types';
-import { motion } from 'framer-motion';
-import { ShoppingCart, Star, Search, IndianRupee, X, Eye, Heart, Store } from 'lucide-react';
+import { Product, PRODUCT_CATEGORIES, VendorProfile } from '../types';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ShoppingCart, Star, Search, IndianRupee, X, Eye, Heart, Store, Info } from 'lucide-react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { addToCart } from '../lib/cart';
 import { formatIndianRupees } from '../lib/utils';
 import { addToWishlist, removeFromWishlist, isInWishlist } from '../lib/wishlist';
 import { auth, db } from '../firebase';
-import { useToast } from '../components/Toast';
 import { collection, query, where, getDocs } from 'firebase/firestore';
-import { VendorProfile } from '../types';
 
-const categories = [
-  'all',
-  'Idols',
-  'Incense',
-  'Mala',
-  'Books',
-  'Yantras',
-  'Prasad',
-  'Puja Essentials',
-];
+const categories = ['all', ...PRODUCT_CATEGORIES];
 
 const fallbackProducts = [
   {
@@ -98,7 +87,20 @@ function normalizeCategory(category: string | null) {
 }
 
 export default function Shop() {
-  const { toast } = useToast();
+  const [products, setProducts] = useState<Product[]>([]);
+  const [vendors, setVendors] = useState<VendorProfile[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const selectedCategory = normalizeCategory(searchParams.get('category'));
+  const [searchInput, setSearchInput] = useState(searchParams.get('q') ?? '');
+  const [selectedTemple, setSelectedTemple] = useState<string>('all');
+  const [selectedVendor, setSelectedVendor] = useState<string>('all');
+  const [selectedVendorType, setSelectedVendorType] = useState<string>('all');
+  const [priceRange, setPriceRange] = useState({ min: 0, max: 10000 });
+  const [sortBy, setSortBy] = useState<string>('featured');
+  const [selectedOptions, setSelectedOptions] = useState<Record<string, any>>({});
+  const [wishlistItems, setWishlistItems] = useState<Set<string>>(new Set());
+  const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
 
   useEffect(() => {
     const fetchWishlist = async () => {
@@ -194,9 +196,11 @@ export default function Shop() {
       (product.templeName && product.templeName.toLowerCase().includes(normalizedQuery));
     const matchesTemple = selectedTemple === 'all' || product.templeName === selectedTemple;
     const matchesVendor = selectedVendor === 'all' || product.vendorId === selectedVendor;
+    const vendor = vendors.find(v => v.uid === product.vendorId);
+    const matchesVendorType = selectedVendorType === 'all' || (vendor && vendor.type === selectedVendorType);
     const matchesPrice = product.price >= priceRange.min && product.price <= priceRange.max;
 
-    return matchesCategory && matchesQuery && matchesTemple && matchesVendor && matchesPrice;
+    return matchesCategory && matchesQuery && matchesTemple && matchesVendor && matchesVendorType && matchesPrice;
   }).sort((a: any, b: any) => {
     if (sortBy === 'price-low') return a.price - b.price;
     if (sortBy === 'price-high') return b.price - a.price;
@@ -222,12 +226,12 @@ export default function Shop() {
       selectedOption: option ? option.label : undefined
     };
     addToCart(itemToAdd);
-    toast(`Added ${product.name}${option ? ` (${option.label})` : ''} to cart!`, 'success');
+    alert(`Added ${product.name} to cart!`);
   };
 
   const toggleWishlist = async (productId: string) => {
     if (!auth.currentUser) {
-      toast('Please sign in to save items to your wishlist', 'warning');
+      alert('Please login to add items to wishlist');
       return;
     }
 
@@ -253,7 +257,7 @@ export default function Shop() {
       <section className="relative h-[40vh] flex items-center overflow-hidden mb-12">
         <div className="absolute inset-0 z-0">
           <img
-            src="https://picsum.photos/seed/spiritual-bazaar/1920/1080?blur=2"
+            src="https://picsum.photos/seed/shop-hero/1920/1080?blur=2"
             alt="Spiritual Marketplace"
             className="w-full h-full object-cover"
             referrerPolicy="no-referrer"
@@ -266,6 +270,14 @@ export default function Shop() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
+            <div className="flex justify-center mb-8">
+              <img 
+                src="/logo/full-logo.png" 
+                alt="PunyaSeva" 
+                className="h-20 w-auto brightness-0 invert" 
+                referrerPolicy="no-referrer"
+              />
+            </div>
             <h1 className="text-4xl md:text-6xl font-serif font-bold text-white mb-4">
               Spiritual Marketplace
             </h1>
@@ -342,6 +354,30 @@ export default function Shop() {
               </div>
             </div>
 
+            <div className="col-span-1 md:col-span-3 space-y-4">
+              <label className="text-xs font-bold text-stone-400 dark:text-stone-500 uppercase tracking-wider block">Filter by Vendor Type</label>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { id: 'all', label: 'All Types' },
+                  { id: 'priest', label: 'Priests / Pandits' },
+                  { id: 'temple', label: 'Temples / Trusts' },
+                  { id: 'shop', label: 'Spiritual Shops' }
+                ].map((type) => (
+                  <button
+                    key={type.id}
+                    onClick={() => setSelectedVendorType(type.id)}
+                    className={`px-6 py-2.5 rounded-full text-sm font-medium transition-all ${
+                      selectedVendorType === type.id
+                        ? 'bg-stone-900 dark:bg-white text-white dark:text-stone-900 shadow-lg'
+                        : 'bg-white dark:bg-stone-800 text-stone-600 dark:text-stone-400 border border-stone-200 dark:border-stone-700 hover:border-orange-200'
+                    }`}
+                  >
+                    {type.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <div className="space-y-3">
               <label className="text-xs font-bold text-stone-400 dark:text-stone-500 uppercase tracking-wider">Vendor</label>
               <select 
@@ -350,7 +386,9 @@ export default function Shop() {
                 className="w-full px-4 py-2.5 bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl text-sm dark:text-white outline-none focus:ring-2 focus:ring-orange-500 transition-all"
               >
                 <option value="all">All Vendors</option>
-                {availableVendorIds.map((vId: any) => (
+                {availableVendorIds
+                  .filter((vId: any) => selectedVendorType === 'all' || vendors.find(v => v.uid === vId)?.type === selectedVendorType)
+                  .map((vId: any) => (
                   <option key={vId} value={vId}>
                     {vendors.find(v => v.uid === vId)?.businessName || 'Sacred Vendor'}
                   </option>
@@ -378,6 +416,7 @@ export default function Shop() {
                 onClick={() => {
                   setPriceRange({ min: 0, max: 10000 });
                   setSelectedVendor('all');
+                  setSelectedVendorType('all');
                   setSelectedTemple('all');
                   setSearchInput('');
                   setSortBy('featured');
@@ -445,6 +484,7 @@ export default function Shop() {
             {filteredProducts.map((product: any, index: number) => (
               <motion.div
                 key={product.id}
+                layoutId={`product-${product.id}`}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
@@ -458,10 +498,26 @@ export default function Shop() {
                       className="w-full h-full object-cover group-hover/img:scale-110 transition-transform duration-500"
                       referrerPolicy="no-referrer"
                     />
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center">
-                      <div className="bg-white dark:bg-stone-900 text-stone-900 dark:text-white px-4 py-2 rounded-full text-xs font-bold flex items-center space-x-2">
-                        <Eye className="w-4 h-4" />
-                        <span>View Details</span>
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center p-4">
+                      <div className="flex gap-2">
+                        <button 
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setQuickViewProduct(product);
+                          }}
+                          className="p-3 bg-white text-stone-900 rounded-full hover:bg-orange-500 hover:text-white transition-all shadow-xl"
+                        >
+                          <Eye className="w-5 h-5" />
+                        </button>
+                        <button 
+                          onClick={(e) => {
+                            e.preventDefault();
+                            toggleWishlist(product.id);
+                          }}
+                          className={`p-3 bg-white rounded-full hover:scale-110 transition-all shadow-xl ${wishlistItems.has(product.id) ? 'text-red-500' : 'text-stone-400'}`}
+                        >
+                          <Heart className={`w-5 h-5 ${wishlistItems.has(product.id) ? 'fill-current' : ''}`} />
+                        </button>
                       </div>
                     </div>
                   </Link>
@@ -549,6 +605,89 @@ export default function Shop() {
           </div>
         )}
       </div>
+
+      <AnimatePresence>
+        {quickViewProduct && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setQuickViewProduct(null)}
+              className="absolute inset-0 bg-stone-950/80 backdrop-blur-sm"
+            />
+            <motion.div
+              layoutId={`product-${quickViewProduct.id}`}
+              className="relative w-full max-w-4xl bg-white dark:bg-stone-900 rounded-[3rem] overflow-hidden shadow-2xl flex flex-col md:flex-row"
+            >
+              <button 
+                onClick={() => setQuickViewProduct(null)}
+                className="absolute top-6 right-6 z-10 p-2 bg-stone-100 dark:bg-stone-800 rounded-full hover:rotate-90 transition-all font-bold"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <div className="w-full md:w-1/2 aspect-square">
+                <img src={quickViewProduct.image} alt={quickViewProduct.name} className="w-full h-full object-cover" />
+              </div>
+
+              <div className="w-full md:w-1/2 p-8 md:p-12 flex flex-col">
+                <div className="mb-8">
+                  <span className="inline-block px-3 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 text-[10px] font-bold uppercase tracking-widest rounded-full mb-3">
+                    {quickViewProduct.category}
+                  </span>
+                  <h2 className="text-3xl font-serif font-bold text-stone-900 dark:text-white mb-4 line-clamp-2">{quickViewProduct.name}</h2>
+                  <div className="flex items-center gap-6 text-stone-500 border-y border-stone-100 dark:border-stone-800 py-3 mb-6">
+                    <div className="flex items-center gap-1.5">
+                      <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                      <span className="text-sm font-bold text-stone-900 dark:text-white">{quickViewProduct.rating} Rating</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <Store className="w-4 h-4" />
+                      {quickViewProduct.stock > 0 ? (
+                        <span className="text-sm text-green-600">In Stock ({quickViewProduct.stock})</span>
+                      ) : (
+                        <span className="text-sm text-red-600">Out of Stock</span>
+                      )}
+                    </div>
+                  </div>
+                  <p className="text-stone-500 dark:text-stone-400 leading-relaxed max-h-40 overflow-y-auto pr-4 mb-4">{quickViewProduct.description}</p>
+                </div>
+
+                <div className="mt-auto">
+                  <div className="flex items-center justify-between mb-8">
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-4xl font-serif font-bold text-stone-900 dark:text-white">₹{formatIndianRupees(quickViewProduct.price)}</span>
+                      <span className="text-xs text-stone-400">incl. of all taxes</span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <Link 
+                      to={`/product/${quickViewProduct.id}`}
+                      className="flex items-center justify-center gap-2 py-4 bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-white rounded-2xl font-bold hover:bg-stone-200 transition-all border border-stone-200 dark:border-stone-700"
+                    >
+                      <Info className="w-5 h-5" />
+                      Full Details
+                    </Link>
+                    <button 
+                      onClick={() => {
+                        handleAddToCart(quickViewProduct);
+                        setQuickViewProduct(null);
+                      }}
+                      disabled={quickViewProduct.stock === 0}
+                      className="flex items-center justify-center gap-2 py-4 bg-orange-500 text-white rounded-2xl font-bold hover:bg-orange-600 transition-all shadow-xl shadow-orange-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <ShoppingCart className="w-5 h-5" />
+                      Add to Cart
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

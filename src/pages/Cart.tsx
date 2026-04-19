@@ -21,8 +21,10 @@ import {
   Smartphone,
   Truck,
   CheckCircle,
+  PenTool,
 } from 'lucide-react';
 import FeedbackModal from '../components/FeedbackModal';
+import SignaturePad from '../components/SignaturePad';
 import {
   CartItem,
   clearCart,
@@ -32,7 +34,6 @@ import {
   updateCartItemQuantity,
 } from '../lib/cart';
 import { formatIndianRupees } from '../lib/utils';
-import { useToast } from '../components/Toast';
 
 // Initialize Stripe
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || 'pk_test_demo');
@@ -122,7 +123,6 @@ const CheckoutForm = ({
 };
 
 export default function Cart() {
-  const { toast } = useToast();
   const { t } = useTranslation();
   const currentUser = auth?.currentUser;
   const navigate = useNavigate();
@@ -141,6 +141,7 @@ export default function Cart() {
   const [upiId, setUpiId] = useState('');
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
+  const [signatureURL, setSignatureURL] = useState<string | null>(null);
 
   useEffect(() => {
     const syncCart = () => {
@@ -209,11 +210,15 @@ export default function Cart() {
 
   const handleCheckout = async (paymentIntentId?: string) => {
     if (!currentUser) {
-      toast('Please sign in to checkout.', 'warning');
+      alert('Please sign in to checkout.');
       return;
     }
     if (!address) {
-      toast(t('cart.provideAddress'), 'warning');
+      alert(t('cart.provideAddress'));
+      return;
+    }
+    if (!signatureURL) {
+      alert('Please provide your signature to authorize the order.');
       return;
     }
 
@@ -247,6 +252,7 @@ export default function Cart() {
           paymentMethod,
           paymentStatus: paymentMethod === 'cod' ? 'pending' : 'paid',
           paymentId: paymentIntentId || null,
+          signatureURL,
         }),
       });
       if (response.ok) {
@@ -258,7 +264,7 @@ export default function Cart() {
       }
     } catch (error) {
       console.error('Checkout error:', error);
-      toast(t('cart.failed'), 'error');
+      alert(t('cart.failed'));
     } finally {
       setIsCheckingOut(false);
     }
@@ -267,6 +273,14 @@ export default function Cart() {
   if (orderSuccess) {
     return (
       <div className="min-h-[80vh] bg-stone-50 dark:bg-stone-950 flex flex-col items-center justify-center text-center px-4">
+        <div className="mb-8">
+          <img 
+            src="/logo/icon-only.png" 
+            alt="PunyaSeva" 
+            className="h-16 w-auto mx-auto" 
+            referrerPolicy="no-referrer"
+          />
+        </div>
         <div className="w-24 h-24 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center mb-8 animate-bounce">
           <CheckCircle className="w-12 h-12 text-emerald-600 dark:text-emerald-400" />
         </div>
@@ -274,7 +288,7 @@ export default function Cart() {
           {t('cart.orderPlaced')}
         </h2>
         <p className="text-xl text-stone-600 dark:text-stone-400 mb-12 max-w-md">
-          Thank you for choosing VedaVibe. Your spiritual journey continues with us.
+          Thank you for choosing PunyaSeva. Your spiritual journey continues with us.
         </p>
         <div className="flex flex-col sm:flex-row gap-4">
           <button
@@ -310,6 +324,14 @@ export default function Cart() {
   if (items.length === 0) {
     return (
       <div className="min-h-[60vh] bg-stone-50 dark:bg-stone-950 flex flex-col items-center justify-center text-center px-4 transition-colors duration-300">
+        <div className="mb-6">
+          <img 
+            src="/logo/icon-only.png" 
+            alt="PunyaSeva" 
+            className="h-12 w-auto mx-auto opacity-50" 
+            referrerPolicy="no-referrer"
+          />
+        </div>
         <div className="w-20 h-20 bg-stone-100 dark:bg-stone-900 rounded-full flex items-center justify-center mb-6">
           <ShoppingBag className="w-10 h-10 text-stone-300 dark:text-stone-700" />
         </div>
@@ -477,6 +499,17 @@ export default function Cart() {
                 </div>
 
                 <div className="pt-6 border-t border-stone-100 dark:border-stone-800">
+                  <label className="block text-sm font-bold text-stone-700 dark:text-stone-300 mb-4 flex items-center">
+                    <PenTool className="w-4 h-4 mr-2" />
+                    {t('E-Signature')}
+                  </label>
+                  <SignaturePad 
+                    onSave={(url) => setSignatureURL(url)} 
+                    onClear={() => setSignatureURL(null)} 
+                  />
+                </div>
+
+                <div className="pt-6 border-t border-stone-100 dark:border-stone-800">
                   <label className="block text-sm font-bold text-stone-700 dark:text-stone-300 mb-4">
                     {t('cart.paymentMethod')}
                   </label>
@@ -513,7 +546,7 @@ export default function Cart() {
                         <CheckoutForm 
                           amount={finalTotal} 
                           onSuccess={(id) => handleCheckout(id)}
-                          onError={(msg) => toast(msg, 'error')}
+                          onError={(msg) => alert(msg)}
                           isLoading={isCheckingOut}
                           setIsLoading={setIsCheckingOut}
                         />

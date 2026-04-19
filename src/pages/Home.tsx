@@ -20,6 +20,7 @@ import {
   User,
   Play,
   MapPin,
+  Compass,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { addToCart } from '../lib/cart';
@@ -121,25 +122,28 @@ const featuredProducts = [
 
 const feedback = [
   {
-    name: 'Anjali Sharma',
+    userName: 'Anjali Sharma',
     city: 'Mumbai',
     rating: 5,
     message:
       'Booking a Satyanarayan Puja felt smooth and respectful. The experience was simple even for my family elders.',
+    imageURL: undefined as string | undefined,
   },
   {
-    name: 'Rohan Iyer',
+    userName: 'Rohan Iyer',
     city: 'Bengaluru',
     rating: 5,
     message:
       'The product flow is clean, and I liked that I could find essentials quickly without feeling lost in the catalog.',
+    imageURL: undefined as string | undefined,
   },
   {
-    name: 'Meera Kapoor',
+    userName: 'Meera Kapoor',
     city: 'Delhi',
     rating: 4.9,
     message:
       'The platform feels warm and trustworthy. I would especially recommend the guided support and puja discovery flow.',
+    imageURL: undefined as string | undefined,
   },
 ];
 
@@ -214,7 +218,6 @@ export default function Home() {
       const response = await fetch('/api/feedback');
       if (response.ok) {
         const data = await response.json();
-        console.log('Fetched feedback:', data);
         if (data && data.length > 0) {
           setFeedbackList(data);
         }
@@ -279,15 +282,23 @@ export default function Home() {
             transition={{ duration: 0.8 }}
             className="max-w-2xl"
           >
+            <div className="mb-8">
+              <img 
+                src="/logo/full-logo.png" 
+                alt="PunyaSeva" 
+                className="h-24 w-auto brightness-0 invert" 
+                referrerPolicy="no-referrer"
+              />
+            </div>
             <h1 className="text-5xl md:text-7xl font-serif font-bold text-white leading-tight mb-6">
-              {t('home.heroTitle')}
+              Connect with the <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-yellow-400 to-orange-500 animate-gradient">Divine</span> from Anywhere
             </h1>
             <p className="text-xl text-stone-100 mb-8 leading-relaxed">
               {t('home.heroSubtitle')}
             </p>
             <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
               <Link
-                to="/services/puja"
+                to="/services"
                 className="bg-orange-500 text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/20 text-center"
               >
                 {t('home.bookPuja')}
@@ -333,7 +344,7 @@ export default function Home() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16 animate-fade-in">
           <h2 className="text-4xl md:text-5xl font-serif font-bold text-stone-900 dark:text-white mb-6 tracking-tight">
-            {t('home.dailyInsights')}
+            Spiritual <span className="text-orange-500">Knowledge</span>
           </h2>
           <p className="text-stone-600 dark:text-stone-400 text-lg leading-relaxed max-w-2xl mx-auto font-medium">
             {t('home.dailyInsightsSubtitle')}
@@ -348,7 +359,7 @@ export default function Home() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16 animate-fade-in">
           <h2 className="text-4xl md:text-5xl font-serif font-bold text-stone-900 dark:text-white mb-6 tracking-tight">
-            {t('home.sacredServices')}
+            Sacred <span className="text-orange-500">Services</span>
           </h2>
           <p className="text-stone-600 dark:text-stone-400 text-lg leading-relaxed max-w-2xl mx-auto font-medium">
             {t('home.sacredServicesSubtitle')}
@@ -450,7 +461,9 @@ export default function Home() {
                 </span>
                 <span className="text-red-500 font-bold uppercase tracking-[0.3em] text-xs">{t('home.liveNow')}</span>
               </motion.div>
-              <h2 className="text-5xl md:text-6xl font-serif font-bold mb-6 tracking-tight">{t('home.liveDarshanTitle')}</h2>
+          <h2 className="text-4xl md:text-5xl font-serif font-bold text-stone-900 dark:text-white mb-6 tracking-tight">
+            Live Darshan <span className="text-orange-500">& Pujas</span>
+          </h2>
               <p className="text-stone-400 text-lg leading-relaxed">{t('home.liveDarshanSubtitle')}</p>
             </div>
             <Link to="/services" className="group flex items-center gap-3 px-10 py-4 bg-white text-stone-950 rounded-[2rem] font-bold hover:bg-orange-500 hover:text-white transition-all shadow-2xl shadow-orange-500/10">
@@ -504,7 +517,7 @@ export default function Home() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16 animate-fade-in">
           <h2 className="text-4xl md:text-5xl font-serif font-bold text-stone-900 dark:text-white mb-6 tracking-tight">
-            {t('home.sharedExperience')}
+            Shared <span className="text-orange-500">Experience</span>
           </h2>
           <p className="text-stone-600 dark:text-stone-400 text-lg leading-relaxed max-w-2xl mx-auto font-medium">
             {t('home.sharedExperienceSubtitle')}
@@ -573,7 +586,7 @@ export default function Home() {
                   {item.message}
                 </p>
                 <div>
-                  <p className="font-bold text-stone-900 dark:text-white">{item.name}</p>
+                  <p className="font-bold text-stone-900 dark:text-white">{item.userName}</p>
                   <p className="text-sm text-stone-500 dark:text-stone-500">{item.city}</p>
                 </div>
               </motion.div>
@@ -585,8 +598,8 @@ export default function Home() {
       <section className="bg-stone-100 dark:bg-stone-900 py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16 animate-fade-in">
-            <h2 className="text-4xl md:text-5xl font-serif font-semibold text-stone-900 dark:text-white mb-6 tracking-tight">
-              {t('home.spiritualEssentials')}
+            <h2 className="text-4xl md:text-5xl font-serif font-bold text-stone-900 dark:text-white mb-6 tracking-tight">
+              Spiritual <span className="text-orange-500">Essentials</span>
             </h2>
             <p className="text-stone-600 dark:text-stone-400 text-lg leading-relaxed max-w-2xl mx-auto">
               {t('home.spiritualEssentialsSubtitle')}
@@ -651,8 +664,8 @@ export default function Home() {
 
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16 animate-fade-in">
-          <h2 className="text-4xl md:text-5xl font-serif font-semibold text-stone-900 dark:text-white mb-6 tracking-tight">
-            {t('home.shareExperience')}
+          <h2 className="text-4xl md:text-5xl font-serif font-bold text-stone-900 dark:text-white mb-6 tracking-tight">
+            Share Your <span className="text-orange-500">Experience</span>
           </h2>
           <p className="text-stone-600 dark:text-stone-400 text-lg leading-relaxed max-w-2xl mx-auto">
             {t('home.shareExperienceSubtitle')}
@@ -796,6 +809,64 @@ export default function Home() {
               </motion.div>
             )}
           </AnimatePresence>
+        </div>
+      </section>
+
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-16 animate-fade-in">
+          <h2 className="text-4xl md:text-5xl font-serif font-bold text-stone-900 dark:text-white mb-6 tracking-tight">
+            Discover <span className="text-orange-500">More</span>
+          </h2>
+          <p className="text-stone-600 dark:text-stone-400 text-lg leading-relaxed max-w-2xl mx-auto font-medium">
+            Explore advanced tools and comprehensive guides built for your spiritual journey.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {[
+            {
+              title: "Pooja Samagri Kits",
+              desc: "All-in-one curated kits for specific rituals and festivals.",
+              icon: <Sparkles className="w-8 h-8 text-orange-500" />,
+              link: "/shop?category=Samagri Kits",
+              color: "bg-orange-50 dark:bg-orange-950/20"
+            },
+            {
+              title: "Astrological Chart Software",
+              desc: "Advanced planetary calculations and technical birth chart reports.",
+              icon: <Compass className="w-8 h-8 text-blue-500" />,
+              link: "/astrology",
+              color: "bg-blue-50 dark:bg-blue-950/20"
+            },
+            {
+              title: "Regional Calendar Guides",
+              desc: "Understand diversities in regional Hindu calendars and festive dates.",
+              icon: <Calendar className="w-8 h-8 text-emerald-500" />,
+              link: "/temple-knowledge",
+              color: "bg-emerald-50 dark:bg-emerald-950/20"
+            }
+          ].map((item, idx) => (
+            <motion.div
+              key={idx}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: idx * 0.1 }}
+              viewport={{ once: true }}
+              className={`${item.color} p-10 rounded-[3rem] border border-stone-200 dark:border-stone-800 hover:shadow-xl transition-all group`}
+            >
+              <div className="bg-white dark:bg-stone-900 w-16 h-16 rounded-2xl flex items-center justify-center mb-8 shadow-sm group-hover:scale-110 transition-transform">
+                {item.icon}
+              </div>
+              <h3 className="text-2xl font-serif font-bold text-stone-900 dark:text-white mb-4">{item.title}</h3>
+              <p className="text-stone-600 dark:text-stone-400 mb-8 leading-relaxed">{item.desc}</p>
+              <Link
+                to={item.link}
+                className="inline-flex items-center gap-2 text-stone-900 dark:text-white font-bold group-hover:text-orange-500 transition-colors"
+              >
+                Learn More <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </motion.div>
+          ))}
         </div>
       </section>
 

@@ -1,6 +1,6 @@
-# DivineConnect
+# PunyaSeva
 
-DivineConnect is a comprehensive full-stack platform designed to bridge the gap between spiritual traditions and modern technology. It provides a sacred digital space for devotees to access temple services, spiritual products, and divine guidance.
+PunyaSeva is a comprehensive full-stack platform designed to bridge the gap between spiritual traditions and modern technology. It provides a sacred digital space for devotees to access temple services, spiritual products, and divine guidance.
 
 ## 🌟 Features
 
@@ -21,9 +21,11 @@ DivineConnect is a comprehensive full-stack platform designed to bridge the gap 
 
 ## 🚀 Getting Started
 
+Visit the live platform at: **[https://punyaseva.in/](https://punyaseva.in/)**
+
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/vikapandeya/divine-connect.git
+   git clone https://github.com/vikapandeya/punyaseva.git
    ```
 
 2. **Install dependencies**:
@@ -52,3 +54,9 @@ Built with ❤️ by [Gautam Pince] 🧑‍💻 [Vikash Pandey] (https://github.
 
 Check live here :-
 👉https://vikapandeya.github.io/divine-connect/docs/
+
+hi this is testing
+
+
+
+

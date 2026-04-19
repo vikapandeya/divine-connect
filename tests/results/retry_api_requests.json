@@ -1,0 +1,80 @@
+﻿{
+    "createBooking":  {
+                          "ok":  false,
+                          "responseBody":  null,
+                          "message":  "Unable to connect to the remote server",
+                          "status":  null
+                      },
+    "createOrder":  {
+                        "ok":  false,
+                        "responseBody":  null,
+                        "message":  "Unable to connect to the remote server",
+                        "status":  null
+                    },
+    "userLogin":  {
+                      "ok":  false,
+                      "responseBody":  null,
+                      "message":  "Unable to connect to the remote server",
+                      "status":  null
+                  },
+    "vendorLogin":  {
+                        "ok":  false,
+                        "responseBody":  null,
+                        "message":  "Unable to connect to the remote server",
+                        "status":  null
+                    },
+    "getUserProfile":  {
+                           "ok":  false,
+                           "responseBody":  null,
+                           "message":  "Unable to connect to the remote server",
+                           "status":  null
+                       },
+    "getOrders":  {
+                      "ok":  false,
+                      "responseBody":  null,
+                      "message":  "Unable to connect to the remote server",
+                      "status":  null
+                  },
+    "adminLogin":  {
+                       "ok":  false,
+                       "responseBody":  null,
+                       "message":  "Unable to connect to the remote server",
+                       "status":  null
+                   },
+    "sendAnnouncement":  {
+                             "ok":  false,
+                             "responseBody":  null,
+                             "message":  "Unable to connect to the remote server",
+                             "status":  null
+                         },
+    "vendorWallet":  {
+                         "ok":  false,
+                         "responseBody":  null,
+                         "message":  "Unable to connect to the remote server",
+                         "status":  null
+                     },
+    "getVendorProfile":  {
+                             "ok":  false,
+                             "responseBody":  null,
+                             "message":  "Unable to connect to the remote server",
+                             "status":  null
+                         },
+    "adminPendingVendors":  {
+                                "ok":  false,
+                                "responseBody":  null,
+                                "message":  "Unable to connect to the remote server",
+                                "status":  null
+                            },
+    "adminStats":  {
+                       "ok":  false,
+                       "responseBody":  null,
+                       "message":  "Unable to connect to the remote server",
+                       "status":  null
+                   },
+    "vendorBookings":  {
+                           "ok":  false,
+                           "responseBody":  null,
+                           "message":  "Unable to connect to the remote server",
+                           "status":  null
+                       }
+}

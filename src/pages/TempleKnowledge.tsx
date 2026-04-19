@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, Info, ArrowRight, BookOpen, Sparkles, Search, Filter, X, Lightbulb } from 'lucide-react';
+import { MapPin, Info, ArrowRight, BookOpen, Sparkles, Search, Filter, X, Lightbulb, Calendar, Globe, Zap, Map, Moon, Sun, Clock, Star, Activity } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import VedicWisdomSections from '../components/VedicWisdomSections';
 
 const temples = [
   {
@@ -144,6 +145,14 @@ export default function TempleKnowledge() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
+            <div className="flex justify-center mb-8">
+              <img 
+                src="/logo/full-logo.png" 
+                alt="PunyaSeva" 
+                className="h-20 w-auto brightness-0 invert" 
+                referrerPolicy="no-referrer"
+              />
+            </div>
             <h1 className="text-4xl md:text-6xl font-serif font-bold text-white mb-4">
               Sacred Temples & Tirthplaces
             </h1>
@@ -323,6 +332,9 @@ export default function TempleKnowledge() {
               </div>
             </section>
           )}
+
+          {/* Vedic Wisdom Sections */}
+          <VedicWisdomSections />
 
           {filteredTemples.length === 0 && filteredTirths.length === 0 && (
             <div className="text-center py-20 bg-white dark:bg-stone-900 rounded-[3rem] border border-stone-200 dark:border-stone-800">

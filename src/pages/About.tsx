@@ -89,6 +89,14 @@ export default function About() {
               <Star className="w-4 h-4" />
               <span>Our Mission</span>
             </div>
+            <div className="flex justify-center mb-6">
+              <img 
+                src="/logo/full-logo.png" 
+                alt="PunyaSeva" 
+                className="h-20 w-auto brightness-0 invert" 
+                referrerPolicy="no-referrer"
+              />
+            </div>
             <h1 className="text-5xl md:text-7xl font-serif font-bold text-white mb-6">
               Bridging the <span className="text-orange-400 italic">Divine</span> & the{' '}
               <span className="text-orange-400 italic">Digital</span>
@@ -247,7 +255,7 @@ export default function About() {
             <p className="text-stone-600 dark:text-stone-300 leading-relaxed">
               A stronger next step would be adding real team photos, partnership
               logos, FAQs, and a short “why users trust us” checklist backed by
-              actual operational details.
+              actual operational details. Visit us at <a href="https://punyaseva.in" target="_blank" rel="noopener noreferrer" className="text-orange-500 font-bold hover:underline">punyaseva.in</a>.
             </p>
           </div>
         </section>

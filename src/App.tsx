@@ -1,6 +1,5 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { ToastProvider } from './components/Toast';
 import Layout from './components/Layout';
 import Home from './pages/Home';
 import Services from './pages/Services';
@@ -20,11 +19,13 @@ import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
 import TempleKnowledge from './pages/TempleKnowledge';
 import Yatra from './pages/Yatra';
+import YatraDetail from './pages/YatraDetail';
 import VendorProfile from './pages/VendorProfile';
+import OrderTracking from './pages/OrderTracking';
+import NotFound from './pages/NotFound';
 
 function App() {
   return (
-    <ToastProvider>
     <Router>
       <Layout>
         <Routes>
@@ -47,10 +48,12 @@ function App() {
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/temple-knowledge" element={<TempleKnowledge />} />
           <Route path="/services/yatra" element={<Yatra />} />
+          <Route path="/yatras/:id" element={<YatraDetail />} />
+          <Route path="/order-tracking/:orderId" element={<OrderTracking />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </Layout>
     </Router>
-    </ToastProvider>
   );
 }
 

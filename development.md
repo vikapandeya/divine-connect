@@ -1,6 +1,6 @@
-# VedaVibe Development Guide
+# PunyaSeva Development Guide
 
-This guide provides instructions for setting up and developing the VedaVibe application.
+This guide provides instructions for setting up and developing the PunyaSeva application.
 
 ## Prerequisites
 - **Node.js**: v18 or higher.
@@ -14,7 +14,7 @@ This guide provides instructions for setting up and developing the VedaVibe appl
 ### 1. Clone the Repository
 ```bash
 git clone <repository-url>
-cd vedavibe
+cd punyaseva
 ```
 
 ### 2. Install Dependencies

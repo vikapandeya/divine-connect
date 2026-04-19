@@ -7,10 +7,8 @@ import { Heart, ShoppingCart, Trash2, IndianRupee, ArrowRight } from 'lucide-rea
 import { Link } from 'react-router-dom';
 import { addToCart } from '../lib/cart';
 import { formatIndianRupees } from '../lib/utils';
-import { useToast } from '../components/Toast';
 
 export default function Wishlist() {
-  const { toast } = useToast();
   const [items, setItems] = useState<(Product & { wishlistId: string })[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -61,8 +59,13 @@ export default function Wishlist() {
   };
 
   const handleAddToCart = (product: Product) => {
-    addToCart({ id: product.id, name: product.name, price: product.price, image: product.image });
-    toast(`${product.name} added to cart!`, 'success');
+    addToCart({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      image: product.image
+    });
+    alert(`Added ${product.name} to cart!`);
   };
 
   if (loading) {
@@ -92,6 +95,14 @@ export default function Wishlist() {
     <div className="pb-20 bg-white dark:bg-stone-950 transition-colors duration-300 min-h-screen">
       <section className="bg-stone-50 dark:bg-stone-900/50 py-16 mb-12 border-b border-stone-200 dark:border-stone-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mb-6">
+            <img 
+              src="/logo/icon-only.png" 
+              alt="PunyaSeva" 
+              className="h-12 w-auto" 
+              referrerPolicy="no-referrer"
+            />
+          </div>
           <h1 className="text-4xl md:text-5xl font-serif font-bold text-stone-900 dark:text-white mb-4">
             My Wishlist
           </h1>

@@ -1,6 +1,6 @@
-# VedaVibe Architecture
+# PunyaSeva Architecture
 
-VedaVibe is a full-stack spiritual e-commerce and services platform designed to connect devotees with authentic puja services and spiritual products.
+PunyaSeva is a full-stack spiritual e-commerce and services platform designed to connect devotees with authentic puja services and spiritual products.
 
 ## Technology Stack
 

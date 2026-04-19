@@ -1,0 +1,1 @@
+No server terminal output captured via terminal API. The dev server may be running in a separate terminal not accessible via the run_in_terminal terminal ID. Please open the server terminal in VS Code to inspect live logs.

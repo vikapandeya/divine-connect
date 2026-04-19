@@ -23,6 +23,7 @@
           },
           "description": "User's current latitude and longitude."
         },
+        "vendorStatus": { "type": "string", "enum": ["none", "pending", "approved", "rejected"], "description": "The user's vendor application status." },
         "createdAt": { "type": "string", "format": "date-time", "description": "When the user account was created." }
       },
       "required": ["uid", "email", "role"]
@@ -61,7 +62,11 @@
         "name": { "type": "string", "description": "The name of the product." },
         "description": { "type": "string", "description": "Product description." },
         "price": { "type": "number", "description": "The price of the product." },
-        "category": { "type": "string", "description": "Product category (e.g., Idols, Incense)." },
+        "category": { 
+          "type": "string", 
+          "enum": ["Idols", "Incense", "Mala", "Books", "Yantras", "Prasad", "Puja Essentials"],
+          "description": "Standardized product category." 
+        },
         "images": { "type": "array", "items": { "type": "string" }, "description": "List of product image URLs." },
         "stock": { "type": "integer", "description": "Available stock quantity." },
         "rating": { "type": "number", "description": "Average product rating." },
@@ -79,6 +84,7 @@
         "description": { "type": "string", "description": "Description of the puja and its benefits." },
         "onlinePrice": { "type": "number", "description": "Price for online puja booking." },
         "offlinePrice": { "type": "number", "description": "Price for offline puja booking." },
+        "samagriList": { "type": "string", "description": "Detailed list of items required for the puja." },
         "duration": { "type": "string", "description": "Estimated duration of the puja." },
         "samagriIncluded": { "type": "boolean", "description": "Whether puja materials are included." },
         "isOnline": { "type": "boolean", "description": "Whether the puja can be performed virtually." },
@@ -88,19 +94,27 @@
     },
     "Booking": {
       "title": "Booking",
-      "description": "A booking for a puja or darshan service.",
+      "description": "A booking for a puja, darshan, or yatra service.",
       "type": "object",
       "properties": {
         "userId": { "type": "string", "description": "The ID of the user who made the booking." },
-        "serviceId": { "type": "string", "description": "The ID of the puja or temple service." },
+        "serviceId": { "type": "string", "description": "The ID of the puja, temple service, or yatra." },
         "vendorId": { "type": "string", "description": "The ID of the service provider." },
-        "type": { "type": "string", "enum": ["puja", "darshan"], "description": "The type of booking." },
+        "type": { "type": "string", "enum": ["puja", "darshan", "yatra"], "description": "The type of booking." },
+        "isOnline": { "type": "boolean", "description": "Whether the booked service is online." },
+        "bringSamagri": { "type": "boolean", "description": "Whether the user will bring their own samagri." },
+        "samagriList": { "type": "string", "description": "Items included in this specific booking." },
         "date": { "type": "string", "format": "date", "description": "The date of the service." },
         "timeSlot": { "type": "string", "description": "The selected time slot." },
         "status": { "type": "string", "enum": ["pending", "confirmed", "completed", "cancelled"], "description": "Current status of the booking." },
-        "totalAmount": { "type": "number", "description": "Total price paid." }
+        "totalAmount": { "type": "number", "description": "Total price paid." },
+        "paidAmount": { "type": "number", "description": "Amount paid by the user so far." },
+        "travelers": { "type": "integer", "description": "Number of travelers (for yatras)." },
+        "contactNumber": { "type": "string", "description": "Emergency or contact phone number." },
+        "specialRequests": { "type": "string", "description": "Any special requirements for the trip." },
+        "createdAt": { "type": "string", "format": "date-time" }
       },
-      "required": ["userId", "serviceId", "vendorId", "type", "date", "status"]
+      "required": ["userId", "serviceId", "vendorId", "type", "date", "status", "createdAt"]
     },
     "Order": {
       "title": "Order",
@@ -112,8 +126,21 @@
         "totalAmount": { "type": "number", "description": "Total order amount." },
         "status": { "type": "string", "enum": ["processing", "shipped", "delivered", "cancelled"], "description": "Current order status." },
         "shippingAddress": { "type": "string", "description": "Delivery address." },
+        "signatureURL": { "type": "string", "description": "The URL of the user's e-signature." },
         "couponUsed": { "type": "string", "description": "The coupon code used for this order." },
         "discountAmount": { "type": "number", "description": "The discount amount applied." },
+        "trackingHistory": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "status": { "type": "string" },
+              "message": { "type": "string" },
+              "timestamp": { "type": "string", "format": "date-time" }
+            }
+          },
+          "description": "Historical status updates for the order."
+        },
         "createdAt": { "type": "string", "format": "date-time", "description": "When the order was placed." }
       },
       "required": ["userId", "items", "totalAmount", "status", "createdAt"]
@@ -170,6 +197,104 @@
         "createdAt": { "type": "string", "format": "date-time", "description": "When the notification was created." }
       },
       "required": ["userId", "title", "message", "type", "read", "createdAt"]
+    },
+    "WhatsAppBooking": {
+      "title": "WhatsApp Booking",
+      "description": "A booking request for a panditji via WhatsApp.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "The ID of the user requesting the booking." },
+        "vendorId": { "type": "string", "description": "The ID of the panditji." },
+        "pujaTitle": { "type": "string", "description": "The name of the puja." },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected"], "description": "Approval status by admin." },
+        "userLocation": {
+          "type": "object",
+          "properties": {
+            "lat": { "type": "number" },
+            "lng": { "type": "number" }
+          }
+        },
+        "distance": { "type": "number", "description": "Distance between user and panditji in km." },
+        "whatsappNumber": { "type": "string", "description": "Panditji's WhatsApp number." },
+        "totalAmount": { "type": "number", "description": "Total price for the puja." },
+        "paidAmount": { "type": "number", "description": "Amount paid by the user." },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "vendorId", "pujaTitle", "status", "createdAt"]
+    },
+    "VendorWallet": {
+      "title": "Vendor Wallet",
+      "description": "Wallet information for a vendor.",
+      "type": "object",
+      "properties": {
+        "vendorId": { "type": "string" },
+        "balance": { "type": "number" },
+        "totalEarned": { "type": "number" }
+      },
+      "required": ["vendorId", "balance", "totalEarned"]
+    },
+    "VendorPayout": {
+      "title": "Vendor Payout",
+      "description": "A payout request from a vendor.",
+      "type": "object",
+      "properties": {
+        "vendorId": { "type": "string" },
+        "amount": { "type": "number" },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected"] },
+        "bankDetails": {
+          "type": "object",
+          "properties": {
+            "accountNumber": { "type": "string" },
+            "ifscCode": { "type": "string" },
+            "accountHolderName": { "type": "string" }
+          }
+        },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["vendorId", "amount", "status", "bankDetails", "createdAt"]
+    },
+    "VendorTransaction": {
+      "title": "Vendor Transaction",
+      "description": "A transaction record for a vendor wallet.",
+      "type": "object",
+      "properties": {
+        "vendorId": { "type": "string" },
+        "amount": { "type": "number" },
+        "type": { "type": "string", "enum": ["earning", "payout"] },
+        "referenceId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["vendorId", "amount", "type", "createdAt"]
+    },
+    "Yatra": {
+      "title": "Yatra",
+      "description": "A pilgrimage yatra package.",
+      "type": "object",
+      "properties": {
+        "vendorId": { "type": "string", "description": "The ID of the vendor providing the yatra." },
+        "title": { "type": "string", "description": "The name of the yatra package." },
+        "description": { "type": "string", "description": "Description of the yatra." },
+        "price": { "type": "number", "description": "Price per person." },
+        "duration": { "type": "string", "description": "Duration of the trip (e.g., 5 Days / 4 Nights)." },
+        "location": { "type": "string", "description": "Primary location or starting point." },
+        "images": { "type": "array", "items": { "type": "string" }, "description": "URLs of yatra images." },
+        "itinerary": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "day": { "type": "integer" },
+              "title": { "type": "string" },
+              "description": { "type": "string" }
+            }
+          }
+        },
+        "included": { "type": "array", "items": { "type": "string" } },
+        "excluded": { "type": "array", "items": { "type": "string" } },
+        "category": { "type": "string" },
+        "rating": { "type": "number" }
+      },
+      "required": ["vendorId", "title", "price", "duration", "location"]
     }
   },
   "firestore": {
@@ -182,6 +307,11 @@
     "/feedback/{feedbackId}": { "schema": "Feedback", "description": "User feedback." },
     "/coupons/{couponId}": { "schema": "Coupon", "description": "Discount coupons." },
     "/wishlist/{wishlistId}": { "schema": "Wishlist", "description": "User wishlists." },
-    "/notifications/{notificationId}": { "schema": "Notification", "description": "User notifications." }
+    "/notifications/{notificationId}": { "schema": "Notification", "description": "User notifications." },
+    "/whatsapp_bookings/{bookingId}": { "schema": "WhatsAppBooking", "description": "WhatsApp booking requests." },
+    "/vendor_wallets/{vendorId}": { "schema": "VendorWallet", "description": "Vendor wallet balances." },
+    "/vendor_payouts/{payoutId}": { "schema": "VendorPayout", "description": "Vendor payout requests." },
+    "/vendor_transactions/{transactionId}": { "schema": "VendorTransaction", "description": "Vendor wallet transactions." },
+    "/yatras/{yatraId}": { "schema": "Yatra", "description": "Yatra packages." }
   }
 }

@@ -86,11 +86,76 @@ CREATE TABLE IF NOT EXISTS feedback (
   createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- OTPs Table
-CREATE TABLE IF NOT EXISTS otps (
+-- Vendors Table
+CREATE TABLE IF NOT EXISTS vendors (
+  userId VARCHAR(255) PRIMARY KEY,
+  name VARCHAR(255),
+  type VARCHAR(100),
+  description TEXT,
+  rating DECIMAL(3, 2) DEFAULT 0,
+  reviews INT DEFAULT 0,
+  joinedAt DATETIME,
+  FOREIGN KEY (userId) REFERENCES users(uid)
+);
+
+-- Vendor Wallets Table
+CREATE TABLE IF NOT EXISTS vendor_wallets (
+  vendorId VARCHAR(255) PRIMARY KEY,
+  balance DECIMAL(10, 2) DEFAULT 0,
+  totalEarned DECIMAL(10, 2) DEFAULT 0,
+  FOREIGN KEY (vendorId) REFERENCES users(uid)
+);
+
+-- Vendor Payouts Table
+CREATE TABLE IF NOT EXISTS vendor_payouts (
+  id VARCHAR(50) PRIMARY KEY,
+  vendorId VARCHAR(255),
+  amount DECIMAL(10, 2),
+  status ENUM('pending', 'completed', 'failed') DEFAULT 'pending',
+  bankDetails JSON,
+  createdAt DATETIME,
+  FOREIGN KEY (vendorId) REFERENCES vendor_wallets(vendorId)
+);
+
+-- Vendor Transactions Table
+CREATE TABLE IF NOT EXISTS vendor_transactions (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  email VARCHAR(255),
-  otp VARCHAR(6),
-  expiresAt DATETIME,
-  createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
+  vendorId VARCHAR(255),
+  amount DECIMAL(10, 2),
+  originalAmount DECIMAL(10, 2),
+  commission DECIMAL(10, 2),
+  type ENUM('order', 'booking'),
+  referenceId VARCHAR(255),
+  createdAt DATETIME,
+  FOREIGN KEY (vendorId) REFERENCES vendor_wallets(vendorId)
+);
+
+-- Notifications Table
+CREATE TABLE IF NOT EXISTS notifications (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  userId VARCHAR(255),
+  title VARCHAR(255),
+  message TEXT,
+  type ENUM('order', 'booking', 'system'),
+  `read` BOOLEAN DEFAULT FALSE,
+  createdAt DATETIME,
+  FOREIGN KEY (userId) REFERENCES users(uid)
+);
+
+-- Coupons Table
+CREATE TABLE IF NOT EXISTS coupons (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  code VARCHAR(50) UNIQUE,
+  discount DECIMAL(10, 2),
+  type ENUM('percentage', 'fixed'),
+  minAmount DECIMAL(10, 2),
+  active BOOLEAN DEFAULT TRUE
+);
+
+-- Stats Table
+CREATE TABLE IF NOT EXISTS stats (
+  id VARCHAR(50) PRIMARY KEY,
+  total INT DEFAULT 0,
+  `new` INT DEFAULT 0,
+  lastReset DATETIME
 );
