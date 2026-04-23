@@ -31,14 +31,14 @@ import {
 import { translateText, useAppLocale } from '../lib/i18n';
 
 const navLinks = [
-  { to: '/', label: 'Home', end: true },
-  { to: '/services', label: 'Services' },
-  { to: '/shop', label: 'Shop' },
-  { to: '/knowledge', label: 'Knowledge' },
-  { to: '/astrology', label: 'AI Astrology' },
-  { to: '/jap-counter', label: 'Naam Jap' },
-  { to: '/about', label: 'About' },
-  { to: '/contact', label: 'Contact' },
+  { to: '/', label: 'Home', end: true, highlight: false },
+  { to: '/services', label: 'Services', highlight: false },
+  { to: '/shop', label: 'Shop', highlight: false },
+  { to: '/knowledge', label: 'Knowledge', highlight: false },
+  { to: '/astrology', label: 'AI Astrology', highlight: false },
+  { to: '/jap-counter', label: '📿 Naam Jap', highlight: true },
+  { to: '/about', label: 'About', highlight: false },
+  { to: '/contact', label: 'Contact', highlight: false },
 ];
 
 const quickActions = [
@@ -178,23 +178,40 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               </Link>
 
               <nav className="hidden min-w-0 items-center justify-center gap-0.5 xl:flex 2xl:gap-1">
-                {navLinks.map((link) => (
-                  <NavLink
-                    key={link.to}
-                    to={link.to}
-                    end={link.end}
-                    className={({ isActive }) =>
-                      cn(
-                        'whitespace-nowrap rounded-full px-2 py-2 text-sm font-semibold transition-all 2xl:px-4',
-                        isActive
-                          ? 'bg-stone-900 text-white shadow-lg shadow-stone-900/10'
-                          : 'text-stone-600 hover:bg-orange-50 hover:text-orange-600',
-                      )
-                    }
-                  >
-                    {translateText(locale, link.label)}
-                  </NavLink>
-                ))}
+                {navLinks.map((link) =>
+                  link.highlight ? (
+                    <NavLink
+                      key={link.to}
+                      to={link.to}
+                      className={({ isActive }) =>
+                        cn(
+                          'whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-bold transition-all 2xl:px-4',
+                          isActive
+                            ? 'bg-orange-600 text-white shadow-lg shadow-orange-500/30'
+                            : 'bg-orange-500 text-white hover:bg-orange-600 shadow-md shadow-orange-200',
+                        )
+                      }
+                    >
+                      {link.label}
+                    </NavLink>
+                  ) : (
+                    <NavLink
+                      key={link.to}
+                      to={link.to}
+                      end={link.end}
+                      className={({ isActive }) =>
+                        cn(
+                          'whitespace-nowrap rounded-full px-2 py-2 text-sm font-semibold transition-all 2xl:px-4',
+                          isActive
+                            ? 'bg-stone-900 text-white shadow-lg shadow-stone-900/10'
+                            : 'text-stone-600 hover:bg-orange-50 hover:text-orange-600',
+                        )
+                      }
+                    >
+                      {translateText(locale, link.label)}
+                    </NavLink>
+                  ),
+                )}
               </nav>
 
               <div className="ml-auto flex min-w-0 shrink-0 items-center gap-2 sm:gap-3 xl:ml-0">
@@ -408,21 +425,38 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 </div>
 
                 <div className="mt-4 grid gap-2">
-                  {navLinks.map((link) => (
-                    <NavLink
-                      key={link.to}
-                      to={link.to}
-                      end={link.end}
-                      className={({ isActive }) =>
-                        cn(
-                          'rounded-[1.25rem] px-4 py-3 text-sm font-bold',
-                          isActive ? 'bg-stone-900 text-white' : 'bg-stone-50 text-stone-700',
-                        )
-                      }
-                    >
-                      {translateText(locale, link.label)}
-                    </NavLink>
-                  ))}
+                  {navLinks.map((link) =>
+                    link.highlight ? (
+                      <NavLink
+                        key={link.to}
+                        to={link.to}
+                        className={({ isActive }) =>
+                          cn(
+                            'rounded-[1.25rem] px-4 py-3 text-sm font-bold',
+                            isActive
+                              ? 'bg-orange-600 text-white'
+                              : 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md shadow-orange-200',
+                          )
+                        }
+                      >
+                        {link.label}
+                      </NavLink>
+                    ) : (
+                      <NavLink
+                        key={link.to}
+                        to={link.to}
+                        end={link.end}
+                        className={({ isActive }) =>
+                          cn(
+                            'rounded-[1.25rem] px-4 py-3 text-sm font-bold',
+                            isActive ? 'bg-stone-900 text-white' : 'bg-stone-50 text-stone-700',
+                          )
+                        }
+                      >
+                        {translateText(locale, link.label)}
+                      </NavLink>
+                    ),
+                  )}
                 </div>
 
                 <div className="mt-5 grid gap-2">

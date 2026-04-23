@@ -441,6 +441,79 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ── Naam Jap Counter Feature Banner ── */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="relative overflow-hidden rounded-[3rem] border border-orange-200 bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 p-8 shadow-sm md:p-10"
+        >
+          {/* Decorative ॐ watermark */}
+          <div className="pointer-events-none absolute right-6 top-1/2 -translate-y-1/2 select-none opacity-[0.07]">
+            <span style={{ fontSize: 260, fontFamily: 'Georgia, serif', lineHeight: 1, color: '#f97316' }}>ॐ</span>
+          </div>
+
+          {/* Decorative mala ring (pure SVG, no interactivity) */}
+          <div className="pointer-events-none absolute right-10 top-1/2 hidden -translate-y-1/2 lg:block opacity-90">
+            <svg viewBox="0 0 200 200" width="200" height="200" aria-hidden="true">
+              <circle cx="100" cy="100" r="72" fill="none" stroke="#fed7aa" strokeWidth="10" />
+              <circle cx="100" cy="100" r="72" fill="none" stroke="#f97316" strokeWidth="10"
+                strokeDasharray="452" strokeDashoffset="113"
+                strokeLinecap="round" transform="rotate(-90 100 100)" />
+              {Array.from({ length: 108 }, (_, i) => {
+                const angle = (i / 108) * 2 * Math.PI - Math.PI / 2;
+                const x = 100 + 88 * Math.cos(angle);
+                const y = 100 + 88 * Math.sin(angle);
+                return <circle key={i} cx={x} cy={y} r={i < 81 ? 2.4 : 1.8} fill={i < 81 ? '#f97316' : '#fed7aa'} />;
+              })}
+              <text x="100" y="95" textAnchor="middle" fill="#1c1917" style={{ fontSize: 28, fontWeight: 700, fontFamily: 'Georgia, serif' }}>108</text>
+              <text x="100" y="115" textAnchor="middle" fill="#78716c" style={{ fontSize: 11, fontFamily: 'system-ui' }}>chants</text>
+            </svg>
+          </div>
+
+          <div className="relative z-10 max-w-2xl">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-orange-100 px-3 py-1 text-xs font-bold uppercase tracking-[0.2em] text-orange-700">
+              <Sparkles className="h-3.5 w-3.5" /> Digital Spiritual Practice
+            </div>
+            <h2 className="text-3xl font-serif font-bold text-stone-900 sm:text-4xl">
+              Naam Jap Counter —<br className="hidden sm:block" /> Your Digital Mala
+            </h2>
+            <p className="mt-4 max-w-xl leading-relaxed text-stone-600">
+              Count your daily chants with a beautiful 108-bead mala ring. Track streaks,
+              set targets, and save your devotional history — for Radhe Radhe, Om Namah
+              Shivaya, Mahamrityunjaya, and more.
+            </p>
+            <div className="mt-5 flex flex-wrap gap-2">
+              {[
+                { icon: '📿', label: '108-bead mala ring' },
+                { icon: '🎯', label: 'Set daily targets' },
+                { icon: '🔥', label: 'Streak tracking' },
+                { icon: '📖', label: 'Session history' },
+                { icon: '🔔', label: 'Sound & vibration' },
+              ].map((feat) => (
+                <span
+                  key={feat.label}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-orange-200 bg-white px-3 py-1.5 text-xs font-semibold text-stone-700 shadow-sm"
+                >
+                  {feat.icon} {feat.label}
+                </span>
+              ))}
+            </div>
+            <div className="mt-7 flex flex-wrap items-center gap-4">
+              <Link
+                to="/jap-counter"
+                className="inline-flex items-center gap-2 rounded-full bg-orange-500 px-7 py-4 text-sm font-bold text-white shadow-lg shadow-orange-200 hover:bg-orange-600 transition-all"
+              >
+                📿 Start Chanting <ArrowRight className="h-4 w-4" />
+              </Link>
+              <p className="text-sm text-stone-500">Free • No login required • Saves locally</p>
+            </div>
+          </div>
+        </motion.div>
+      </section>
+
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-end justify-between gap-6 mb-10">
           <div>
