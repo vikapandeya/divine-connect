@@ -36,6 +36,7 @@ const navLinks = [
   { to: '/shop', label: 'Shop' },
   { to: '/knowledge', label: 'Knowledge' },
   { to: '/astrology', label: 'AI Astrology' },
+  { to: '/jap-counter', label: 'Naam Jap' },
   { to: '/about', label: 'About' },
   { to: '/contact', label: 'Contact' },
 ];
