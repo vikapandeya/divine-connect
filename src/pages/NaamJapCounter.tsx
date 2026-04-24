@@ -17,6 +17,7 @@ import {
   X,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { usePageSeo } from '../lib/seo';
 import {
   decrementCount,
   deleteCustomMantra,
@@ -456,6 +457,23 @@ function HistoryPanel({ mantraId, mantraName, totalCount }: { mantraId: string; 
   );
 }
 
+// ─── Daily Quotes ─────────────────────────────────────────────────────────────
+
+const DAILY_QUOTES = [
+  { sanskrit: 'हरे कृष्ण हरे कृष्ण, कृष्ण कृष्ण हरे हरे।', translation: 'Chanting the holy name purifies the heart and uplifts the soul.' },
+  { sanskrit: 'ॐ नमः शिवाय — पञ्चाक्षरी मन्त्र', translation: 'The five-syllable mantra of Shiva destroys all sins and grants liberation.' },
+  { sanskrit: 'राम नाम सत्य है, सत्य बोलो गत है।', translation: 'The name of Ram is the ultimate truth — speak it and find the way.' },
+  { sanskrit: 'जपो जपो फिर जपो — नाम में शक्ति है।', translation: 'Chant, chant, and chant again — boundless power lives in the name.' },
+  { sanskrit: 'नाम जपत मन होत पवित्र।', translation: 'The mind becomes pure through continuous repetition of the divine name.' },
+  { sanskrit: 'एक माला, एक सांस, एक परमात्मा।', translation: 'One mala, one breath, one Supreme — all is united in sincere devotion.' },
+  { sanskrit: 'मृत्युञ्जय महादेव त्राहि माम् शरणागतम्।', translation: 'O Mahadeva, conqueror of death, protect me who takes refuge in you.' },
+];
+
+function getDailyQuote() {
+  const dayIndex = new Date().getDate() % DAILY_QUOTES.length;
+  return DAILY_QUOTES[dayIndex];
+}
+
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 const MANTRA_ACCENT: Record<string, string> = {
@@ -471,6 +489,7 @@ function getAccentColor(mantraId: string): string {
 }
 
 export default function NaamJapCounter() {
+  usePageSeo('Naam Jap Counter', 'A digital mala counter for daily chanting — track 108-bead rounds, set targets, and build a devotional streak.');
   const [mantras, setMantras] = useState<JapMantra[]>(getAllMantras());
   const [selectedMantra, setSelectedMantra] = useState<JapMantra>(PREDEFINED_MANTRAS[0]);
   const [count, setCount] = useState(0);
@@ -516,7 +535,7 @@ export default function NaamJapCounter() {
     setTimeout(() => setIsRippling(false), 350);
 
     // Check for target completion (only trigger once per crossing)
-    if (target !== null && newCount === target && !prevTargetHitRef.current) {
+    if (target !== null && newCount >= target && !prevTargetHitRef.current) {
       prevTargetHitRef.current = true;
       setShowCompletion(true);
       if (soundEnabled) playCompletionSound();
@@ -761,10 +780,10 @@ export default function NaamJapCounter() {
         {/* ── Spiritual quote ── */}
         <div className="mt-6 rounded-[1.5rem] bg-gradient-to-br from-orange-50 to-amber-50 border border-orange-100 px-5 py-4">
           <p className="text-center text-xs text-orange-700 font-medium italic leading-relaxed">
-            "हरे कृष्ण हरे कृष्ण, कृष्ण कृष्ण हरे हरे। हरे राम हरे राम, राम राम हरे हरे।"
+            "{getDailyQuote().sanskrit}"
           </p>
           <p className="text-center text-xs text-orange-500 mt-1.5">
-            Chanting purifies the mind and uplifts the soul.
+            {getDailyQuote().translation}
           </p>
         </div>
       </div>

@@ -16,6 +16,7 @@ import {
   toggleWishlist,
 } from '../lib/platform';
 import { translateText, useAppLocale } from '../lib/i18n';
+import { usePageSeo } from '../lib/seo';
 
 const categories = [
   'all',
@@ -144,6 +145,7 @@ function normalizeCategory(category: string | null) {
 }
 
 export default function Shop() {
+  usePageSeo('Spiritual Shop', 'Buy temple prasad, malas, incense, idols, and devotional items delivered to your door.');
   const locale = useAppLocale();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -370,11 +372,29 @@ export default function Shop() {
         </div>
       </div>
 
-      <div className="rounded-[1.75rem] border border-stone-200 bg-white px-5 py-4 text-sm text-stone-500 shadow-sm">
-        {loading
-          ? 'Refreshing catalog...'
-          : `${filteredProducts.length} items found${selectedCategory !== 'all' ? ` in ${selectedCategory}` : ''}${normalizedQuery ? ` for "${searchInput}"` : ''}`}
-      </div>
+      {normalizedQuery ? (
+        <div className="flex items-center justify-between gap-4 rounded-[1.75rem] border border-orange-200 bg-orange-50 px-5 py-4 shadow-sm">
+          <div className="flex items-center gap-3 min-w-0">
+            <Search className="h-4 w-4 shrink-0 text-orange-500" />
+            <p className="text-sm font-semibold text-stone-900 truncate">
+              {loading ? 'Searching…' : (
+                <><span className="text-orange-600">{filteredProducts.length}</span> result{filteredProducts.length !== 1 ? 's' : ''} for <span className="text-orange-600">"{searchInput}"</span>{selectedCategory !== 'all' ? ` in ${selectedCategory}` : ''}</>
+              )}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => handleSearchChange('')}
+            className="shrink-0 rounded-full border border-orange-200 bg-white px-3 py-1 text-xs font-bold text-stone-600 hover:border-orange-400 hover:text-orange-600 transition-colors"
+          >
+            Clear search
+          </button>
+        </div>
+      ) : (
+        <div className="rounded-[1.75rem] border border-stone-200 bg-white px-5 py-4 text-sm text-stone-500 shadow-sm">
+          {loading ? 'Refreshing catalog…' : `${filteredProducts.length} item${filteredProducts.length !== 1 ? 's' : ''}${selectedCategory !== 'all' ? ` in ${selectedCategory}` : ' across all categories'}`}
+        </div>
+      )}
 
       {filteredProducts.length === 0 ? (
         <div className="rounded-[2rem] border border-stone-200 bg-white p-10 text-center shadow-sm">

@@ -1,4 +1,5 @@
 import React from 'react';
+import { usePageSeo } from '../lib/seo';
 import {
   ArrowRight,
   BookOpen,
@@ -29,6 +30,7 @@ const sectionLinks = [
 ];
 
 export default function SpiritualKnowledge() {
+  usePageSeo('Spiritual Knowledge', 'Puja guides, scripture summaries, temple travel tips, and devotional reading paths for Hindu families.');
   return (
     <div className="space-y-16 pb-20">
       <section className="max-w-7xl mx-auto px-4 pt-10 sm:px-6 lg:px-8">

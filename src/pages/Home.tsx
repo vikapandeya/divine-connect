@@ -28,6 +28,7 @@ import {
   getTempleSpotlights,
 } from '../lib/platform';
 import { translateText, useAppLocale } from '../lib/i18n';
+import { usePageSeo } from '../lib/seo';
 
 const services = [
   {
@@ -136,6 +137,7 @@ const ratingStats = [
 ];
 
 export default function Home() {
+  usePageSeo('Home', 'Book pujas, order temple prasad, plan yatra, and get AI Vedic guidance — all in one spiritual platform.');
   const locale = useAppLocale();
   const [panchang, setPanchang] = useState(() => getFallbackPanchangCard(locale));
   const [isPanchangLoading, setIsPanchangLoading] = useState(true);
@@ -292,6 +294,89 @@ export default function Home() {
               </Link>
             </div>
           </motion.div>
+        </div>
+      </section>
+
+      {/* ── Social Proof ── */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Stats bar */}
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 mb-14">
+          {[
+            { value: '12,000+', label: 'Devotees Served', emoji: '🙏' },
+            { value: '500+',    label: 'Verified Pandits', emoji: '📿' },
+            { value: '50+',     label: 'Temple Partners',  emoji: '🛕' },
+            { value: '4.9 ★',  label: 'Average Rating',   emoji: '⭐' },
+          ].map((stat) => (
+            <motion.div
+              key={stat.label}
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="rounded-[1.75rem] border border-stone-200 bg-white px-5 py-5 text-center shadow-sm"
+            >
+              <p className="text-2xl">{stat.emoji}</p>
+              <p className="mt-2 text-2xl font-serif font-bold text-stone-900">{stat.value}</p>
+              <p className="mt-1 text-xs font-medium text-stone-500">{stat.label}</p>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Testimonials */}
+        <div className="mb-14">
+          <div className="mb-8 text-center">
+            <p className="text-xs font-bold uppercase tracking-[0.24em] text-orange-600">What Devotees Say</p>
+            <h2 className="mt-3 text-3xl font-serif font-bold text-stone-900">Trusted by families across India</h2>
+          </div>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+            {[
+              {
+                name: 'Priya Sharma',
+                city: 'Delhi',
+                avatar: '🙏',
+                rating: 5,
+                text: 'Booked the Satyanarayan Puja for my son\'s birthday. The pandit ji was punctual, knowledgeable, and made the whole ritual so meaningful. Will book again!',
+                service: 'Puja Booking',
+              },
+              {
+                name: 'Ramesh Gupta',
+                city: 'Mumbai',
+                avatar: '🕉️',
+                rating: 5,
+                text: 'The Kashi Vishwanath prasad arrived beautifully packed within 3 days. Felt like a direct blessing from the mandir. The quality was exceptional.',
+                service: 'Temple Prasad',
+              },
+              {
+                name: 'Anita Patel',
+                city: 'Ahmedabad',
+                avatar: '🌸',
+                rating: 5,
+                text: 'The AI astrology reading was surprisingly detailed and accurate. It gave me clarity on my career decisions in a way that aligned with my Vedic chart.',
+                service: 'AI Astrology',
+              },
+            ].map((t) => (
+              <motion.div
+                key={t.name}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                className="rounded-[2rem] border border-stone-200 bg-white p-6 shadow-sm"
+              >
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-full bg-orange-50 text-xl">{t.avatar}</div>
+                  <div>
+                    <p className="font-bold text-stone-900 text-sm">{t.name}</p>
+                    <p className="text-xs text-stone-500">{t.city} · {t.service}</p>
+                  </div>
+                  <div className="ml-auto flex gap-0.5">
+                    {Array.from({ length: t.rating }).map((_, i) => (
+                      <Star key={i} className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                    ))}
+                  </div>
+                </div>
+                <p className="text-sm leading-relaxed text-stone-600">"{t.text}"</p>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </section>
 

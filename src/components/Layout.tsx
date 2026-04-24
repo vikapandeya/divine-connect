@@ -64,6 +64,9 @@ const quickActions = [
   },
 ];
 
+// Module-level cache so the notification fetch runs once per page-load session.
+let cachedNotifications: PlatformNotification[] | null = null;
+
 export default function Layout({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -96,13 +99,19 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
+    if (cachedNotifications) {
+      setNotifications(cachedNotifications);
+      return;
+    }
     const loadNotifications = async () => {
       try {
         const [bookings, orders] = await Promise.all([
           listBookingsByUserDirect(DEMO_DEVOTEE_PROFILE.uid),
           listOrdersByUserDirect(DEMO_DEVOTEE_PROFILE.uid),
         ]);
-        setNotifications(buildUserNotifications(bookings, orders).slice(0, 4));
+        const built = buildUserNotifications(bookings, orders).slice(0, 4);
+        cachedNotifications = built;
+        setNotifications(built);
       } catch (error) {
         console.error('Error loading header notifications:', error);
       }
@@ -550,7 +559,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               </h4>
               <ul className="mt-5 space-y-3 text-sm">
                 <li><Link to="/about" className="hover:text-white">{translateText(locale, 'Our Mission')}</Link></li>
+                <li><Link to="/faq" className="hover:text-white">{translateText(locale, 'FAQ')}</Link></li>
                 <li><Link to="/contact" className="hover:text-white">{translateText(locale, 'Contact Support')}</Link></li>
+                <li><Link to="/jap-counter" className="hover:text-white">{translateText(locale, 'Naam Jap Counter')}</Link></li>
                 <li><Link to="/profile" className="hover:text-white">{translateText(locale, 'Demo Profile')}</Link></li>
                 <li><Link to="/vendor" className="hover:text-white">{translateText(locale, 'Vendor Dashboard')}</Link></li>
                 <li><Link to="/admin" className="hover:text-white">{translateText(locale, 'Admin Panel')}</Link></li>

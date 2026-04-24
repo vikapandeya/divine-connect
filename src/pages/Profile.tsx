@@ -42,10 +42,12 @@ import {
 } from '../lib/firestore-data';
 import { buildUserNotifications, getWishlistIds, subscribeToWishlist, type PlatformNotification } from '../lib/platform';
 import { formatDateForLocale, formatDateTimeForLocale, translateText, useAppLocale } from '../lib/i18n';
+import { usePageSeo } from '../lib/seo';
 
 type ProfileTab = 'bookings' | 'orders' | 'readings' | 'profile';
 
 export default function Profile() {
+  usePageSeo('My Profile', 'View your bookings, orders, astrology readings, and account details on PunyaSeva.');
   const locale = useAppLocale();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();

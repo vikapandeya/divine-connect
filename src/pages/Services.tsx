@@ -17,8 +17,10 @@ import { listPujasDirect } from '../lib/firestore-data';
 import { getTempleSpotlights } from '../lib/platform';
 import { getPujaSpiritualImage } from '../lib/spiritual-images';
 import { translateText, useAppLocale } from '../lib/i18n';
+import { usePageSeo } from '../lib/seo';
 
 export default function Services() {
+  usePageSeo('Sacred Services', 'Book verified puja, live darshan, yatra packages, and prasad delivery from trusted temples and pandits.');
   const locale = useAppLocale();
   const [pujas, setPujas] = useState<Puja[]>([]);
   const templeSpotlights = getTempleSpotlights();

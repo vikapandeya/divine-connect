@@ -21,6 +21,7 @@ const DarshanBooking = lazy(() => import('./pages/DarshanBooking'));
 const PrasadDelivery = lazy(() => import('./pages/PrasadDelivery'));
 const YatraBooking = lazy(() => import('./pages/YatraBooking'));
 const NaamJapCounter = lazy(() => import('./pages/NaamJapCounter'));
+const Faq = lazy(() => import('./pages/Faq'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 function PageLoader() {
@@ -75,6 +76,7 @@ export default function App() {
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/astrology" element={<Astrology />} />
               <Route path="/jap-counter" element={<NaamJapCounter />} />
+              <Route path="/faq" element={<Faq />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>

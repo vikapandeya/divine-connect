@@ -26,8 +26,10 @@ import {
 import { formatIndianRupees, getProductPlaceholderImage } from '../lib/utils';
 import { createOrderDirect, DEMO_DEVOTEE_PROFILE } from '../lib/firestore-data';
 import { translateText, useAppLocale } from '../lib/i18n';
+import { usePageSeo } from '../lib/seo';
 
 export default function Cart() {
+  usePageSeo('Cart & Checkout', 'Review your spiritual offerings and complete your order for home delivery.');
   const locale = useAppLocale();
   const navigate = useNavigate();
   const [isCheckingOut, setIsCheckingOut] = useState(false);
@@ -333,116 +335,152 @@ export default function Cart() {
                   Delivery Details
                 </label>
                 <div className="space-y-4">
-                  <input
-                    type="text"
-                    value={customerDetails.fullName}
-                    onChange={(event) =>
-                      setCustomerDetails((previous) => ({
-                        ...previous,
-                        fullName: event.target.value,
-                      }))
-                    }
-                    placeholder="Full name"
-                    className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
-                  />
+                  <div>
+                    <label htmlFor="checkout-fullname" className="block text-xs font-semibold text-stone-600 mb-1">Full Name <span className="text-red-400">*</span></label>
+                    <input
+                      id="checkout-fullname"
+                      type="text"
+                      value={customerDetails.fullName}
+                      onChange={(event) =>
+                        setCustomerDetails((previous) => ({
+                          ...previous,
+                          fullName: event.target.value,
+                        }))
+                      }
+                      placeholder="e.g. Priya Sharma"
+                      className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
+                    />
+                  </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <input
-                      type="email"
-                      value={customerDetails.email}
+                    <div>
+                      <label htmlFor="checkout-email" className="block text-xs font-semibold text-stone-600 mb-1">Email Address <span className="text-red-400">*</span></label>
+                      <input
+                        id="checkout-email"
+                        type="email"
+                        value={customerDetails.email}
+                        onChange={(event) =>
+                          setCustomerDetails((previous) => ({
+                            ...previous,
+                            email: event.target.value,
+                          }))
+                        }
+                        placeholder="e.g. priya@email.com"
+                        className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="checkout-phone" className="block text-xs font-semibold text-stone-600 mb-1">Contact Number <span className="text-red-400">*</span></label>
+                      <input
+                        id="checkout-phone"
+                        type="tel"
+                        value={customerDetails.phoneNumber}
+                        onChange={(event) =>
+                          setCustomerDetails((previous) => ({
+                            ...previous,
+                            phoneNumber: event.target.value,
+                          }))
+                        }
+                        placeholder="10-digit mobile number"
+                        className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label htmlFor="checkout-addr1" className="block text-xs font-semibold text-stone-600 mb-1">Address Line 1 <span className="text-red-400">*</span></label>
+                    <textarea
+                      id="checkout-addr1"
+                      value={customerDetails.addressLine1}
                       onChange={(event) =>
                         setCustomerDetails((previous) => ({
                           ...previous,
-                          email: event.target.value,
+                          addressLine1: event.target.value,
                         }))
                       }
-                      placeholder="Email ID"
-                      className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
+                      placeholder="House / flat no., street name"
+                      className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all resize-none h-20"
                     />
+                  </div>
+                  <div>
+                    <label htmlFor="checkout-addr2" className="block text-xs font-semibold text-stone-600 mb-1">Address Line 2 <span className="text-stone-400 font-normal">(optional)</span></label>
                     <input
-                      type="tel"
-                      value={customerDetails.phoneNumber}
+                      id="checkout-addr2"
+                      type="text"
+                      value={customerDetails.addressLine2}
                       onChange={(event) =>
                         setCustomerDetails((previous) => ({
                           ...previous,
-                          phoneNumber: event.target.value,
+                          addressLine2: event.target.value,
                         }))
                       }
-                      placeholder="Contact number"
+                      placeholder="Landmark, apartment, area"
                       className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
                     />
                   </div>
-                  <textarea
-                    value={customerDetails.addressLine1}
-                    onChange={(event) =>
-                      setCustomerDetails((previous) => ({
-                        ...previous,
-                        addressLine1: event.target.value,
-                      }))
-                    }
-                    placeholder="Address line 1"
-                    className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all resize-none h-20"
-                  />
-                  <input
-                    type="text"
-                    value={customerDetails.addressLine2}
-                    onChange={(event) =>
-                      setCustomerDetails((previous) => ({
-                        ...previous,
-                        addressLine2: event.target.value,
-                      }))
-                    }
-                    placeholder="Address line 2, landmark, apartment"
-                    className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
-                  />
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <input
-                      type="text"
-                      value={customerDetails.city}
+                    <div>
+                      <label htmlFor="checkout-city" className="block text-xs font-semibold text-stone-600 mb-1">City <span className="text-red-400">*</span></label>
+                      <input
+                        id="checkout-city"
+                        type="text"
+                        value={customerDetails.city}
+                        onChange={(event) =>
+                          setCustomerDetails((previous) => ({
+                            ...previous,
+                            city: event.target.value,
+                          }))
+                        }
+                        placeholder="e.g. Varanasi"
+                        className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="checkout-state" className="block text-xs font-semibold text-stone-600 mb-1">State <span className="text-red-400">*</span></label>
+                      <input
+                        id="checkout-state"
+                        type="text"
+                        value={customerDetails.state}
+                        onChange={(event) =>
+                          setCustomerDetails((previous) => ({
+                            ...previous,
+                            state: event.target.value,
+                          }))
+                        }
+                        placeholder="e.g. Uttar Pradesh"
+                        className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="checkout-pincode" className="block text-xs font-semibold text-stone-600 mb-1">Pincode <span className="text-red-400">*</span></label>
+                      <input
+                        id="checkout-pincode"
+                        type="text"
+                        value={customerDetails.pincode}
+                        onChange={(event) =>
+                          setCustomerDetails((previous) => ({
+                            ...previous,
+                            pincode: event.target.value,
+                          }))
+                        }
+                        placeholder="6-digit pincode"
+                        className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label htmlFor="checkout-notes" className="block text-xs font-semibold text-stone-600 mb-1">Delivery Notes <span className="text-stone-400 font-normal">(optional)</span></label>
+                    <textarea
+                      id="checkout-notes"
+                      value={customerDetails.deliveryNotes}
                       onChange={(event) =>
                         setCustomerDetails((previous) => ({
                           ...previous,
-                          city: event.target.value,
+                          deliveryNotes: event.target.value,
                         }))
                       }
-                      placeholder="City"
-                      className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
-                    />
-                    <input
-                      type="text"
-                      value={customerDetails.state}
-                      onChange={(event) =>
-                        setCustomerDetails((previous) => ({
-                          ...previous,
-                          state: event.target.value,
-                        }))
-                      }
-                      placeholder="State"
-                      className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
-                    />
-                    <input
-                      type="text"
-                      value={customerDetails.pincode}
-                      onChange={(event) =>
-                        setCustomerDetails((previous) => ({
-                          ...previous,
-                          pincode: event.target.value,
-                        }))
-                      }
-                      placeholder="Pincode"
-                      className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
+                      placeholder="Preferred timing, gate instructions, or special requests"
+                      className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all resize-none h-20"
                     />
                   </div>
-                  <textarea
-                    value={customerDetails.deliveryNotes}
-                    onChange={(event) =>
-                      setCustomerDetails((previous) => ({
-                        ...previous,
-                        deliveryNotes: event.target.value,
-                      }))
-                    }
-                    placeholder="Delivery notes, preferred timing, or special instructions"
-                    className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all resize-none h-20"
-                  />
                   <div className="space-y-3 rounded-2xl border border-stone-100 bg-stone-50 p-4">
                     <p className="text-sm font-bold text-stone-900">Payment Method</p>
                     <div className="grid grid-cols-1 gap-3">

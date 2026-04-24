@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { usePageSeo } from '../lib/seo';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, MapPin, Send, Star, Moon, Sun, Info, HeartHandshake, ScrollText } from 'lucide-react';
 import { createAstrologyReadingDirect, DEMO_DEVOTEE_PROFILE, generateDemoAstrologyReading } from '../lib/firestore-data';
@@ -47,6 +48,7 @@ const rashiOptions = [
 ];
 
 export default function Astrology() {
+  usePageSeo('AI Astrology', 'Get personalised Vedic astrology readings, kundali matching, and rashi phal powered by AI.');
   const [mode, setMode] = useState<AstrologyMode>('vedic-reading');
   const [formData, setFormData] = useState({
     name: DEMO_DEVOTEE_PROFILE.displayName || '',

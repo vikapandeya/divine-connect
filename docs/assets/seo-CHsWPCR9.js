@@ -1,0 +1,1 @@
+import{r as o}from"./vendor-BLqV_m0t.js";const a="PunyaSeva";function r(n,t){o.useEffect(()=>{if(document.title=`${n} | ${a}`,t){let e=document.querySelector('meta[name="description"]');e||(e=document.createElement("meta"),e.setAttribute("name","description"),document.head.appendChild(e)),e.setAttribute("content",t)}return()=>{document.title=a}},[n,t])}export{r as u};

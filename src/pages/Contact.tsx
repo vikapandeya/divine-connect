@@ -13,6 +13,7 @@ import {
 import PageHero from '../components/PageHero';
 import { generateDemoSupportReply } from '../lib/firestore-data';
 import { translateText, useAppLocale } from '../lib/i18n';
+import { usePageSeo } from '../lib/seo';
 
 const contactCards = [
   {
@@ -50,6 +51,7 @@ type ChatMessage = {
 };
 
 export default function Contact() {
+  usePageSeo('Contact & Support', 'Reach the PunyaSeva support team for puja booking help, order queries, or partnership enquiries.');
   const locale = useAppLocale();
   const [messages, setMessages] = useState<ChatMessage[]>([
     {

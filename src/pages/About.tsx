@@ -14,6 +14,7 @@ import {
 import { Link } from 'react-router-dom';
 import PageHero from '../components/PageHero';
 import { translateText, useAppLocale } from '../lib/i18n';
+import { usePageSeo } from '../lib/seo';
 
 const values = [
   {
@@ -69,6 +70,7 @@ const developers = [
 ];
 
 export default function About() {
+  usePageSeo('About PunyaSeva', 'Learn about PunyaSeva — our mission to make sacred services accessible to every devotee, anywhere.');
   const locale = useAppLocale();
 
   return (
