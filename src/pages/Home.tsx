@@ -162,23 +162,32 @@ export default function Home() {
     ),
     [locale],
   );
+  const ALL_HOROSCOPES_EN = [
+    { sign: 'Aries ♈', guidance: 'Momentum improves for new ventures — act with measured confidence today.', remedy: 'Light a diya before starting important tasks.' },
+    { sign: 'Taurus ♉', guidance: 'Family harmony and financial stability both reward patience and calm.', remedy: 'Offer white flowers or akshat at the home altar.' },
+    { sign: 'Gemini ♊', guidance: 'Communication flows well — express your ideas and resolve pending matters.', remedy: 'Chant the Saraswati mantra for clarity and eloquence.' },
+    { sign: 'Cancer ♋', guidance: 'Emotional bonds deepen; a heartfelt act of service creates lasting goodwill.', remedy: 'Offer milk or white sweets to the deity today.' },
+    { sign: 'Leo ♌', guidance: 'Leadership and creativity are highlighted — take initiative on creative projects.', remedy: 'Recite the Surya Mantra at sunrise for energy and confidence.' },
+    { sign: 'Virgo ♍', guidance: 'Detail-oriented tasks reward your focus; health routines are especially auspicious.', remedy: 'Donate green vegetables or cloth to a temple today.' },
+    { sign: 'Libra ♎', guidance: 'Balance and fairness guide decisions; partnerships are favoured for joint ventures.', remedy: 'Offer blue lotus or sugarcane to Shukra (Venus) for blessings.' },
+    { sign: 'Scorpio ♏', guidance: 'Intuition is sharp; trust your inner guidance in hidden or complex matters.', remedy: 'Recite the Hanuman Chalisa for protection and inner strength.' },
+    { sign: 'Sagittarius ♐', guidance: 'Optimism and long-range thinking bear fruit — ideal for planning pilgrimages.', remedy: 'Offer yellow flowers or turmeric to Brihaspati for wisdom.' },
+    { sign: 'Capricorn ♑', guidance: 'Disciplined effort brings recognition; focus on one goal at a time for best results.', remedy: 'Light a sesame oil lamp on Saturday for Shani grace.' },
+    { sign: 'Aquarius ♒', guidance: 'Community service and social connections are highlighted and rewarding.', remedy: 'Donate warm clothing or blankets to those in need today.' },
+    { sign: 'Pisces ♓', guidance: 'Spiritual discipline brings better clarity than reactive decisions today.', remedy: 'Keep a short guru mantra in your morning meditation routine.' },
+  ];
+
+  // Rotate which 4 signs are shown based on today's date so it changes daily
+  const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000);
+  const offset = (dayOfYear % 3) * 4;
   const horoscopes = locale === 'hi'
     ? [
-        { sign: 'मेष', guidance: 'नए कार्यों में गति मिलेगी, पर निर्णय संयम से लें।', remedy: 'सुबह दीपक जलाएँ।' },
-        { sign: 'वृषभ', guidance: 'परिवार और वित्त दोनों में संतुलन लाभ देगा।', remedy: 'शुक्रवार को सफेद पुष्प अर्पित करें।' },
-        { sign: 'मीन', guidance: 'आध्यात्मिक अभ्यास से मन की स्पष्टता बढ़ेगी।', remedy: 'गुरु मंत्र का जप करें।' },
-      ]
-    : locale === 'sa'
-      ? [
-          { sign: 'मेष', guidance: 'नवकार्येषु प्रगतिः भविष्यति, परं निर्णयः संयमेन कार्यः।', remedy: 'प्रातः दीपं प्रज्वालयन्तु।' },
-          { sign: 'वृषभ', guidance: 'कुटुम्ब-वित्तयोः समत्वं लाभकरं भविष्यति।', remedy: 'शुक्रवासरे श्वेतपुष्पाणि अर्पयन्तु।' },
-          { sign: 'मीन', guidance: 'आध्यात्मिकाभ्यासेन मनसः स्पष्टता वर्धते।', remedy: 'गुरुमन्त्रं जपन्तु।' },
-        ]
-      : [
-          { sign: 'Aries', guidance: 'Momentum improves for new work, but decisions should stay measured.', remedy: 'Light a diya before starting important tasks.' },
-          { sign: 'Taurus', guidance: 'Family and finances both benefit from calm practical planning.', remedy: 'Offer white flowers on Friday.' },
-          { sign: 'Pisces', guidance: 'Spiritual discipline brings better clarity than reactive decisions.', remedy: 'Keep a short guru mantra in your morning routine.' },
-        ];
+        { sign: 'मेष ♈', guidance: 'नए कार्यों में गति मिलेगी, पर निर्णय संयम से लें।', remedy: 'सुबह दीपक जलाएँ।' },
+        { sign: 'वृषभ ♉', guidance: 'परिवार और वित्त दोनों में संतुलन लाभ देगा।', remedy: 'श्वेत पुष्प या अक्षत अर्पित करें।' },
+        { sign: 'मिथुन ♊', guidance: 'संचार और विचारों का आदान-प्रदान आज शुभ है।', remedy: 'सरस्वती मंत्र का जप करें।' },
+        { sign: 'कर्क ♋', guidance: 'भावनात्मक बंधन मजबूत होते हैं — सेवा भाव से आगे बढ़ें।', remedy: 'देवी को दूध या मिठाई चढ़ाएँ।' },
+      ].map((h, i) => ALL_HOROSCOPES_EN[(offset + i) % 12] ? { ...ALL_HOROSCOPES_EN[(offset + i) % 12], ...h } : h)
+    : ALL_HOROSCOPES_EN.slice(offset, offset + 4);
   const temples = getTempleSpotlights();
   const articles = getSpiritualArticles();
 
@@ -396,12 +405,16 @@ export default function Home() {
                 className={`inline-flex w-fit items-center rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] ${
                   panchang.source === 'live'
                     ? 'bg-emerald-50 text-emerald-700'
-                    : 'bg-stone-100 text-stone-600'
+                    : panchang.source === 'computed'
+                      ? 'bg-orange-50 text-orange-700'
+                      : 'bg-stone-100 text-stone-600'
                 }`}
               >
                 {panchang.source === 'live'
                   ? translateText(locale, 'Live Panchang')
-                  : translateText(locale, 'Fallback Snapshot')}
+                  : panchang.source === 'computed'
+                    ? translateText(locale, 'Daily Panchang')
+                    : translateText(locale, 'Fallback Snapshot')}
               </div>
             </div>
             <p className="mt-3 max-w-2xl text-sm leading-relaxed text-stone-600">
