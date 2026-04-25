@@ -6,10 +6,15 @@ import { useSearchParams, Link } from 'react-router-dom';
 import { addToCart } from '../lib/cart';
 import { formatIndianRupees } from '../lib/utils';
 import { addToWishlist, removeFromWishlist, isInWishlist } from '../lib/wishlist';
-import { auth, db } from '../firebase';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { auth } from '../firebase';
 
 const categories = ['all', ...PRODUCT_CATEGORIES];
+
+
+const makeProductImage = (label: string, c1: string, c2: string): string => {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="${c1}"/><stop offset="100%" stop-color="${c2}"/></linearGradient></defs><rect width="400" height="400" fill="url(#g)" rx="12"/><text x="200" y="195" text-anchor="middle" dominant-baseline="middle" font-family="Georgia,serif" font-size="24" fill="rgba(255,255,255,0.95)" font-weight="bold">${label}</text></svg>`;
+  return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+};
 
 const fallbackProducts = [
   {
@@ -18,7 +23,7 @@ const fallbackProducts = [
     price: 1299,
     category: 'Idols',
     rating: 4.8,
-    image: 'https://picsum.photos/seed/ganesha/400/400',
+    image: makeProductImage('Brass Ganesha Idol', '#f59e0b', '#d97706'),
   },
   {
     id: '2',
@@ -26,7 +31,7 @@ const fallbackProducts = [
     price: 250,
     category: 'Incense',
     rating: 4.5,
-    image: 'https://picsum.photos/seed/incense/400/400',
+    image: makeProductImage('Sandalwood Incense', '#84cc16', '#4d7c0f'),
   },
   {
     id: '3',
@@ -34,7 +39,7 @@ const fallbackProducts = [
     price: 599,
     category: 'Mala',
     rating: 4.9,
-    image: 'https://picsum.photos/seed/mala/400/400',
+    image: makeProductImage('Rudraksha Mala', '#7c3aed', '#5b21b6'),
   },
   {
     id: '4',
@@ -42,7 +47,7 @@ const fallbackProducts = [
     price: 450,
     category: 'Books',
     rating: 5.0,
-    image: 'https://picsum.photos/seed/gita/400/400',
+    image: makeProductImage('Bhagavad Gita', '#1e40af', '#1e3a8a'),
   },
   {
     id: '5',
@@ -50,7 +55,7 @@ const fallbackProducts = [
     price: 899,
     category: 'Yantras',
     rating: 4.7,
-    image: 'https://picsum.photos/seed/yantra/400/400',
+    image: makeProductImage('Shree Yantra', '#9333ea', '#7e22ce'),
   },
   {
     id: '6',
@@ -58,7 +63,7 @@ const fallbackProducts = [
     price: 250,
     category: 'Prasad',
     rating: 4.9,
-    image: 'https://picsum.photos/seed/kashi/400/400',
+    image: makeProductImage('Kashi Prasad', '#f97316', '#c2410c'),
     templeName: 'Kashi Vishwanath',
     weightOptions: [{ label: '250g', price: 250 }, { label: '500g', price: 450 }]
   },
@@ -68,7 +73,7 @@ const fallbackProducts = [
     price: 350,
     category: 'Prasad',
     rating: 5.0,
-    image: 'https://picsum.photos/seed/tirupati/400/400',
+    image: makeProductImage('Tirupati Laddu', '#ec4899', '#be185d'),
     templeName: 'Tirupati Balaji',
     weightOptions: [{ label: '1 Unit', price: 350 }, { label: '2 Units', price: 650 }]
   },
@@ -105,11 +110,9 @@ export default function Shop() {
   useEffect(() => {
     const fetchWishlist = async () => {
       if (!auth.currentUser) return;
-      const wishlistRef = collection(db, 'wishlist');
-      const q = query(wishlistRef, where('userId', '==', auth.currentUser.uid), where('type', '==', 'product'));
-      const snapshot = await getDocs(q);
-      const itemIds = new Set(snapshot.docs.map(doc => doc.data().itemId));
-      setWishlistItems(itemIds);
+      const raw = JSON.parse(localStorage.getItem('wishlist') || '[]');
+      const itemIds = new Set(raw.filter((i: any) => i.userId === auth.currentUser!.uid && i.type === 'product').map((i: any) => i.itemId));
+      setWishlistItems(itemIds as Set<string>);
     };
     fetchWishlist();
   }, []);
