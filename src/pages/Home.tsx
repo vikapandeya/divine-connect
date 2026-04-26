@@ -94,28 +94,28 @@ const featuredProducts = [
     id: '1',
     name: 'Brass Ganesha Idol',
     price: 1299,
-    image: 'https://picsum.photos/seed/ganesha/400/400',
+    image: "data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 400 400%27%3E%3Crect width=%27400%27 height=%27400%27 fill=%27%23f59e0b%27 rx=%2712%27/%3E%3Ctext x=%27200%27 y=%27210%27 text-anchor=%27middle%27 dominant-baseline=%27middle%27 font-family=%27Georgia%27 font-size=%2722%27 fill=%27white%27 font-weight=%27bold%27%3EBrass Ganesha Idol%3C/text%3E%3C/svg%3E",
     rating: 4.8,
   },
   {
     id: '2',
     name: 'Natural Sandalwood Incense',
     price: 250,
-    image: 'https://picsum.photos/seed/incense/400/400',
+    image: "data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 400 400%27%3E%3Crect width=%27400%27 height=%27400%27 fill=%27%2384cc16%27 rx=%2712%27/%3E%3Ctext x=%27200%27 y=%27210%27 text-anchor=%27middle%27 dominant-baseline=%27middle%27 font-family=%27Georgia%27 font-size=%2722%27 fill=%27white%27 font-weight=%27bold%27%3ESandalwood Incense%3C/text%3E%3C/svg%3E",
     rating: 4.5,
   },
   {
     id: '3',
     name: 'Rudraksha Mala (108 Beads)',
     price: 599,
-    image: 'https://picsum.photos/seed/mala/400/400',
+    image: "data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 400 400%27%3E%3Crect width=%27400%27 height=%27400%27 fill=%27%237c3aed%27 rx=%2712%27/%3E%3Ctext x=%27200%27 y=%27210%27 text-anchor=%27middle%27 dominant-baseline=%27middle%27 font-family=%27Georgia%27 font-size=%2722%27 fill=%27white%27 font-weight=%27bold%27%3ERudraksha Mala%3C/text%3E%3C/svg%3E",
     rating: 4.9,
   },
   {
     id: '4',
     name: 'Handcrafted Puja Thali',
     price: 850,
-    image: 'https://picsum.photos/seed/thali/400/400',
+    image: "data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 400 400%27%3E%3Crect width=%27400%27 height=%27400%27 fill=%27%23ec4899%27 rx=%2712%27/%3E%3Ctext x=%27200%27 y=%27210%27 text-anchor=%27middle%27 dominant-baseline=%27middle%27 font-family=%27Georgia%27 font-size=%2722%27 fill=%27white%27 font-weight=%27bold%27%3EPuja Thali%3C/text%3E%3C/svg%3E",
     rating: 4.7,
   },
 ];
@@ -198,7 +198,7 @@ export default function Home() {
       const response = await fetch('/api/stats/visitors');
       if (response.ok) {
         const data = await response.json();
-        setVisitorStats(data);
+        setVisitorStats({ newVisitors: data.new ?? data.newVisitors ?? 0, totalVisitors: data.total ?? data.totalVisitors ?? 0 });
       }
     } catch (error) {
       console.error('Error fetching visitor stats:', error);
@@ -875,7 +875,7 @@ export default function Home() {
           <div className="bg-orange-50 dark:bg-orange-900/20 p-8 rounded-[2.5rem] border border-orange-100 dark:border-orange-900/30 flex items-center justify-between">
             <div>
               <p className="text-sm font-bold text-orange-600 dark:text-orange-400 uppercase tracking-wider mb-1">{t('home.newVisitors')}</p>
-              <h3 className="text-4xl font-serif font-bold text-stone-900 dark:text-white">{visitorStats.newVisitors.toLocaleString()}</h3>
+              <h3 className="text-4xl font-serif font-bold text-stone-900 dark:text-white">{(visitorStats.newVisitors ?? 0).toLocaleString()}</h3>
             </div>
             <div className="w-16 h-16 bg-white dark:bg-stone-800 rounded-2xl flex items-center justify-center shadow-sm">
               <Users className="w-8 h-8 text-orange-500" />
@@ -884,7 +884,7 @@ export default function Home() {
           <div className="bg-stone-50 dark:bg-stone-900 p-8 rounded-[2.5rem] border border-stone-200 dark:border-stone-800 flex items-center justify-between">
             <div>
               <p className="text-sm font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider mb-1">{t('home.totalVisitors')}</p>
-              <h3 className="text-4xl font-serif font-bold text-stone-900 dark:text-white">{visitorStats.totalVisitors.toLocaleString()}</h3>
+              <h3 className="text-4xl font-serif font-bold text-stone-900 dark:text-white">{(visitorStats.totalVisitors ?? 0).toLocaleString()}</h3>
             </div>
             <div className="w-16 h-16 bg-white dark:bg-stone-800 rounded-2xl flex items-center justify-center shadow-sm">
               <Eye className="w-8 h-8 text-stone-400 dark:text-stone-500" />

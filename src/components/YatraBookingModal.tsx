@@ -2,8 +2,6 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Calendar, Users, Phone, MessageSquare, CreditCard, Sparkles, CheckCircle2, MapPin, IndianRupee } from 'lucide-react';
 import { Yatra, Booking } from '../types';
-import { db } from '../firebase';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { formatIndianRupees } from '../lib/utils';
 import { useAuth } from '../hooks/useAuth';
 
@@ -57,10 +55,10 @@ export default function YatraBookingModal({ isOpen, onClose, yatra }: YatraBooki
         createdAt: new Date().toISOString()
       };
 
-      await setDoc(doc(db, 'bookings', bookingId), {
+      await fetch('/api/bookings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: bookingId,
         ...bookingData,
         createdAt: serverTimestamp()
-      });
+      }) });
 
       setSuccess(bookingId);
       setTimeout(() => {

@@ -10,12 +10,13 @@ import { getFirestore } from "firebase-admin/firestore";
 import Stripe from "stripe";
 import mysql from "mysql2/promise";
 import { DatabaseAdapter, FirestoreAdapter, MySQLAdapter } from "./src/lib/db.ts";
+import rateLimit from "express-rate-limit";
 
 dotenv.config();
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
+const stripe = process.env.STRIPE_SECRET_KEY ? new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: "2026-03-25.dahlia",
-});
+}) : null;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -139,7 +140,7 @@ async function initDatabase() {
 async function startServer() {
   console.log("Starting server initialization...");
   const app = express();
-  const PORT = 3000;
+  const PORT = Number(process.env.PORT) || 3000;
 
   try {
     await initDatabase();
@@ -352,7 +353,8 @@ async function startServer() {
     });
 
     // --- AUTH ENDPOINTS ---
-    app.post("/api/auth/register", async (req, res) => {
+    const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 20, message: { message: "Too many attempts, try again in 15 minutes" } });
+    app.post("/api/auth/register", authLimiter, async (req, res) => {
       const { email, password, displayName, role } = req.body;
       try {
       const existingUser = await adapter.getUserByEmail(email);
@@ -386,7 +388,7 @@ async function startServer() {
     }
   });
 
-    app.post("/api/auth/login", async (req, res) => {
+    app.post("/api/auth/login", authLimiter, async (req, res) => {
     const { email, password } = req.body;
     try {
       const user = await adapter.getUserByEmail(email);
@@ -418,7 +420,8 @@ async function startServer() {
     try {
       const user = await adapter.getUser(uid);
       if (!user) return res.status(404).json({ message: "User not found" });
-      res.json(user);
+      const { password: _pw, ...safeUser } = user as any;
+      res.json(safeUser);
     } catch (error) {
       console.error(`[API] GET /api/users/${uid} error:`, error);
       res.status(500).json({ error: (error as Error).message });

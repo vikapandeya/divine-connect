@@ -76,6 +76,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     { to: '/shop', label: t('Shop') },
     { to: '/temples', label: t('Temples') },
     { to: '/astrology', label: t('AI Astrology') },
+    { to: '/naam-jap', label: '🕉️ Jap Counter' },
   ];
 
   useEffect(() => {

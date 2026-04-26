@@ -23,10 +23,30 @@ import YatraDetail from './pages/YatraDetail';
 import VendorProfile from './pages/VendorProfile';
 import OrderTracking from './pages/OrderTracking';
 import NotFound from './pages/NotFound';
+import NaamJapCounter from './pages/NaamJapCounter';
+
+
+class RootErrorBoundary extends React.Component<{children: React.ReactNode}, {error: Error|null}> {
+  constructor(props: any) { super(props); this.state = { error: null }; }
+  static getDerivedStateFromError(error: Error) { return { error }; }
+  render() {
+    if (this.state.error) {
+      return (
+        <div style={{padding:'2rem',fontFamily:'monospace',background:'#fff1f2',minHeight:'100vh'}}>
+          <h2 style={{color:'#dc2626'}}>App Error (check browser console)</h2>
+          <pre style={{whiteSpace:'pre-wrap',fontSize:'13px',color:'#7f1d1d'}}>{this.state.error.message}</pre>
+          <pre style={{whiteSpace:'pre-wrap',fontSize:'11px',color:'#9ca3af'}}>{this.state.error.stack}</pre>
+          <button onClick={()=>this.setState({error:null})} style={{marginTop:'1rem',padding:'0.5rem 1rem',background:'#dc2626',color:'white',border:'none',borderRadius:'4px',cursor:'pointer'}}>Retry</button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 function App() {
   return (
-    <Router>
+    <RootErrorBoundary><Router>
       <Layout>
         <Routes>
           <Route path="/" element={<Home />} />
@@ -50,10 +70,11 @@ function App() {
           <Route path="/services/yatra" element={<Yatra />} />
           <Route path="/yatras/:id" element={<YatraDetail />} />
           <Route path="/order-tracking/:orderId" element={<OrderTracking />} />
+          <Route path="/naam-jap" element={<NaamJapCounter />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Layout>
-    </Router>
+    </Router></RootErrorBoundary>
   );
 }
 

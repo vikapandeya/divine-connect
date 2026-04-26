@@ -476,10 +476,10 @@ export class MySQLAdapter implements DatabaseAdapter {
   }
 
   async createUser(uid: string, userData: any) {
-    const { displayName, email, password, photoURL, address, role, createdAt } = userData;
+    const { displayName, email, password, photoURL = null, address = null, role, createdAt } = userData;
     await this.query(
       "INSERT INTO users (uid, displayName, email, password, photoURL, address, role, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-      [uid, displayName, email, password, photoURL, address, role, createdAt || new Date()]
+      [uid, displayName ?? null, email, password, photoURL, address, role || 'devotee', createdAt || new Date()]
     );
   }
 
@@ -833,7 +833,7 @@ export class MySQLAdapter implements DatabaseAdapter {
   }
 
   async getNotifications(userId: string, limit: number): Promise<any[]> {
-    return this.query("SELECT * FROM notifications WHERE userId = ? ORDER BY createdAt DESC LIMIT ?", [userId, limit]);
+    return this.query("SELECT * FROM notifications WHERE userId = ? ORDER BY createdAt DESC LIMIT 50", [userId]);
   }
 
   async updateNotificationRead(id: string): Promise<void> {
