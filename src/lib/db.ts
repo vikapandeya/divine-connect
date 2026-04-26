@@ -479,7 +479,16 @@ export class MySQLAdapter implements DatabaseAdapter {
     const { displayName, email, password, photoURL = null, address = null, role, createdAt } = userData;
     await this.query(
       "INSERT INTO users (uid, displayName, email, password, photoURL, address, role, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-      [uid, displayName ?? null, email, password, photoURL, address, role || 'devotee', createdAt || new Date()]
+      [
+        uid, 
+        displayName || null, 
+        email || null, 
+        password || null, 
+        photoURL || null, 
+        address || null, 
+        role || 'devotee', 
+        createdAt || new Date()
+      ]
     );
   }
 
@@ -520,7 +529,7 @@ export class MySQLAdapter implements DatabaseAdapter {
     const { name, type, description, rating, reviews, joinedAt } = vendorData;
     await this.query(
       "INSERT INTO vendors (userId, name, type, description, rating, reviews, joinedAt) VALUES (?, ?, ?, ?, ?, ?, ?)",
-      [vendorId, name, type, description, rating || 0, reviews || 0, joinedAt || new Date()]
+      [vendorId, name || null, type || null, description || null, rating || 0, reviews || 0, joinedAt || new Date()]
     );
   }
 
@@ -556,7 +565,18 @@ export class MySQLAdapter implements DatabaseAdapter {
     const { vendorId, name, description, price, category, templeName, weightOptions, stock, rating, image } = productData;
     const [result] = await this.pool.execute(
       "INSERT INTO products (vendorId, name, description, price, category, templeName, weightOptions, stock, rating, image) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-      [vendorId, name, description, price, category, templeName, JSON.stringify(weightOptions), stock, rating, image]
+      [
+        vendorId || 'system', 
+        name || null, 
+        description || null, 
+        price || 0, 
+        category || null, 
+        templeName || null, 
+        JSON.stringify(weightOptions || []), 
+        stock || 0, 
+        rating || 0, 
+        image || null
+      ]
     );
     return (result as any).insertId.toString();
   }
@@ -598,7 +618,15 @@ export class MySQLAdapter implements DatabaseAdapter {
     const { vendorId, title, description, onlinePrice, offlinePrice, duration, samagriList } = pujaData;
     const [result] = await this.pool.execute(
       "INSERT INTO pujas (vendorId, title, description, onlinePrice, offlinePrice, duration, samagriList) VALUES (?, ?, ?, ?, ?, ?, ?)",
-      [vendorId, title, description, onlinePrice, offlinePrice, duration, samagriList]
+      [
+        vendorId || 'system', 
+        title || null, 
+        description || null, 
+        onlinePrice || 0, 
+        offlinePrice || null, 
+        duration || null, 
+        samagriList || null
+      ]
     );
     return (result as any).insertId.toString();
   }
@@ -661,7 +689,19 @@ export class MySQLAdapter implements DatabaseAdapter {
     const { userId, serviceId, vendorId, type, isOnline, bringSamagri, date, timeSlot, status, totalAmount, samagriList } = bookingData;
     const [result] = await this.pool.execute(
       "INSERT INTO bookings (userId, serviceId, vendorId, type, isOnline, bringSamagri, date, timeSlot, status, totalAmount, samagriList) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-      [userId, serviceId, vendorId, type, isOnline, bringSamagri, date, timeSlot, status, totalAmount, samagriList]
+      [
+        userId || null, 
+        serviceId || null, 
+        vendorId || null, 
+        type || null, 
+        Boolean(isOnline), 
+        Boolean(bringSamagri), 
+        date || null, 
+        timeSlot || null, 
+        status || 'pending', 
+        totalAmount || 0, 
+        samagriList || null
+      ]
     );
     return (result as any).insertId.toString();
   }
@@ -791,7 +831,7 @@ export class MySQLAdapter implements DatabaseAdapter {
     const { code, discount, type, minAmount, active } = coupon;
     await this.query(
       "INSERT INTO coupons (code, discount, type, minAmount, active) VALUES (?, ?, ?, ?, ?)",
-      [code, discount, type, minAmount, active]
+      [code || null, discount || 0, type || 'percentage', minAmount || 0, active !== undefined ? active : true]
     );
   }
 
@@ -803,7 +843,7 @@ export class MySQLAdapter implements DatabaseAdapter {
     const { name, city, rating, message, createdAt } = feedback;
     await this.query(
       "INSERT INTO feedback (name, city, rating, message, createdAt) VALUES (?, ?, ?, ?, ?)",
-      [name, city, rating, message, createdAt || new Date()]
+      [name || null, city || null, rating || 0, message || null, createdAt || new Date()]
     );
   }
 

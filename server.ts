@@ -14,9 +14,22 @@ import rateLimit from "express-rate-limit";
 
 dotenv.config();
 
-const stripe = process.env.STRIPE_SECRET_KEY ? new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: "2026-03-25.dahlia",
-}) : null;
+// Standardize DB provider variable
+const DB_TYPE = process.env.DB_TYPE || process.env.DB_PROVIDER || 'firestore';
+
+let stripe: Stripe | null = null;
+try {
+  if (process.env.STRIPE_SECRET_KEY) {
+    stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: "2026-03-25.dahlia",
+    });
+    console.log("[Stripe] Initialized successfully.");
+  } else {
+    console.warn("[Stripe] STRIPE_SECRET_KEY is missing. Payment features will operate in demo mode.");
+  }
+} catch (error) {
+  console.error("[Stripe] Initialization failed:", (error as Error).message);
+}
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -25,7 +38,7 @@ let adapter: DatabaseAdapter;
 let firebaseConfig: any = {};
 
 async function initDatabase() {
-  const dbType = process.env.DB_TYPE || 'firestore';
+  const dbType = DB_TYPE;
   
   if (dbType === 'mysql') {
     console.log("Initializing MySQL Adapter...");
@@ -35,7 +48,20 @@ async function initDatabase() {
       password: process.env.MYSQL_PASSWORD || '',
       database: process.env.MYSQL_DATABASE || 'punyaseva',
       port: Number(process.env.MYSQL_PORT) || 3306,
+      multipleStatements: true,
     });
+    
+    // Auto-create tables if they don't exist
+    try {
+      console.log("Checking/Initializing MySQL tables...");
+      const schemaPath = path.join(__dirname, "database", "schema.sql");
+      const schema = await fs.readFile(schemaPath, "utf8");
+      await pool.query(schema);
+      console.log("MySQL tables verified/initialized.");
+    } catch (schemaErr) {
+      console.error("Failed to initialize MySQL tables:", (schemaErr as Error).message);
+    }
+
     adapter = new MySQLAdapter(pool);
     console.log("MySQL Adapter initialized.");
     return;
@@ -336,8 +362,8 @@ async function startServer() {
     app.post("/api/create-payment-intent", async (req, res) => {
       const { amount, currency = "inr" } = req.body;
       try {
-        if (!process.env.STRIPE_SECRET_KEY) {
-          // Fallback for demo if key is missing
+        if (!stripe) {
+          // Fallback for demo if stripe instance is not initialized
           return res.json({ clientSecret: "demo_secret_" + Date.now() });
         }
         const paymentIntent = await stripe.paymentIntents.create({
