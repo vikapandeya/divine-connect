@@ -10,6 +10,7 @@ export interface UserProfile {
   phoneNumber?: string;
   location?: { lat: number; lng: number };
   vendorStatus?: 'none' | 'pending' | 'approved' | 'rejected';
+  vendorDetails?: VendorProfile;
   createdAt: string;
 }
 
@@ -203,4 +204,15 @@ export interface VendorTransaction {
   type: 'earning' | 'payout';
   referenceId: string;
   createdAt: string;
+}
+
+export interface NaamJap {
+  id: string;
+  userId: string;
+  mantraId: string;
+  mantraName: string;
+  count: number;
+  target: number;
+  date: string;
+  updatedAt: string;
 }

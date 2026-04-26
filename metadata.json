@@ -1,6 +1,6 @@
 {
   "name": "PunyaSeva",
-  "description": "A comprehensive platform for temple services booking and spiritual e-commerce marketplace.",
+  "description": "A comprehensive platform for temple services booking, spiritual e-commerce, and vendor partner programs.",
   "requestFramePermissions": [
     "geolocation"
   ]

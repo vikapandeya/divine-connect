@@ -640,7 +640,7 @@ export default function AdminDashboard() {
                               </div>
                             </td>
                             <td className="px-6 py-4">
-                              <span className="font-bold text-stone-900">{vendor.businessDetails?.name || 'N/A'}</span>
+                              <span className="font-bold text-stone-900">{vendor.businessDetails?.businessName || 'N/A'}</span>
                             </td>
                             <td className="px-6 py-4">
                               <span className="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-xs font-bold uppercase tracking-wider">

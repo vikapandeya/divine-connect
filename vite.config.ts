@@ -2,33 +2,46 @@ import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { defineConfig, loadEnv } from 'vite';
+import { defineConfig } from 'vite';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, '.', '');
-  const isPagesBuild = mode === 'pages';
-
+export default defineConfig(() => {
   return {
-    base: isPagesBuild ? '/divine-connect/docs/' : '/',
+    base: '/',
     build: {
-      outDir: isPagesBuild ? 'docs' : 'dist',
+      outDir: 'dist',
       emptyOutDir: true,
+      // Split vendor libraries into logical groups to reduce initial load
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            // React runtime — always needed first
+            'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+            // Animations — heavy but shared
+            'vendor-motion': ['framer-motion', 'motion'],
+            // Charts
+            'vendor-charts': ['recharts'],
+            // Stripe client
+            'vendor-stripe': ['@stripe/react-stripe-js', '@stripe/stripe-js'],
+            // i18n
+            'vendor-i18n': ['i18next', 'react-i18next', 'i18next-browser-languagedetector'],
+            // UI utilities
+            'vendor-ui': ['lucide-react', 'clsx', 'tailwind-merge', 'date-fns'],
+          },
+        },
+      },
     },
     plugins: [react(), tailwindcss()],
-    define: {
-      'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
-    },
+    // NOTE: GEMINI_API_KEY is intentionally NOT exposed to the browser.
+    // All AI calls go through /api/ai/* backend routes (server.ts).
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),
       },
     },
     server: {
-      // HMR is disabled in AI Studio via DISABLE_HMR env var.
-      // Do not modifyâfile watching is disabled to prevent flickering during agent edits.
       hmr: process.env.DISABLE_HMR !== 'true',
     },
   };

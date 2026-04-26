@@ -17,6 +17,7 @@ import {
   Users,
   Eye,
   Calendar,
+  Search,
   User,
   Play,
   MapPin,
@@ -37,7 +38,7 @@ const services = [
     description: 'Book pandit and puja online for any occasion.',
     icon: <Flame className="w-8 h-8 text-orange-500" />,
     color: 'bg-orange-50',
-    link: '/services/puja',
+    link: '/services',
   },
   {
     id: 'darshan',
@@ -94,28 +95,28 @@ const featuredProducts = [
     id: '1',
     name: 'Brass Ganesha Idol',
     price: 1299,
-    image: "data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 400 400%27%3E%3Crect width=%27400%27 height=%27400%27 fill=%27%23f59e0b%27 rx=%2712%27/%3E%3Ctext x=%27200%27 y=%27210%27 text-anchor=%27middle%27 dominant-baseline=%27middle%27 font-family=%27Georgia%27 font-size=%2722%27 fill=%27white%27 font-weight=%27bold%27%3EBrass Ganesha Idol%3C/text%3E%3C/svg%3E",
+    image: 'https://images.unsplash.com/photo-1544731612-de7f96afe55f?auto=format&fit=crop&q=80&w=400',
     rating: 4.8,
   },
   {
     id: '2',
     name: 'Natural Sandalwood Incense',
     price: 250,
-    image: "data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 400 400%27%3E%3Crect width=%27400%27 height=%27400%27 fill=%27%2384cc16%27 rx=%2712%27/%3E%3Ctext x=%27200%27 y=%27210%27 text-anchor=%27middle%27 dominant-baseline=%27middle%27 font-family=%27Georgia%27 font-size=%2722%27 fill=%27white%27 font-weight=%27bold%27%3ESandalwood Incense%3C/text%3E%3C/svg%3E",
+    image: 'https://images.unsplash.com/photo-1512411956555-523c06e897a6?auto=format&fit=crop&q=80&w=400',
     rating: 4.5,
   },
   {
     id: '3',
     name: 'Rudraksha Mala (108 Beads)',
     price: 599,
-    image: "data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 400 400%27%3E%3Crect width=%27400%27 height=%27400%27 fill=%27%237c3aed%27 rx=%2712%27/%3E%3Ctext x=%27200%27 y=%27210%27 text-anchor=%27middle%27 dominant-baseline=%27middle%27 font-family=%27Georgia%27 font-size=%2722%27 fill=%27white%27 font-weight=%27bold%27%3ERudraksha Mala%3C/text%3E%3C/svg%3E",
+    image: 'https://images.unsplash.com/photo-1596464716127-f2a82984de30?auto=format&fit=crop&q=80&w=400',
     rating: 4.9,
   },
   {
     id: '4',
     name: 'Handcrafted Puja Thali',
     price: 850,
-    image: "data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 400 400%27%3E%3Crect width=%27400%27 height=%27400%27 fill=%27%23ec4899%27 rx=%2712%27/%3E%3Ctext x=%27200%27 y=%27210%27 text-anchor=%27middle%27 dominant-baseline=%27middle%27 font-family=%27Georgia%27 font-size=%2722%27 fill=%27white%27 font-weight=%27bold%27%3EPuja Thali%3C/text%3E%3C/svg%3E",
+    image: 'https://images.unsplash.com/photo-1610214436215-64d88e40f7f3?auto=format&fit=crop&q=80&w=400',
     rating: 4.7,
   },
 ];
@@ -164,7 +165,7 @@ const spiritualQuotes = [
 export default function Home() {
   const { t } = useTranslation();
   const [feedbackList, setFeedbackList] = useState(feedback);
-  const [visitorStats, setVisitorStats] = useState({ newVisitors: 0, totalVisitors: 0 });
+  const [visitorStats, setVisitorStats] = useState<any>({ new: 0, total: 0 });
   const [formData, setFormData] = useState({
     name: '',
     city: '',
@@ -198,7 +199,7 @@ export default function Home() {
       const response = await fetch('/api/stats/visitors');
       if (response.ok) {
         const data = await response.json();
-        setVisitorStats({ newVisitors: data.new ?? data.newVisitors ?? 0, totalVisitors: data.total ?? data.totalVisitors ?? 0 });
+        setVisitorStats(data);
       }
     } catch (error) {
       console.error('Error fetching visitor stats:', error);
@@ -264,10 +265,10 @@ export default function Home() {
 
   return (
     <div className="space-y-20 pb-20 bg-white dark:bg-stone-950 transition-colors duration-300">
-      <section className="relative h-[80vh] flex items-center overflow-hidden">
+      <section className="relative min-h-[80vh] lg:min-h-[90vh] py-12 md:py-24 flex items-center overflow-hidden">
         <div className="absolute inset-0 z-0">
           <img
-            src="https://picsum.photos/seed/temple/1920/1080?blur=2"
+            src="/hero/home-hero.png"
             alt="Spiritual Background"
             className="w-full h-full object-cover"
             referrerPolicy="no-referrer"
@@ -280,38 +281,62 @@ export default function Home() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="max-w-2xl"
+            className="max-w-3xl"
           >
-            <div className="mb-8">
+            <div className="mb-4 md:mb-6">
               <img 
-                src="/logo/full-logo.png" 
+                src="/logo/full-logo.svg" 
                 alt="PunyaSeva" 
-                className="h-24 w-auto brightness-0 invert" 
+                className="h-12 md:h-20 w-auto" 
                 referrerPolicy="no-referrer"
               />
             </div>
-            <h1 className="text-5xl md:text-7xl font-serif font-bold text-white leading-tight mb-6">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-serif font-bold text-white leading-tight mb-4 md:mb-6">
               Connect with the <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-yellow-400 to-orange-500 animate-gradient">Divine</span> from Anywhere
             </h1>
-            <p className="text-xl text-stone-100 mb-8 leading-relaxed">
+            <p className="text-base sm:text-lg md:text-xl text-stone-100 mb-6 md:mb-10 leading-relaxed max-w-xl">
               {t('home.heroSubtitle')}
             </p>
-            <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
+            
+            <form 
+              onSubmit={(e) => {
+                e.preventDefault();
+                const q = (e.currentTarget.elements.namedItem('search') as HTMLInputElement).value;
+                if (q.trim()) window.location.href = `/search?q=${encodeURIComponent(q.trim())}`;
+              }}
+              className="relative max-w-xl mb-8 group"
+            >
+              <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-stone-400 group-focus-within:text-orange-500 transition-colors" />
+              <input 
+                name="search"
+                type="text" 
+                placeholder="Search for Pujas, Products, or Spiritual Knowledge..." 
+                className="w-full pl-16 pr-6 py-5 bg-white/10 backdrop-blur-xl border border-white/20 rounded-[2rem] text-white placeholder:text-stone-300 focus:ring-2 focus:ring-orange-500/50 outline-none transition-all shadow-2xl"
+              />
+              <button 
+                type="submit"
+                className="absolute right-3 top-1/2 -translate-y-1/2 bg-orange-500 text-white px-6 py-2.5 rounded-2xl font-bold hover:bg-orange-600 transition-all shadow-lg"
+              >
+                Search
+              </button>
+            </form>
+
+            <div className="flex flex-col sm:flex-row flex-wrap gap-3 md:gap-4 justify-center sm:justify-start">
               <Link
                 to="/services"
-                className="bg-orange-500 text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/20 text-center"
+                className="bg-orange-500 text-white px-6 md:px-8 py-3 md:py-4 rounded-full font-bold text-base md:text-lg hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/20 text-center flex-1 sm:flex-none"
               >
                 {t('home.bookPuja')}
               </Link>
               <Link
                 to="/shop"
-                className="bg-white/10 backdrop-blur-md border border-white/20 text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-white/20 transition-all text-center"
+                className="bg-white/10 backdrop-blur-md border border-white/20 text-white px-6 md:px-8 py-3 md:py-4 rounded-full font-bold text-base md:text-lg hover:bg-white/20 transition-all text-center flex-1 sm:flex-none"
               >
                 {t('home.exploreShop')}
               </Link>
               <Link
                 to="/temple-knowledge"
-                className="bg-white text-stone-900 px-8 py-4 rounded-full font-bold text-lg hover:bg-stone-100 transition-all text-center flex items-center justify-center gap-2"
+                className="bg-white text-stone-900 px-6 md:px-8 py-3 md:py-4 rounded-full font-bold text-base md:text-lg hover:bg-stone-100 transition-all text-center flex items-center justify-center gap-2 flex-1 sm:flex-none"
               >
                 {t('home.dailyInsights')}
               </Link>
@@ -474,9 +499,9 @@ export default function Home() {
 
           <div className="flex flex-wrap justify-center gap-10">
             {[
-              { id: 'l1', title: 'home.gangaAarti', temple: 'home.harKiPauri', viewers: '12.5k', image: 'https://images.unsplash.com/photo-1561361058-c24cecae35ca?auto=format&fit=crop&q=80&w=800' },
-              { id: 'l2', title: 'home.eveningAarti', temple: 'home.kashiVishwanath', viewers: '8.2k', image: 'https://images.unsplash.com/photo-1590050752117-23a9d7fc6bbd?auto=format&fit=crop&q=80&w=800' },
-              { id: 'l3', title: 'home.bhasmaAarti', temple: 'home.mahakaleshwar', viewers: '15.1k', image: 'https://images.unsplash.com/photo-1621360241104-79948730b474?auto=format&fit=crop&q=80&w=800' }
+              { id: 'l1', title: 'home.gangaAarti', temple: 'home.harKiPauri', viewers: '12.5k', image: 'https://images.unsplash.com/photo-1544607549-d75d4156674e?auto=format&fit=crop&q=80&w=800' },
+              { id: 'l2', title: 'home.eveningAarti', temple: 'home.kashiVishwanath', viewers: '8.2k', image: 'https://images.unsplash.com/photo-1584277274775-5231c1837865?auto=format&fit=crop&q=80&w=800' },
+              { id: 'l3', title: 'home.bhasmaAarti', temple: 'home.mahakaleshwar', viewers: '15.1k', image: 'https://images.unsplash.com/photo-1603525545933-722a95c9a0b9?auto=format&fit=crop&q=80&w=800' }
             ].map((live, idx) => (
               <motion.div
                 key={live.id}
@@ -875,7 +900,7 @@ export default function Home() {
           <div className="bg-orange-50 dark:bg-orange-900/20 p-8 rounded-[2.5rem] border border-orange-100 dark:border-orange-900/30 flex items-center justify-between">
             <div>
               <p className="text-sm font-bold text-orange-600 dark:text-orange-400 uppercase tracking-wider mb-1">{t('home.newVisitors')}</p>
-              <h3 className="text-4xl font-serif font-bold text-stone-900 dark:text-white">{(visitorStats.newVisitors ?? 0).toLocaleString()}</h3>
+              <h3 className="text-4xl font-serif font-bold text-stone-900 dark:text-white">{(visitorStats?.new ?? 0).toLocaleString()}</h3>
             </div>
             <div className="w-16 h-16 bg-white dark:bg-stone-800 rounded-2xl flex items-center justify-center shadow-sm">
               <Users className="w-8 h-8 text-orange-500" />
@@ -884,7 +909,7 @@ export default function Home() {
           <div className="bg-stone-50 dark:bg-stone-900 p-8 rounded-[2.5rem] border border-stone-200 dark:border-stone-800 flex items-center justify-between">
             <div>
               <p className="text-sm font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider mb-1">{t('home.totalVisitors')}</p>
-              <h3 className="text-4xl font-serif font-bold text-stone-900 dark:text-white">{(visitorStats.totalVisitors ?? 0).toLocaleString()}</h3>
+              <h3 className="text-4xl font-serif font-bold text-stone-900 dark:text-white">{(visitorStats?.total ?? 0).toLocaleString()}</h3>
             </div>
             <div className="w-16 h-16 bg-white dark:bg-stone-800 rounded-2xl flex items-center justify-center shadow-sm">
               <Eye className="w-8 h-8 text-stone-400 dark:text-stone-500" />

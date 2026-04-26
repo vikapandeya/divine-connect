@@ -89,7 +89,7 @@ export default function Yatra() {
       <section className="relative h-[60vh] flex items-center overflow-hidden">
         <div className="absolute inset-0 z-0">
           <img
-            src="https://images.unsplash.com/photo-1545105511-930777907912?auto=format&fit=crop&q=80&w=1920"
+            src="/hero/temples-hero.png"
             alt="Yatra Banner"
             className="w-full h-full object-cover"
             referrerPolicy="no-referrer"
@@ -105,7 +105,7 @@ export default function Yatra() {
           >
             <div className="flex justify-center mb-8">
               <img 
-                src="/logo/full-logo.png" 
+                src="/logo/full-logo.svg" 
                 alt="PunyaSeva" 
                 className="h-20 w-auto brightness-0 invert" 
                 referrerPolicy="no-referrer"

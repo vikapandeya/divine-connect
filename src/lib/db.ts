@@ -80,6 +80,10 @@ export interface DatabaseAdapter {
   updateWhatsAppBookingStatus(id: string, status: string): Promise<void>;
   updateWhatsAppBookingPayment(id: string, amount: number): Promise<void>;
   
+  // Naam Jap
+  getNaamJapLogs(userId: string): Promise<any[]>;
+  updateNaamJap(japData: any): Promise<void>;
+
   // Transaction Support
   runTransaction(fn: (adapter: DatabaseAdapter) => Promise<any>): Promise<any>;
 }
@@ -106,7 +110,8 @@ export class FirestoreAdapter implements DatabaseAdapter {
   }
 
   async updateUser(uid: string, updateData: any) {
-    await this.db.collection("users").doc(uid).update(updateData);
+    if (!uid) throw new Error("UID is required for updateUser");
+    await this.db.collection("users").doc(uid).set(updateData, { merge: true });
   }
 
   async getPendingVendors() {
@@ -141,7 +146,8 @@ export class FirestoreAdapter implements DatabaseAdapter {
   }
 
   async createVendor(vendorId: string, vendorData: any) {
-    await this.db.collection("vendors").doc(vendorId).set(vendorData);
+    if (!vendorId) throw new Error("VendorId is required for createVendor");
+    await this.db.collection("vendors").doc(vendorId).set(vendorData, { merge: true });
   }
 
   async getVendorsPerformance() {
@@ -444,6 +450,28 @@ export class FirestoreAdapter implements DatabaseAdapter {
     await this.db.collection("whatsapp_bookings").doc(id).update({ paidAmount: amount });
   }
 
+  async getNaamJapLogs(userId: string): Promise<any[]> {
+    const snap = await this.db.collection("naam_jap")
+      .where("userId", "==", userId)
+      .orderBy("date", "desc")
+      .get();
+    return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  }
+
+  async updateNaamJap(japData: any): Promise<void> {
+    const { userId, date, count, target, mantraName } = japData;
+    // We use a combination of userId and date as the document ID for daily logs
+    const docId = `${userId}_${date}`;
+    await this.db.collection("naam_jap").doc(docId).set({
+      userId,
+      date,
+      count,
+      target,
+      mantraName: mantraName || "Default",
+      updatedAt: admin.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+  }
+
   async runTransaction(fn: (adapter: DatabaseAdapter) => Promise<any>) {
     return this.db.runTransaction(async (t) => {
       // This is a bit tricky because Firestore transactions use a Transaction object
@@ -461,8 +489,14 @@ export class MySQLAdapter implements DatabaseAdapter {
   }
 
   private async query(sql: string, params: any[] = []) {
-    const [rows] = await this.pool.execute(sql, params);
+    const sanitizedParams = params.map(p => p === undefined ? null : p);
+    const [rows] = await this.pool.execute(sql, sanitizedParams);
     return rows as any[];
+  }
+
+  private async execute(sql: string, params: any[] = []) {
+    const sanitizedParams = params.map(p => p === undefined ? null : p);
+    return this.pool.execute(sql, sanitizedParams);
   }
 
   async getUser(uid: string) {
@@ -476,9 +510,12 @@ export class MySQLAdapter implements DatabaseAdapter {
   }
 
   async createUser(uid: string, userData: any) {
-    const { displayName, email, password, photoURL = null, address = null, role, createdAt } = userData;
+    const { 
+      displayName, email, password, photoURL, address, 
+      phoneNumber, bio, bannerURL, role, vendorStatus, fcmToken, createdAt 
+    } = userData;
     await this.query(
-      "INSERT INTO users (uid, displayName, email, password, photoURL, address, role, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+      "INSERT INTO users (uid, displayName, email, password, photoURL, address, phoneNumber, bio, bannerURL, role, vendorStatus, fcmToken, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
       [
         uid, 
         displayName || null, 
@@ -486,7 +523,12 @@ export class MySQLAdapter implements DatabaseAdapter {
         password || null, 
         photoURL || null, 
         address || null, 
+        phoneNumber || null, 
+        bio || null, 
+        bannerURL || null, 
         role || 'devotee', 
+        vendorStatus || 'none', 
+        fcmToken || null, 
         createdAt || new Date()
       ]
     );
@@ -495,8 +537,11 @@ export class MySQLAdapter implements DatabaseAdapter {
   async updateUser(uid: string, updateData: any) {
     const keys = Object.keys(updateData);
     const values = Object.values(updateData);
-    const setClause = keys.map(k => `${k} = ?`).join(", ");
-    await this.query(`UPDATE users SET ${setClause} WHERE uid = ?`, [...values, uid]);
+    if (keys.length === 0) return;
+    
+    const setClause = keys.map(k => `\`${k}\` = ?`).join(", ");
+    const sanitizedValues = values.map(v => v === undefined ? null : v);
+    await this.query(`UPDATE users SET ${setClause} WHERE uid = ?`, [...sanitizedValues, uid]);
   }
 
   async getPendingVendors() {
@@ -526,10 +571,18 @@ export class MySQLAdapter implements DatabaseAdapter {
   }
 
   async createVendor(vendorId: string, vendorData: any) {
-    const { name, type, description, rating, reviews, joinedAt } = vendorData;
+    const { businessName, type, description, rating, reviews, createdAt } = vendorData;
     await this.query(
       "INSERT INTO vendors (userId, name, type, description, rating, reviews, joinedAt) VALUES (?, ?, ?, ?, ?, ?, ?)",
-      [vendorId, name || null, type || null, description || null, rating || 0, reviews || 0, joinedAt || new Date()]
+      [
+        vendorId, 
+        businessName || null, 
+        type || 'shop', 
+        description || null, 
+        rating || 0, 
+        reviews || 0, 
+        createdAt || new Date()
+      ]
     );
   }
 
@@ -563,16 +616,16 @@ export class MySQLAdapter implements DatabaseAdapter {
 
   async addProduct(productData: any) {
     const { vendorId, name, description, price, category, templeName, weightOptions, stock, rating, image } = productData;
-    const [result] = await this.pool.execute(
+    const [result] = await this.execute(
       "INSERT INTO products (vendorId, name, description, price, category, templeName, weightOptions, stock, rating, image) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
       [
-        vendorId || 'system', 
+        vendorId || null, 
         name || null, 
         description || null, 
         price || 0, 
         category || null, 
         templeName || null, 
-        JSON.stringify(weightOptions || []), 
+        JSON.stringify(weightOptions || {}), 
         stock || 0, 
         rating || 0, 
         image || null
@@ -616,14 +669,14 @@ export class MySQLAdapter implements DatabaseAdapter {
 
   async addPuja(pujaData: any) {
     const { vendorId, title, description, onlinePrice, offlinePrice, duration, samagriList } = pujaData;
-    const [result] = await this.pool.execute(
+    const [result] = await this.execute(
       "INSERT INTO pujas (vendorId, title, description, onlinePrice, offlinePrice, duration, samagriList) VALUES (?, ?, ?, ?, ?, ?, ?)",
       [
-        vendorId || 'system', 
+        vendorId || null, 
         title || null, 
         description || null, 
         onlinePrice || 0, 
-        offlinePrice || null, 
+        offlinePrice || 0, 
         duration || null, 
         samagriList || null
       ]
@@ -659,9 +712,22 @@ export class MySQLAdapter implements DatabaseAdapter {
 
   async addYatra(yatraData: any) {
     const { vendorId, title, description, price, duration, location, category, rating, images, itinerary, included, excluded } = yatraData;
-    const [result] = await this.pool.execute(
+    const [result] = await this.execute(
       "INSERT INTO yatras (vendorId, title, description, price, duration, location, category, rating, images, itinerary, included, excluded) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-      [vendorId, title, description, price, duration, location, category, rating, JSON.stringify(images), JSON.stringify(itinerary), JSON.stringify(included), JSON.stringify(excluded)]
+      [
+        vendorId || null, 
+        title || null, 
+        description || null, 
+        price || 0, 
+        duration || null, 
+        location || null, 
+        category || null, 
+        rating || 0, 
+        JSON.stringify(images || []), 
+        JSON.stringify(itinerary || []), 
+        JSON.stringify(included || []), 
+        JSON.stringify(excluded || [])
+      ]
     );
     return (result as any).insertId.toString();
   }
@@ -687,15 +753,15 @@ export class MySQLAdapter implements DatabaseAdapter {
 
   async addBooking(bookingData: any) {
     const { userId, serviceId, vendorId, type, isOnline, bringSamagri, date, timeSlot, status, totalAmount, samagriList } = bookingData;
-    const [result] = await this.pool.execute(
+    const [result] = await this.execute(
       "INSERT INTO bookings (userId, serviceId, vendorId, type, isOnline, bringSamagri, date, timeSlot, status, totalAmount, samagriList) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
       [
         userId || null, 
         serviceId || null, 
         vendorId || null, 
         type || null, 
-        Boolean(isOnline), 
-        Boolean(bringSamagri), 
+        isOnline || false, 
+        bringSamagri || false, 
         date || null, 
         timeSlot || null, 
         status || 'pending', 
@@ -743,15 +809,27 @@ export class MySQLAdapter implements DatabaseAdapter {
 
   async addOrder(orderData: any) {
     const { userId, totalAmount, status, shippingAddress, createdAt, items } = orderData;
-    const [result] = await this.pool.execute(
+    const [result] = await this.execute(
       "INSERT INTO orders (userId, totalAmount, status, shippingAddress, createdAt) VALUES (?, ?, ?, ?, ?)",
-      [userId, totalAmount, status, shippingAddress, createdAt || new Date()]
+      [
+        userId || null, 
+        totalAmount || 0, 
+        status || 'pending', 
+        shippingAddress || null, 
+        createdAt || new Date()
+      ]
     );
     const orderId = (result as any).insertId;
     for (const item of items) {
       await this.query(
         "INSERT INTO order_items (orderId, productId, quantity, price, selectedOption) VALUES (?, ?, ?, ?, ?)",
-        [orderId, item.id, item.quantity, item.price, item.selectedOption]
+        [
+          orderId, 
+          item.id || null, 
+          item.quantity || 1, 
+          item.price || 0, 
+          item.selectedOption || null
+        ]
       );
     }
     return orderId.toString();
@@ -831,7 +909,7 @@ export class MySQLAdapter implements DatabaseAdapter {
     const { code, discount, type, minAmount, active } = coupon;
     await this.query(
       "INSERT INTO coupons (code, discount, type, minAmount, active) VALUES (?, ?, ?, ?, ?)",
-      [code || null, discount || 0, type || 'percentage', minAmount || 0, active !== undefined ? active : true]
+      [code, discount, type, minAmount, active]
     );
   }
 
@@ -843,7 +921,7 @@ export class MySQLAdapter implements DatabaseAdapter {
     const { name, city, rating, message, createdAt } = feedback;
     await this.query(
       "INSERT INTO feedback (name, city, rating, message, createdAt) VALUES (?, ?, ?, ?, ?)",
-      [name || null, city || null, rating || 0, message || null, createdAt || new Date()]
+      [name, city, rating, message, createdAt || new Date()]
     );
   }
 
@@ -873,7 +951,7 @@ export class MySQLAdapter implements DatabaseAdapter {
   }
 
   async getNotifications(userId: string, limit: number): Promise<any[]> {
-    return this.query("SELECT * FROM notifications WHERE userId = ? ORDER BY createdAt DESC LIMIT 50", [userId]);
+    return this.query("SELECT * FROM notifications WHERE userId = ? ORDER BY createdAt DESC LIMIT ?", [userId, limit]);
   }
 
   async updateNotificationRead(id: string): Promise<void> {
@@ -882,9 +960,9 @@ export class MySQLAdapter implements DatabaseAdapter {
 
   async addWhatsAppBooking(bookingData: any) {
     const { userId, vendorId, pujaTitle, status, userLocation, distance, whatsappNumber } = bookingData;
-    const [result] = await this.pool.execute(
+    const [result] = await this.execute(
       "INSERT INTO whatsapp_bookings (userId, vendorId, pujaTitle, status, userLocation, distance, whatsappNumber, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-      [userId, vendorId, pujaTitle, status, JSON.stringify(userLocation), distance, whatsappNumber, new Date()]
+      [userId, vendorId, pujaTitle, status, JSON.stringify(userLocation || {}), distance, whatsappNumber, new Date()]
     );
     return (result as any).insertId.toString();
   }
@@ -903,6 +981,20 @@ export class MySQLAdapter implements DatabaseAdapter {
 
   async updateWhatsAppBookingPayment(id: string, amount: number) {
     await this.query("UPDATE whatsapp_bookings SET paidAmount = ? WHERE id = ?", [amount, id]);
+  }
+
+  async getNaamJapLogs(userId: string): Promise<any[]> {
+    return this.query("SELECT * FROM naam_jap WHERE userId = ? ORDER BY date DESC", [userId]);
+  }
+
+  async updateNaamJap(japData: any): Promise<void> {
+    const { userId, date, count, target, mantraName } = japData;
+    // Simple UPSERT for MySQL
+    await this.query(
+      "INSERT INTO naam_jap (userId, date, count, target, mantraName, updatedAt) VALUES (?, ?, ?, ?, ?, ?) " +
+      "ON DUPLICATE KEY UPDATE count = ?, target = ?, updatedAt = ?",
+      [userId, date, count, target, mantraName || "Default", new Date(), count, target, new Date()]
+    );
   }
 
   async runTransaction(fn: (adapter: DatabaseAdapter) => Promise<any>) {

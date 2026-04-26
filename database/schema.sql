@@ -6,7 +6,12 @@ CREATE TABLE IF NOT EXISTS users (
   password VARCHAR(255),
   photoURL TEXT,
   address TEXT,
+  phoneNumber VARCHAR(20),
+  bio TEXT,
+  bannerURL TEXT,
   role ENUM('devotee', 'vendor', 'admin') DEFAULT 'devotee',
+  vendorStatus ENUM('none', 'pending', 'approved', 'rejected') DEFAULT 'none',
+  fcmToken TEXT,
   createdAt DATETIME
 );
 
@@ -158,37 +163,4 @@ CREATE TABLE IF NOT EXISTS stats (
   total INT DEFAULT 0,
   `new` INT DEFAULT 0,
   lastReset DATETIME
-);
-
--- Yatras Table
-CREATE TABLE IF NOT EXISTS yatras (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  vendorId VARCHAR(255),
-  title VARCHAR(255),
-  description TEXT,
-  price DECIMAL(10, 2),
-  duration VARCHAR(100),
-  location VARCHAR(255),
-  category VARCHAR(100),
-  rating DECIMAL(3, 2),
-  images JSON,
-  itinerary JSON,
-  included JSON,
-  excluded JSON,
-  createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-
--- WhatsApp Bookings Table
-CREATE TABLE IF NOT EXISTS whatsapp_bookings (
-  id VARCHAR(255) PRIMARY KEY,
-  pujaTitle VARCHAR(255),
-  userName VARCHAR(255),
-  userId VARCHAR(255),
-  vendorId VARCHAR(255),
-  date VARCHAR(100),
-  timeSlot VARCHAR(100),
-  totalAmount DECIMAL(10, 2),
-  paidAmount DECIMAL(10, 2) DEFAULT 0,
-  status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending',
-  createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
 );

@@ -12,7 +12,8 @@ import {
   IndianRupee, 
   Info,
   Package,
-  CheckCircle2
+  CheckCircle2,
+  MessageSquare
 } from 'lucide-react';
 import { Puja, Product } from '../types';
 
@@ -29,14 +30,22 @@ interface VendorProfileData {
   type: 'priest' | 'temple' | 'shop';
 }
 
+interface ReviewStats {
+  total: number;
+  average: number;
+  breakdown: Record<number, number>;
+}
+
 export default function VendorProfile() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [vendor, setVendor] = useState<VendorProfileData | null>(null);
   const [pujas, setPujas] = useState<Puja[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [stats, setStats] = useState<ReviewStats | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'pujas' | 'products'>('pujas');
+  const [activeTab, setActiveTab] = useState<'pujas' | 'products' | 'reviews'>('pujas');
 
   useEffect(() => {
     const fetchVendorData = async () => {
@@ -61,6 +70,14 @@ export default function VendorProfile() {
             isVerified: true,
             type: 'priest'
           });
+        }
+
+        // Fetch review stats
+        const reviewRes = await fetch(`/api/vendors/${id}/reviews`);
+        if (reviewRes.ok) {
+          const reviewData = await reviewRes.json();
+          setReviews(reviewData.reviews);
+          setStats(reviewData.stats);
         }
 
         // Fetch pujas
@@ -164,9 +181,16 @@ export default function VendorProfile() {
                   <h1 className="text-3xl md:text-4xl font-serif font-bold text-stone-900">
                     {vendor.businessName}
                   </h1>
-                  <div className="flex items-center bg-amber-50 text-amber-700 px-3 py-1 rounded-full text-sm font-bold border border-amber-100">
-                    <Star className="w-4 h-4 mr-1 fill-current" />
-                    {vendor.rating}
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center bg-amber-50 text-amber-700 px-3 py-1 rounded-full text-sm font-bold border border-amber-100">
+                      <Star className="w-4 h-4 mr-1 fill-current" />
+                      {vendor.rating}
+                    </div>
+                    {stats && (
+                      <span className="text-stone-400 text-xs font-medium">
+                        ({stats.total} reviews)
+                      </span>
+                    )}
                   </div>
                   <span className="bg-stone-100 text-stone-600 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
                     {vendor.type}
@@ -216,6 +240,15 @@ export default function VendorProfile() {
                   )}
                 </button>
               )}
+              <button 
+                onClick={() => setActiveTab('reviews')}
+                className={`py-6 text-sm font-bold uppercase tracking-widest relative transition-colors ${activeTab === 'reviews' ? 'text-orange-600' : 'text-stone-400 hover:text-stone-600'}`}
+              >
+                Devotee Reviews ({stats?.total || 0})
+                {activeTab === 'reviews' && (
+                  <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-1 bg-orange-500 rounded-full" />
+                )}
+              </button>
             </div>
           </div>
 
@@ -269,7 +302,7 @@ export default function VendorProfile() {
                     </div>
                   ))}
                 </motion.div>
-              ) : (
+              ) : activeTab === 'products' ? (
                 <motion.div 
                   key="products"
                   initial={{ opacity: 0, y: 10 }}
@@ -318,6 +351,88 @@ export default function VendorProfile() {
                       </div>
                     </div>
                   ))}
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="reviews"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="space-y-12"
+                >
+                  {/* Rating Breakdown */}
+                  {stats && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-12 bg-stone-50/50 p-8 rounded-[2rem] border border-stone-100">
+                      <div className="flex flex-col items-center justify-center text-center">
+                        <h4 className="text-sm font-bold text-stone-400 uppercase tracking-widest mb-4">Average Rating</h4>
+                        <div className="text-7xl font-serif font-bold text-stone-900 mb-4">{stats.average.toFixed(1)}</div>
+                        <div className="flex items-center gap-1 text-amber-500 mb-4">
+                          {[1, 2, 3, 4, 5].map((s) => (
+                            <Star key={s} className={`w-5 h-5 ${s <= Math.round(stats.average) ? 'fill-current' : 'text-stone-200'}`} />
+                          ))}
+                        </div>
+                        <p className="text-stone-500 font-medium">Based on {stats.total} sacred experiences</p>
+                      </div>
+
+                      <div className="flex flex-col justify-center space-y-3">
+                        {[5, 4, 3, 2, 1].map((rating) => {
+                          const count = stats.breakdown[rating] || 0;
+                          const percentage = stats.total > 0 ? (count / stats.total) * 100 : 0;
+                          return (
+                            <div key={rating} className="flex items-center gap-4">
+                              <div className="w-12 text-sm font-bold text-stone-600 flex items-center justify-end">
+                                {rating} <Star className="w-3 h-3 ml-1 fill-current text-amber-500" />
+                              </div>
+                              <div className="flex-grow h-2.5 bg-stone-200 rounded-full overflow-hidden">
+                                <motion.div 
+                                  initial={{ width: 0 }}
+                                  animate={{ width: `${percentage}%` }}
+                                  className="h-full bg-orange-500 rounded-full"
+                                />
+                              </div>
+                              <div className="w-12 text-xs font-medium text-stone-400">{count}</div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Reviews List */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {reviews.map((review) => (
+                      <div key={review.id} className="bg-white p-8 rounded-[2rem] border border-stone-100 shadow-sm">
+                        <div className="flex justify-between items-start mb-6">
+                          <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 bg-orange-50 rounded-2xl flex items-center justify-center text-orange-600 font-bold text-lg">
+                              {review.userName?.[0] || 'A'}
+                            </div>
+                            <div>
+                              <h4 className="font-bold text-stone-900">{review.userName || 'Anonymous'}</h4>
+                              <p className="text-[10px] text-stone-400 uppercase tracking-wider font-bold">{review.city || review.type}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1 pt-1">
+                            {[1, 2, 3, 4, 5].map((s) => (
+                              <Star key={s} className={`w-3.5 h-3.5 ${s <= review.rating ? 'text-amber-500 fill-current' : 'text-stone-200'}`} />
+                            ))}
+                          </div>
+                        </div>
+                        <p className="text-stone-600 leading-relaxed italic">"{review.message}"</p>
+                        <div className="mt-6 pt-4 border-t border-stone-50 flex items-center justify-between text-[10px] text-stone-400 font-bold uppercase tracking-wider">
+                          <span>{review.createdAt ? new Date(review.createdAt).toLocaleDateString() : 'Recent'}</span>
+                          {review.serviceId && <span className="text-orange-500">Service Review</span>}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {reviews.length === 0 && (
+                    <div className="py-20 text-center">
+                      <MessageSquare className="w-16 h-16 text-stone-200 mx-auto mb-4" />
+                      <p className="text-stone-500 font-medium">No reviews yet for this vendor.</p>
+                    </div>
+                  )}
                 </motion.div>
               )}
             </AnimatePresence>

@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Send, Sparkles } from 'lucide-react';
-import { GoogleGenAI } from "@google/genai";
 import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -37,7 +36,7 @@ const QUICK_ACTIONS = [
 
 export default function VedaAI() {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<{ role: 'user' | 'assistant', content: string }[]>([
+  const [messages, setMessages] = useState<{ role: 'user' | 'assistant', content: string, sources?: { uri: string, title: string }[] }[]>([
     { role: 'assistant', content: "Namaste. I am Veda AI, your spiritual guide. How may I assist your journey today?" }
   ]);
   const [input, setInput] = useState('');
@@ -61,30 +60,38 @@ export default function VedaAI() {
     setIsLoading(true);
 
     try {
-      const apiKey = process.env.GEMINI_API_KEY;
-      if (!apiKey) throw new Error("AI not configured");
-
-      const ai = new GoogleGenAI({ apiKey });
-      const history = messages.map(m => ({
-        role: m.role === 'assistant' ? 'model' : 'user',
-        parts: [{ text: m.content }]
-      }));
-      history.push({ role: 'user', parts: [{ text }] });
-
-      const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: history,
-        config: {
-          systemInstruction: SYSTEM_INSTRUCTION,
-          temperature: 0.7,
-        }
+      // Proxy chat request to the backend so the API key stays server-side
+      const res = await fetch('/api/ai/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: text,
+          history: messages.filter(m => m.role === 'user' || m.role === 'assistant')
+        })
       });
 
-      const reply = response.text || "I am currently in deep meditation. Please try again later.";
-      setMessages(prev => [...prev, { role: 'assistant', content: reply }]);
-    } catch (error) {
+      if (!res.ok) {
+        if (res.status === 429) throw new Error("RATE_LIMIT");
+        throw new Error("API_ERROR");
+      }
+
+      const data = await res.json();
+      const reply = data.reply || "I am currently in deep meditation. Please try again later.";
+      
+      // Extract grounding sources if provided by backend
+      const sources = data.sources || [];
+      
+      setMessages(prev => [...prev, { 
+        role: 'assistant', 
+        content: reply,
+        sources: sources as { uri: string, title: string }[]
+      }]);
+    } catch (error: any) {
       console.error("Veda AI Error:", error);
-      setMessages(prev => [...prev, { role: 'assistant', content: "The divine connection is temporarily interrupted. Please try again soon." }]);
+      const errMsg = error.message === "RATE_LIMIT" 
+        ? "The cosmic energies are aligning. Please try again in a few minutes."
+        : "The divine connection is temporarily interrupted. Please try again soon.";
+      setMessages(prev => [...prev, { role: 'assistant', content: errMsg }]);
     } finally {
       setIsLoading(false);
     }
@@ -163,6 +170,24 @@ export default function VedaAI() {
                         : 'bg-white dark:bg-stone-900 text-stone-700 dark:text-stone-200 border border-stone-200 dark:border-stone-800 shadow-sm'
                     }`}>
                       {m.content}
+                      {m.sources && m.sources.length > 0 && (
+                        <div className="mt-4 pt-4 border-t border-stone-100 dark:border-stone-800">
+                          <p className="text-[10px] uppercase tracking-wider text-stone-400 font-bold mb-2">Sources:</p>
+                          <div className="flex flex-wrap gap-2">
+                            {m.sources.map((source, idx) => (
+                              <a 
+                                key={idx}
+                                href={source.uri}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-[10px] bg-stone-100 dark:bg-stone-800 px-2 py-1 rounded hover:bg-orange-100 dark:hover:bg-orange-900/30 hover:text-orange-600 transition-colors flex items-center gap-1 max-w-full"
+                              >
+                                <span className="truncate">{source.title}</span>
+                              </a>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </motion.div>
                 ))}

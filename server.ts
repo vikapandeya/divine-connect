@@ -1,4 +1,5 @@
 import express from "express";
+import cors from "cors";
 import { createServer as createViteServer } from "vite";
 import path from "path";
 import fs from "fs/promises";
@@ -9,13 +10,11 @@ import admin from "firebase-admin";
 import { getFirestore } from "firebase-admin/firestore";
 import Stripe from "stripe";
 import mysql from "mysql2/promise";
-import { DatabaseAdapter, FirestoreAdapter, MySQLAdapter } from "./src/lib/db.ts";
 import rateLimit from "express-rate-limit";
+import { GoogleGenAI, Type } from "@google/genai";
+import { DatabaseAdapter, FirestoreAdapter, MySQLAdapter } from "./src/lib/db.ts";
 
 dotenv.config();
-
-// Standardize DB provider variable
-const DB_TYPE = process.env.DB_TYPE || process.env.DB_PROVIDER || 'firestore';
 
 let stripe: Stripe | null = null;
 try {
@@ -31,6 +30,33 @@ try {
   console.error("[Stripe] Initialization failed:", (error as Error).message);
 }
 
+// ── Gemini AI client (server-side only) ──────────────────────────────────────
+let aiClient: GoogleGenAI | null = null;
+try {
+  const geminiKey = process.env.GEMINI_API_KEY;
+  if (geminiKey) {
+    aiClient = new GoogleGenAI({ apiKey: geminiKey });
+    console.log("[Gemini] AI client initialized.");
+  } else {
+    console.warn("[Gemini] GEMINI_API_KEY not set. AI features will use fallback responses.");
+  }
+} catch (e) {
+  console.error("[Gemini] Failed to initialize:", (e as Error).message);
+}
+
+async function withRetry<T>(fn: () => Promise<T>, retries = 2, delay = 1000): Promise<T> {
+  try {
+    return await fn();
+  } catch (error: any) {
+    const isRateLimit = String(error?.message || '').match(/429|rate|limit/i);
+    if (retries > 0 && isRateLimit) {
+      await new Promise(r => setTimeout(r, delay));
+      return withRetry(fn, retries - 1, delay * 2);
+    }
+    throw error;
+  }
+}
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -38,33 +64,29 @@ let adapter: DatabaseAdapter;
 let firebaseConfig: any = {};
 
 async function initDatabase() {
-  const dbType = DB_TYPE;
+  const dbType = process.env.DB_TYPE || process.env.DB_PROVIDER || 'firestore';
   
   if (dbType === 'mysql') {
-    console.log("Initializing MySQL Adapter...");
-    const pool = mysql.createPool({
-      host: process.env.MYSQL_HOST || 'localhost',
-      user: process.env.MYSQL_USER || 'root',
-      password: process.env.MYSQL_PASSWORD || '',
-      database: process.env.MYSQL_DATABASE || 'punyaseva',
-      port: Number(process.env.MYSQL_PORT) || 3306,
-      multipleStatements: true,
-    });
-    
-    // Auto-create tables if they don't exist
+    console.log("[DB] Attempting MySQL connection...");
     try {
-      console.log("Checking/Initializing MySQL tables...");
-      const schemaPath = path.join(__dirname, "database", "schema.sql");
-      const schema = await fs.readFile(schemaPath, "utf8");
-      await pool.query(schema);
-      console.log("MySQL tables verified/initialized.");
-    } catch (schemaErr) {
-      console.error("Failed to initialize MySQL tables:", (schemaErr as Error).message);
+      const pool = mysql.createPool({
+        host: process.env.MYSQL_HOST || 'localhost',
+        user: process.env.MYSQL_USER || 'root',
+        password: process.env.MYSQL_PASSWORD || '',
+        database: process.env.MYSQL_DATABASE || 'divine',
+        port: Number(process.env.MYSQL_PORT) || 3306,
+        connectTimeout: 5000,
+      });
+      // Verify the connection is actually reachable
+      const conn = await pool.getConnection();
+      conn.release();
+      adapter = new MySQLAdapter(pool);
+      console.log("[DB] MySQL Adapter initialized successfully.");
+      return;
+    } catch (mysqlErr: any) {
+      console.error(`[DB] MySQL connection failed (${mysqlErr.code || mysqlErr.message}). Auto-falling back to Firestore...`);
+      // Fall through to Firestore init below
     }
-
-    adapter = new MySQLAdapter(pool);
-    console.log("MySQL Adapter initialized.");
-    return;
   }
 
   // Default to Firestore
@@ -73,105 +95,107 @@ async function initDatabase() {
   try {
     const configData = await fs.readFile(firebaseConfigPath, "utf8");
     firebaseConfig = JSON.parse(configData);
-    console.log("[Firebase] Loaded config from JSON.");
+    console.log("[Firebase] Loaded config from JSON. Project ID in config:", firebaseConfig.projectId);
   } catch (e) {
     console.error("[Firebase] Failed to read firebase-applet-config.json", e);
   }
 
   // Precedence: We MUST prioritize the environment's project ID if available (deployment/preview context).
-  // Fall back to the config file if environment is not set (local dev).
-  const envProjectId = process.env.GOOGLE_CLOUD_PROJECT || process.env.FIREBASE_PROJECT_ID || process.env.PROJECT_ID;
+  const envProjectId = process.env.GOOGLE_CLOUD_PROJECT || process.env.PROJECT_ID;
   const configProjectId = firebaseConfig.projectId;
   const databaseIdFromConfig = firebaseConfig.firestoreDatabaseId;
 
-  console.log(`[Firebase] process.env.GOOGLE_CLOUD_PROJECT: ${process.env.GOOGLE_CLOUD_PROJECT}`);
-  console.log(`[Firebase] process.env.FIREBASE_PROJECT_ID: ${process.env.FIREBASE_PROJECT_ID}`);
-  console.log(`[Firebase] process.env.PROJECT_ID: ${process.env.PROJECT_ID}`);
-  console.log(`[Firebase] firebaseConfig.projectId: ${configProjectId}`);
-  console.log(`[Firebase] Config Database ID: ${databaseIdFromConfig}`);
+  console.log(`[Firebase] envProjectId (detected): ${envProjectId}`);
+  console.log(`[Firebase] configProjectId: ${configProjectId}`);
+  console.log(`[Firebase] databaseIdFromConfig: ${databaseIdFromConfig}`);
+
+  const activeProjectId = envProjectId || configProjectId;
 
   if (admin.apps.length === 0) {
     try {
-      if (envProjectId) {
-        console.log(`[Firebase] Initializing Admin with environment project: ${envProjectId}`);
-        admin.initializeApp({ projectId: envProjectId });
-      } else if (configProjectId) {
-        console.log(`[Firebase] No environment project ID found. Initializing Admin with config project: ${configProjectId}`);
-        admin.initializeApp({ projectId: configProjectId });
-      } else {
-        console.log("[Firebase] No project ID found in env or config. Using default initialization (ADC).");
-        admin.initializeApp();
-      }
+      console.log(`[Firebase] Initializing Admin SDK with Project: ${activeProjectId || 'ADC'}`);
+      admin.initializeApp({
+        projectId: activeProjectId
+      });
     } catch (e) {
-      console.error("[Firebase] Admin initialization failed", (e as Error).message);
-      // Fallback to naked init if explicit init failed and we haven't initialized yet
-      if (admin.apps.length === 0) {
-        console.log("[Firebase] Attempting naked initialization as fallback...");
-        admin.initializeApp();
-      }
+      console.error("[Firebase] Admin initialization failed:", (e as Error).message);
     }
   }
 
-  const effectiveProjectId = admin.app().options.projectId || envProjectId || configProjectId;
-  console.log(`[Firebase] Effective Project ID: ${effectiveProjectId}`);
-
-  let db: admin.firestore.Firestore;
-  
-  const tryConnect = async (dbInstance: admin.firestore.Firestore, label: string) => {
-    console.log(`[Firebase] Testing connection to ${label}...`);
-    // Use a light read check on a specific path
-    await dbInstance.collection("_health_").limit(1).get();
-    console.log(`[Firebase] Successfully connected to ${label}.`);
-    return true;
-  };
-
-  const tryInitWithDb = async (dbId: string | undefined) => {
-    if (dbId && dbId !== "(default)") {
-      console.log(`[Firebase] Accessing named database: ${dbId}`);
-      db = getFirestore(admin.app(), dbId);
+  const tryInitWithDb = async (pId: string | undefined, dId: string | undefined) => {
+    const label = `Project: ${pId || 'default'}, DB: ${dId || '(default)'}`;
+    console.log(`[Firebase] Attempting initialization for ${label}...`);
+    
+    let db: admin.firestore.Firestore;
+    if (dId && dId !== "(default)") {
+      db = getFirestore(admin.app(), dId);
     } else {
-      console.log("[Firebase] Accessing (default) database");
       db = admin.firestore();
     }
-    await tryConnect(db, dbId || "(default)");
+    
+    // Test read
+    await db.collection("_health_").limit(1).get();
+    console.log(`[Firebase] Read test passed for ${label}`);
+    
+    // Canary write
+    await db.collection("_health_").doc("check").set({ 
+      lastCheck: admin.firestore.FieldValue.serverTimestamp(),
+      projectId: pId || 'unknown'
+    });
+    console.log(`[Firebase] Canary write successful for ${label}`);
+    
     adapter = new FirestoreAdapter(db);
     return true;
   };
 
-  try {
-    // Attempt 1: Using configured Database ID
-    await tryInitWithDb(databaseIdFromConfig);
-    console.log("Firestore Adapter initialized.");
-  } catch (e) {
-    console.warn(`[Firebase] Attempt with database "${databaseIdFromConfig || '(default)'}" failed:`, (e as Error).message);
-    
-    // Fallback 1: If it was a named database, try the (default) one in the SAME project
-    if (databaseIdFromConfig && databaseIdFromConfig !== "(default)") {
-      console.log("[Firebase] Fallback 1: Attempting (default) database in same project...");
-      try {
-        await tryInitWithDb("(default)");
-        console.log("[Firebase] Fallback 1 successful.");
-        return;
-      } catch (f1Err) {
-        console.warn("[Firebase] Fallback 1 failed:", (f1Err as Error).message);
-      }
-    }
+  const attempts = [
+    { p: envProjectId, d: databaseIdFromConfig },
+    { p: envProjectId, d: "(default)" },
+    { p: configProjectId, d: databaseIdFromConfig },
+    { p: configProjectId, d: "(default)" },
+  ];
 
-    // If we reach here, we are in trouble.
-    console.error("[Firebase] ALL Firestore connection attempts failed.");
-    throw e;
+  let success = false;
+  for (const attempt of attempts) {
+    if (!attempt.p && !attempt.d) continue;
+    try {
+      if (success) break;
+      success = await tryInitWithDb(attempt.p, attempt.d);
+      if (success) {
+        console.log(`[Firebase] SUCCESSFULLY INITIALIZED with Attempt: Project=${attempt.p}, DB=${attempt.d}`);
+        break;
+      }
+    } catch (e) {
+      console.warn(`[Firebase] Attempt failed (Project=${attempt.p}, DB=${attempt.d}):`, (e as Error).message);
+    }
+  }
+
+  if (!success) {
+    console.error("[Firebase] ALL Firestore connection attempts failed. Falling back to ADC (default)");
+    try {
+      adapter = new FirestoreAdapter(admin.firestore());
+    } catch (e) {
+      console.error("[Firebase] ADC Fallback failed too.");
+    }
   }
 }
 
 async function startServer() {
   console.log("Starting server initialization...");
   const app = express();
-  const PORT = Number(process.env.PORT) || 3000;
+  const PORT = 3000;
 
   try {
-    await initDatabase();
+    // Initialize database in background or with timeout to prevent blocking whole server start
+    const dbPromise = initDatabase();
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error("Database initialization timed out")), 5000)
+    );
+    await Promise.race([dbPromise, timeoutPromise]).catch(err => {
+      console.warn("Database initialization taking too long or failed, continuing server start:", err.message);
+    });
   } catch (error) {
-    console.error("Database initialization failed, but starting server anyway:", (error as Error).message);
+    console.error("Database initialization check failed:", (error as Error).message);
   }
 
   // Health check early
@@ -179,8 +203,98 @@ async function startServer() {
     res.json({ status: "ok", database: !!adapter });
   });
 
+  // ── CORS ─────────────────────────────────────────────────────────────────
+  const allowedOrigins = [
+    'http://localhost:3000',
+    'http://localhost:5173',
+    ...(process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim()) : []),
+  ];
+  app.use(cors({
+    origin: (origin, callback) => {
+      // Allow server-to-server (no origin) or whitelisted origins
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error(`CORS: origin '${origin}' not allowed`));
+      }
+    },
+    credentials: true,
+  }));
+
+  // ── Rate Limiters ────────────────────────────────────────────────────────
+  const authRateLimit = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 20,
+    message: { error: 'Too many auth attempts. Please try again in 15 minutes.' },
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
+  const aiRateLimit = rateLimit({
+    windowMs: 60 * 1000, // 1 minute
+    max: 10,
+    message: { error: 'AI request limit reached. Please wait a moment before trying again.' },
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
+  const apiRateLimit = rateLimit({
+    windowMs: 60 * 1000,
+    max: 120,
+    message: { error: 'Too many requests. Please slow down.' },
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
+  app.use('/api/auth', authRateLimit);
+  app.use('/api/ai', aiRateLimit);
+  app.use('/api', apiRateLimit);
   app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
   console.log("Express middleware configured.");
+
+  // Response logger
+  app.use((req, res, next) => {
+    const start = Date.now();
+    res.on("finish", () => {
+      const duration = Date.now() - start;
+      console.log(`[Response] ${req.method} ${req.url} -> ${res.statusCode} (${duration}ms)`);
+    });
+    next();
+  });
+
+  // Request logging for API
+  app.use("/api", (req, res, next) => {
+    console.log(`[API Request] ${req.method} ${req.url}`);
+    if (req.method === "POST" && req.path === "/vendor/register") {
+      console.log(`[Vendor Registration Body]`, JSON.stringify(req.body));
+    }
+    next();
+  });
+
+  // Middleware to ensure database is ready
+  app.use("/api", (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    const isHealthCheck = req.path === "/health" || req.path === "/debug/firebase";
+    if (!adapter && !isHealthCheck) {
+      console.warn(`[API] 503 returned for ${req.path} because adapter is not ready.`);
+      return res.status(503).json({ 
+        error: "Database service is initializing or unavailable. Please try again in a few moments." 
+      });
+    }
+    next();
+  });
+
+  // Debug / Test Endpoints
+  app.get("/api/test/403", (req, res) => {
+    res.status(403).json({ error: "This is a test 403 error" });
+  });
+
+  app.get("/api/debug/firebase", async (req, res) => {
+    res.json({
+      initialized: admin.apps.length > 0,
+      projectId: process.env.GOOGLE_CLOUD_PROJECT || process.env.PROJECT_ID || "unknown",
+      configProjectId: firebaseConfig.projectId,
+      adapterReady: !!adapter,
+      dbIdFromConfig: firebaseConfig.firestoreDatabaseId
+    });
+  });
 
   app.post("/api/admin/send-announcement", async (req, res) => {
     const { title, message, targetRole } = req.body;
@@ -214,6 +328,10 @@ async function startServer() {
 
     // --- AUTO SETUP DATABASE ---
     const setupDatabase = async () => {
+      if (!adapter) {
+        console.warn("Database adapter not initialized, skipping setupDatabase.");
+        return;
+      }
       try {
         console.log("Checking database state...");
         
@@ -362,8 +480,8 @@ async function startServer() {
     app.post("/api/create-payment-intent", async (req, res) => {
       const { amount, currency = "inr" } = req.body;
       try {
-        if (!stripe) {
-          // Fallback for demo if stripe instance is not initialized
+        if (!process.env.STRIPE_SECRET_KEY) {
+          // Fallback for demo if key is missing
           return res.json({ clientSecret: "demo_secret_" + Date.now() });
         }
         const paymentIntent = await stripe.paymentIntents.create({
@@ -379,8 +497,38 @@ async function startServer() {
     });
 
     // --- AUTH ENDPOINTS ---
-    const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 20, message: { message: "Too many attempts, try again in 15 minutes" } });
-    app.post("/api/auth/register", authLimiter, async (req, res) => {
+    app.post("/api/auth/social-sync", async (req, res) => {
+      const { uid, email, displayName, photoURL, role } = req.body;
+      try {
+        const existingUser = await adapter.getUser(uid);
+        let userRole = role || 'devotee';
+        if (email === 'pg2331427@gmail.com') userRole = 'admin';
+
+        if (!existingUser) {
+          await adapter.createUser(uid, {
+            uid,
+            email,
+            displayName,
+            photoURL,
+            role: userRole,
+            createdAt: new Date()
+          });
+        } else {
+          // Update existing user with latest social info if needed
+          await adapter.updateUser(uid, {
+            displayName,
+            photoURL
+          });
+          userRole = existingUser.role;
+        }
+        res.json({ success: true, role: userRole });
+      } catch (error) {
+        console.error("[API] POST /api/auth/social-sync error:", error);
+        res.status(500).json({ error: (error as Error).message });
+      }
+    });
+
+    app.post("/api/auth/register", async (req, res) => {
       const { email, password, displayName, role } = req.body;
       try {
       const existingUser = await adapter.getUserByEmail(email);
@@ -414,7 +562,7 @@ async function startServer() {
     }
   });
 
-    app.post("/api/auth/login", authLimiter, async (req, res) => {
+    app.post("/api/auth/login", async (req, res) => {
     const { email, password } = req.body;
     try {
       const user = await adapter.getUserByEmail(email);
@@ -446,8 +594,16 @@ async function startServer() {
     try {
       const user = await adapter.getUser(uid);
       if (!user) return res.status(404).json({ message: "User not found" });
-      const { password: _pw, ...safeUser } = user as any;
-      res.json(safeUser);
+      
+      // If user is a vendor or has a pending application, merge vendor details
+      if (user.vendorStatus && user.vendorStatus !== 'none') {
+        const vendorDetails = await adapter.getVendor(uid);
+        if (vendorDetails) {
+          return res.json({ ...user, vendorDetails });
+        }
+      }
+      
+      res.json(user);
     } catch (error) {
       console.error(`[API] GET /api/users/${uid} error:`, error);
       res.status(500).json({ error: (error as Error).message });
@@ -561,6 +717,31 @@ async function startServer() {
     }
   });
 
+  // Naam Jap Endpoints
+  app.get("/api/naam-jap/logs", async (req, res) => {
+    const { userId } = req.query;
+    if (!userId) return res.status(400).json({ error: "userId is required" });
+    try {
+      const logs = await adapter!.getNaamJapLogs(userId as string);
+      res.json(logs);
+    } catch (error) {
+      console.error("[API] GET /api/naam-jap/logs error:", error);
+      res.status(500).json({ error: "Failed to fetch logs" });
+    }
+  });
+
+  app.post("/api/naam-jap/save", async (req, res) => {
+    const { userId, date, count, target, mantraName } = req.body;
+    if (!userId || !date) return res.status(400).json({ error: "userId and date are required" });
+    try {
+      await adapter!.updateNaamJap({ userId, date, count, target, mantraName });
+      res.json({ success: true });
+    } catch (error) {
+      console.error("[API] POST /api/naam-jap/save error:", error);
+      res.status(500).json({ error: "Failed to save Naam Jap" });
+    }
+  });
+
   app.get("/api/vendor/whatsapp-bookings/:vendorId", async (req, res) => {
     try {
       const bookings = await adapter.getWhatsAppBookingsByVendor(req.params.vendorId);
@@ -594,29 +775,86 @@ async function startServer() {
   });
 
   app.post("/api/vendor/register", async (req, res) => {
-    const { userId, businessName, businessType, description } = req.body;
+    const { userId, businessName, businessType, description, contactPhone, contactAddress } = req.body;
+    console.log(`[Vendor Registration] Attempt for userId: ${userId}`);
+    
+    if (!userId) {
+      return res.status(400).json({ error: "User ID is required for registration. Please ensure you are logged in." });
+    }
+
     try {
+      // Step 0: Check if user document exists to avoid obscure errors
+      const userDoc = await adapter.getUser(userId);
+      if (!userDoc) {
+        console.warn(`[Vendor Registration] User document not found for UID: ${userId}. Creating a placeholder profile.`);
+        // If user doesn't exist in Firestore but reached here (Auth exists), create a basic profile
+        await adapter.createUser(userId, {
+          uid: userId,
+          email: "unknown@punyaseva.com", // Placeholder
+          displayName: "Devotee",
+          role: "devotee",
+          createdAt: new Date()
+        });
+      }
+      
+      if (userDoc && userDoc.vendorStatus === 'pending') {
+        return res.status(400).json({ error: "Your registration is already pending review." });
+      }
+      if (userDoc && userDoc.vendorStatus === 'approved') {
+        return res.status(400).json({ error: "You are already a registered vendor." });
+      }
+
+      console.log(`[Vendor Registration] Updating user status for ${userId}...`);
       await adapter.updateUser(userId, {
-        role: 'vendor',
-        vendorStatus: 'pending'
+        vendorStatus: 'pending',
+        phoneNumber: contactPhone,
+        address: contactAddress
       });
 
+      console.log(`[Vendor Registration] Creating vendor profile for ${userId}...`);
       await adapter.createVendor(userId, {
-        name: businessName,
+        uid: userId,
+        businessName,
         type: businessType,
         description,
-        userId,
+        status: 'pending',
         rating: 0,
         reviews: 0,
-        joinedAt: new Date()
+        createdAt: new Date()
       });
 
+      console.log(`[Vendor Registration] Creating notification for ${userId}...`);
       await createNotification(userId, "Vendor Registration", "Your vendor registration request has been submitted and is pending approval.", "system");
       
+      console.log(`[Vendor Registration] Registration successful for ${userId}`);
       res.json({ success: true });
     } catch (error) {
-      console.error("[API] POST /api/vendor/register error:", error);
-      res.status(500).json({ error: (error as Error).message });
+      const err = error as any;
+      const message = err.message || String(err);
+      const code = err.code || "unknown";
+      
+      console.error(`[API] POST /api/vendor/register error [Code: ${code}]:`, message);
+      if (err.stack) console.error(err.stack);
+      
+      // Map common Firestore/gRPC codes to friendly messages
+      if (code === 5 || message.includes("NOT_FOUND")) {
+        return res.status(500).json({ 
+          error: "Resource Not Found: The database reported a missing entity. This often happens if the initial synchronization is incomplete. Please refresh and try again.",
+          code: code 
+        });
+      }
+      
+      if (message.includes("PERMISSION_DENIED") || code === 7 || code === "permission-denied") {
+        return res.status(403).json({ 
+          error: "Permission Denied: Backend unauthorized to access database.",
+          details: message
+        });
+      }
+      
+      res.status(500).json({ 
+        error: `Submission Error: ${message}`,
+        code: code 
+      });
     }
   });
 
@@ -654,7 +892,8 @@ async function startServer() {
     const { vendorId } = req.body;
     try {
       await adapter.updateUser(vendorId, {
-        vendorStatus: 'approved'
+        vendorStatus: 'approved',
+        role: 'vendor'
       });
       await createNotification(vendorId, "Vendor Approved", "Congratulations! Your vendor registration has been approved. You can now start adding products and pujas.", "system");
       res.json({ success: true });
@@ -1288,16 +1527,62 @@ async function startServer() {
   // Feedback
   app.get("/api/feedback", async (req, res) => {
     try {
+      const { serviceId, type, vendorId } = req.query;
       const feedback = await adapter.getFeedback();
-      res.json(feedback);
+      let filtered = feedback;
+      if (serviceId) filtered = filtered.filter((f: any) => f.serviceId === serviceId);
+      if (type) filtered = filtered.filter((f: any) => f.type === type);
+      if (vendorId) filtered = filtered.filter((f: any) => f.vendorId === vendorId);
+      res.json(filtered);
     } catch (error) {
       console.error("[API] GET /api/feedback error:", error);
       res.status(500).json({ error: (error as Error).message });
     }
   });
 
+  app.get("/api/vendors/:id/reviews", async (req, res) => {
+    const { id } = req.params;
+    try {
+      const feedback = await adapter.getFeedback();
+      const vendorReviews = feedback.filter((f: any) => f.vendorId === id || (f.type === 'puja' && f.serviceId && id === 'system')); // fallback for system
+      
+      // In a real app we'd query by vendorId. For now let's also check pujas and products
+      const pujas = await adapter.getPujas({ vendorId: id });
+      const products = await adapter.getProducts({ vendorId: id });
+      const serviceIds = [...pujas.map(p => p.id), ...products.map(p => p.id)];
+      
+      const allVendorReviews = feedback.filter((f: any) => 
+        f.vendorId === id || serviceIds.includes(f.serviceId)
+      );
+
+      const total = allVendorReviews.length;
+      const breakdown = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+      let sum = 0;
+      
+      allVendorReviews.forEach((r: any) => {
+        const rating = Math.round(r.rating) as keyof typeof breakdown;
+        if (breakdown[rating] !== undefined) breakdown[rating]++;
+        sum += r.rating;
+      });
+
+      const average = total > 0 ? sum / total : 0;
+
+      res.json({
+        reviews: allVendorReviews,
+        stats: {
+          total,
+          average,
+          breakdown
+        }
+      });
+    } catch (error) {
+      console.error("[API] GET /api/vendors/:id/reviews error:", error);
+      res.status(500).json({ error: (error as Error).message });
+    }
+  });
+
   app.post("/api/feedback", async (req, res) => {
-    const { userId, userName, city, rating, message, serviceId, type, imageURL } = req.body;
+    const { userId, userName, city, rating, message, serviceId, type, imageURL, vendorId } = req.body;
     try {
       await adapter.addFeedback({
         userId: userId || null,
@@ -1306,6 +1591,7 @@ async function startServer() {
         rating: Number(rating) || 5,
         message: message || '',
         serviceId: serviceId || null,
+        vendorId: vendorId || null,
         type: type || 'general',
         imageURL: imageURL || '',
         createdAt: new Date()
@@ -1403,6 +1689,254 @@ async function startServer() {
   });
 
 
+  // ── /api/ai/* — Gemini AI Proxy Routes (API key stays server-side) ─────────
+
+  // GET /api/ai/panchang?date=YYYY-MM-DD&lang=en
+  app.get("/api/ai/panchang", async (req, res) => {
+    const dateStr = (req.query.date as string) || new Date().toISOString().split('T')[0];
+    const lang = (req.query.lang as string) || 'en';
+    const cacheKey = `panchang_${dateStr}_${lang}`;
+    
+    // Check in-memory cache (resets when server restarts — that's fine)
+    if ((app as any)._panchangCache?.[cacheKey]) {
+      return res.json((app as any)._panchangCache[cacheKey]);
+    }
+
+    const fallback = {
+      tithi: 'Dwitiya', paksha: 'Shukla Paksha', nakshatra: 'Pushya',
+      yoga: 'Siddha', karana: 'Vanija', mahina: 'Vaishakha',
+      vikramSamvat: '2083', samvatName: 'Siddharthi',
+      sunrise: '05:52 AM', sunset: '06:49 PM',
+      moonrise: '07:38 AM', moonset: '08:52 PM',
+      rahukaal: '05:12 PM - 06:49 PM', gulika: '03:35 PM - 05:12 PM',
+      yamaganda: '12:21 PM - 01:58 PM', auspicious: 'Abhijit Muhurat: 11:55 AM - 12:47 PM',
+      location: 'New Delhi, India'
+    };
+
+    if (!aiClient) return res.json(fallback);
+
+    try {
+      const langLabel = lang === 'hi' ? 'Hindi' : lang === 'sa' ? 'Sanskrit' : 'English';
+      const prompt = `Return detailed Vedic Panchang for ${dateStr} for New Delhi, India. Include: Vikram Samvat year, Samvatsara name, Paksha, Tithi with end time, Nakshatra with end time, Yoga, Karana, Hindu month, Sunrise, Sunset, Moonrise, Moonset, Rahukaal, Gulika, Yamaganda, Abhijit Muhurta, festivals list, Sun sign, Moon sign. Labels and values in ${langLabel}. Return as JSON.`;
+      const result = await withRetry(() => aiClient!.models.generateContent({
+        model: "gemini-2.0-flash",
+        contents: prompt,
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              tithi: { type: Type.STRING }, tithiEnd: { type: Type.STRING },
+              paksha: { type: Type.STRING }, nakshatra: { type: Type.STRING },
+              nakshatraEnd: { type: Type.STRING }, yoga: { type: Type.STRING },
+              yogaEnd: { type: Type.STRING }, karana: { type: Type.STRING },
+              karanaEnd: { type: Type.STRING }, mahina: { type: Type.STRING },
+              vikramSamvat: { type: Type.STRING }, samvatName: { type: Type.STRING },
+              sunrise: { type: Type.STRING }, sunset: { type: Type.STRING },
+              moonrise: { type: Type.STRING }, moonset: { type: Type.STRING },
+              rahukaal: { type: Type.STRING }, gulika: { type: Type.STRING },
+              yamaganda: { type: Type.STRING }, auspicious: { type: Type.STRING },
+              festivals: { type: Type.ARRAY, items: { type: Type.STRING } },
+              sunSign: { type: Type.STRING }, moonSign: { type: Type.STRING },
+              location: { type: Type.STRING }
+            },
+            required: ["tithi","paksha","nakshatra","yoga","karana","mahina","vikramSamvat","samvatName","sunrise","sunset","moonrise","moonset","rahukaal","gulika","yamaganda","auspicious","location"]
+          }
+        }
+      }));
+      const text = result.text || "";
+      if (!text) throw new Error("Empty response");
+      const data = JSON.parse(text);
+      if (!(app as any)._panchangCache) (app as any)._panchangCache = {};
+      (app as any)._panchangCache[cacheKey] = data;
+      res.json(data);
+    } catch (err: any) {
+      console.warn("[AI] Panchang fallback used:", err.message);
+      res.json(fallback);
+    }
+  });
+
+  // GET /api/ai/horoscope?sign=Aries&lang=en
+  app.get("/api/ai/horoscope", async (req, res) => {
+    const sign = (req.query.sign as string) || 'Aries';
+    const lang = (req.query.lang as string) || 'en';
+    const today = new Date().toISOString().split('T')[0];
+    const cacheKey = `horoscope_${sign}_${lang}_${today}`;
+
+    if ((app as any)._horoscopeCache?.[cacheKey]) {
+      return res.json({ prediction: (app as any)._horoscopeCache[cacheKey] });
+    }
+
+    const fallback = "The stars illuminate your path with grace and divine purpose today. Embrace tranquility and let your inner wisdom be your guide.";
+    if (!aiClient) return res.json({ prediction: fallback });
+
+    try {
+      const langLabel = lang === 'hi' ? 'Hindi' : lang === 'sa' ? 'Sanskrit' : 'English';
+      const result = await withRetry(() => aiClient!.models.generateContent({
+        model: "gemini-2.0-flash",
+        contents: `As a spiritual Vedic Astrologer, write a 2-3 sentence daily horoscope for ${sign} for ${today}. Tone: spiritual, encouraging, divine. Language: ${langLabel}. Return only the prediction text, no labels or intros.`,
+        config: { temperature: 0.8, topP: 0.95 }
+      }));
+      const prediction = result.text?.trim() || fallback;
+      if (!(app as any)._horoscopeCache) (app as any)._horoscopeCache = {};
+      (app as any)._horoscopeCache[cacheKey] = prediction;
+      res.json({ prediction });
+    } catch (err: any) {
+      console.warn("[AI] Horoscope fallback used:", err.message);
+      res.json({ prediction: fallback });
+    }
+  });
+
+  // POST /api/ai/chat { message, history }
+  app.post("/api/ai/chat", async (req, res) => {
+    const { message, history } = req.body;
+    if (!aiClient) {
+      return res.status(503).json({ error: "AI Chat is not configured." });
+    }
+
+    try {
+      const SYSTEM_INSTRUCTION = `
+You are Veda AI, a divine Vedic Scholar and spiritual assistant for the PunyaSeva platform. 
+Your purpose is to provide sacred wisdom, explain Vedic traditions, guide users through puja bookings, and offer peace and clarity.
+
+Tone: 
+- Compassionate, wise, and serene.
+- Use spiritual metaphors where appropriate.
+- Be respectful of all traditions while focusing on Vedic/Hindu spirituality.
+- Address the user with respect (e.g., "Dear Seeker" or "Namaste").
+
+Capabilities:
+- Explain the significance of various pujas (Ganesh Puja, Lakshmi Puja, etc.).
+- Provide mantra explanations and their benefits.
+- Guide users on how to use the PunyaSeva platform (booking pujas, ordering prasad, checking astrology).
+- Offer general spiritual guidance and meditation tips.
+
+Rules:
+- If a user asks about booking a puja, guide them to the /services page.
+- If a user asks about their future or horoscope, guide them to the /astrology page.
+- Do not provide medical, legal, or financial advice.
+- Keep responses concise but meaningful.
+`;
+
+      const formattedHistory = (history || []).map((m: any) => ({
+        role: m.role === 'assistant' ? 'model' : 'user',
+        parts: [{ text: m.content || '' }]
+      }));
+      formattedHistory.push({ role: 'user', parts: [{ text: message }] });
+
+      const response = await withRetry(() => aiClient!.models.generateContent({
+        model: "gemini-2.0-flash",
+        contents: formattedHistory,
+        config: {
+          systemInstruction: SYSTEM_INSTRUCTION,
+          temperature: 0.7,
+          tools: [{ googleSearch: {} }],
+        }
+      }));
+
+      const reply = response.text || "I am currently in deep meditation. Please try again later.";
+      const sources = (response as any).candidates?.[0]?.groundingMetadata?.groundingChunks?.map((chunk: any) => chunk.web).filter(Boolean) || [];
+
+      res.json({ reply, sources });
+    } catch (err: any) {
+      const isRateLimit = String(err.message).match(/429|rate|limit/i);
+      if (isRateLimit) {
+        return res.status(429).json({ error: "Rate limit reached" });
+      }
+      console.error("[AI] Chat error:", err.message);
+      res.status(500).json({ error: "Failed to connect to divine insights" });
+    }
+  });
+
+  // GET /api/ai/search?q=query&type=service
+  app.get("/api/ai/search", async (req, res) => {
+    const query = req.query.q as string;
+    if (!query || !aiClient) {
+      return res.status(503).json({ error: "Search unavailable" });
+    }
+    
+    try {
+      const systemInstruction = `
+        You are a sacred Vedic assistant for the PunyaSeva platform. A user is searching for "${query}" across our spiritual platform.
+        Our platform offers:
+        1. Puja Services (e.g., Satyanarayan Puja, Ganesh Puja)
+        2. Sacred Yatras (e.g., Char Dham, Kashi Yatra)
+        3. Spiritual Products (e.g., Rudraksha, Idols, Incense)
+        4. Temple Knowledge (Historical and spiritual info about Indian temples)
+
+        Provide a brief, grounded explanation of the spiritual significance of "${query}".
+        If applicable, guide them on what to look for on our platform.
+        Keep it under 3 sentences. Use a serene, helpful, and knowledgeable tone.
+      `;
+
+      const response = await withRetry(() => aiClient!.models.generateContent({
+        model: "gemini-2.0-flash", // Updated from deprecated gemini-3-flash-preview
+        contents: query,
+        config: { systemInstruction, temperature: 0.5, tools: [{ googleSearch: {} }] }
+      }));
+      
+      const result = response.text || "No divine insights found for this search.";
+      // Note: Grounding metadata extraction depends on SDK version; keeping it simple
+      const sources = (response as any).candidates?.[0]?.groundingMetadata?.groundingChunks?.map((chunk: any) => chunk.web).filter(Boolean) || [];
+      
+      res.json({ result, sources });
+    } catch (err: any) {
+      console.error("[AI] Search error:", err.message);
+      res.status(500).json({ error: "Failed to connect to divine insights" });
+    }
+  });
+
+  // POST /api/ai/astrology  { tab, formData, rashifalData, kundliData }
+  app.post("/api/ai/astrology", async (req, res) => {
+    const { tab, formData, rashifalData, kundliData } = req.body;
+    if (!aiClient) {
+      return res.status(503).json({ error: "AI astrology is not configured. Please add GEMINI_API_KEY to the server environment." });
+    }
+
+    let prompt = '';
+    let systemInstruction = "You are a divine Vedic Astrologer named 'Jyotish AI'. Provide accurate and spiritual guidance.";
+
+    if (tab === 'birth-chart') {
+      prompt = `Provide a detailed spiritual Vedic astrological reading for:\nName: ${formData?.name}\nDOB: ${formData?.dob}\nTOB: ${formData?.tob}\nPOB: ${formData?.pob}\nQuery: ${formData?.query || 'General life reading'}\n\nInclude: planetary positions, personality/spiritual path, current dasha guidance, and a specific remedy (Mantra/Puja). Format in Markdown.`;
+    } else if (tab === 'rashifal') {
+      prompt = `Provide a detailed ${rashifalData?.timeframe || 'Daily'} Rashifal for ${rashifalData?.sign || 'Aries'}. Include: General Outlook, Career & Finance, Health, Love, Lucky Color & Number, and a spiritual tip. Format in Markdown.`;
+      systemInstruction = "You are an expert Vedic Astrologer providing Rashifal insights.";
+    } else if (tab === 'kundli') {
+      prompt = `Perform Ashta-Koota Kundli Milan for:\nGroom: ${kundliData?.p1Name}, DOB: ${kundliData?.p1Dob}, TOB: ${kundliData?.p1Tob}, POB: ${kundliData?.p1Pob}\nBride: ${kundliData?.p2Name}, DOB: ${kundliData?.p2Dob}, TOB: ${kundliData?.p2Tob}, POB: ${kundliData?.p2Pob}\n\nProvide: Gun Milan score, Dosha analysis, Compatibility verdict, and Remedies if applicable. Format in Markdown.`;
+      systemInstruction = "You are an advanced Vedic Astrology engine specializing in Kundli Milan.";
+    } else if (tab === 'adv-chart') {
+      prompt = `Generate a technical Vedic D1 Lagna Chart for:\nName: ${formData?.name}, DOB: ${formData?.dob}, TOB: ${formData?.tob}, POB: ${formData?.pob}\n\nInclude: Planetary degrees and Nakshatra Padas, Lagna, Bhava positions, Vimshottari Dasha overview, major Yogas. Use Markdown tables where appropriate.`;
+      systemInstruction = "You are a high-precision Vedic Astrology Software engine.";
+    } else {
+      return res.status(400).json({ error: "Invalid tab type." });
+    }
+
+    try {
+      const result = await withRetry(() => aiClient!.models.generateContent({
+        model: "gemini-2.0-flash",
+        contents: prompt,
+        config: { systemInstruction, temperature: 0.7, tools: [{ googleSearch: {} }] }
+      }));
+      const reading = result.text;
+      if (!reading) throw new Error("Empty response from AI");
+      res.json({ reading });
+    } catch (err: any) {
+      const isRateLimit = String(err.message).match(/429|rate|limit/i);
+      if (isRateLimit) {
+        return res.status(429).json({ error: "The cosmic energies are aligning. Please try again in a few minutes." });
+      }
+      console.error("[AI] Astrology error:", err.message);
+      res.status(500).json({ error: "The stars are currently obscured. Please try again later." });
+    }
+  });
+
+  // Catch-all for undefined API routes
+  app.all("/api/*", (req, res) => {
+    console.warn(`[API] 404 Not Found: ${req.method} ${req.url}`);
+    res.status(404).json({ error: `API route not found: ${req.method} ${req.url}` });
+  });
+
+
   // --- VITE MIDDLEWARE ---
 
   if (process.env.NODE_ENV !== "production") {
@@ -1422,6 +1956,19 @@ async function startServer() {
     });
   }
   console.log("Vite middleware/static serving configured.");
+
+  // Global Error Handler for API (Moved to end)
+  app.use("/api", (err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+    console.error("[API Global Error]", err);
+    if (!res.headersSent) {
+      res.status(err.status || 500).json({
+        error: err.message || "Internal Server Error",
+        code: err.code || "UNKNOWN_ERROR"
+      });
+    } else {
+      next(err);
+    }
+  });
 
   app.listen(PORT, "0.0.0.0", () => {
     console.log(`Server listening on port ${PORT}`);

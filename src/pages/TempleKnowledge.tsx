@@ -132,7 +132,7 @@ export default function TempleKnowledge() {
       <section className="relative h-[50vh] flex items-center overflow-hidden mb-12">
         <div className="absolute inset-0 z-0">
           <img
-            src="https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&q=80&w=1920"
+            src="/hero/temples-hero.png"
             alt="Sacred Temples"
             className="w-full h-full object-cover"
             referrerPolicy="no-referrer"

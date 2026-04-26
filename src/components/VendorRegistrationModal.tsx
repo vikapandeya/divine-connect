@@ -20,7 +20,8 @@ export const VendorRegistrationModal: React.FC<VendorRegistrationModalProps> = (
     businessName: '',
     businessType: 'priest',
     description: '',
-    gstNumber: '',
+    contactPhone: '',
+    contactAddress: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -40,7 +41,10 @@ export const VendorRegistrationModal: React.FC<VendorRegistrationModalProps> = (
         }),
       });
 
-      if (!response.ok) throw new Error('Failed to submit registration');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to submit registration');
+      }
 
       setStep(3);
       onSuccess();
@@ -145,12 +149,41 @@ export const VendorRegistrationModal: React.FC<VendorRegistrationModalProps> = (
                     </label>
                     <textarea
                       required
-                      rows={3}
+                      rows={2}
                       className="w-full px-4 py-3 rounded-xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 focus:ring-2 focus:ring-orange-500 outline-none transition-all resize-none"
                       placeholder="Tell us about your services and experience..."
                       value={formData.description}
                       onChange={e => setFormData({ ...formData, description: e.target.value })}
                     />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-bold text-stone-700 dark:text-stone-300">
+                        Contact Phone
+                      </label>
+                      <input
+                        required
+                        type="tel"
+                        className="w-full px-4 py-3 rounded-xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 focus:ring-2 focus:ring-orange-500 outline-none transition-all"
+                        placeholder="+91 9876543210"
+                        value={formData.contactPhone}
+                        onChange={e => setFormData({ ...formData, contactPhone: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-bold text-stone-700 dark:text-stone-300">
+                        Business Address
+                      </label>
+                      <input
+                        required
+                        type="text"
+                        className="w-full px-4 py-3 rounded-xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 focus:ring-2 focus:ring-orange-500 outline-none transition-all"
+                        placeholder="e.g. Haridwar, Uttarakhand"
+                        value={formData.contactAddress}
+                        onChange={e => setFormData({ ...formData, contactAddress: e.target.value })}
+                      />
+                    </div>
                   </div>
 
                   {error && (
