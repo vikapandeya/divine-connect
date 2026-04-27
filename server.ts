@@ -246,7 +246,7 @@ async function initDatabase() {
 async function startServer() {
   console.log("Starting server initialization...");
   const app = express();
-  const PORT = 3000;
+  const PORT = Number(process.env.PORT) || 3000;
 
   try {
     // Initialize database in background or with timeout to prevent blocking whole server start
