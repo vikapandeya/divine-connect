@@ -1,0 +1,7 @@
+<svg width="400" height="100" viewBox="0 0 400 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="80" height="80" x="10" y="10" rx="16" fill="#F97316"/>
+  <path d="M50 25L65 50H35L50 25Z" fill="white"/>
+  <path d="M50 75L35 50H65L50 75Z" fill="white"/>
+  <circle cx="50" cy="50" r="10" fill="white"/>
+  <text x="100" y="65" fill="white" font-family="serif" font-weight="bold" font-size="48">PunyaSeva</text>
+</svg>

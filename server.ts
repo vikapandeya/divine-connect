@@ -11,6 +11,7 @@ import Stripe from "stripe";
 import mysql from "mysql2/promise";
 import { DatabaseAdapter, FirestoreAdapter, MySQLAdapter } from "./src/lib/db.ts";
 import rateLimit from "express-rate-limit";
+import { buildOpenRouterPrompt, generateKundliReading, type AstrologyMode } from "./src/lib/astrology.ts";
 
 dotenv.config();
 
@@ -23,6 +24,68 @@ const __dirname = path.dirname(__filename);
 
 let adapter: DatabaseAdapter;
 let firebaseConfig: any = {};
+
+async function retryAsync<T>(fn: () => Promise<T>, retries = 3, delayMs = 1000): Promise<T> {
+  try {
+    return await fn();
+  } catch (error: any) {
+    const message = String(error?.message || '').toLowerCase();
+    const retryable =
+      message.includes('429') ||
+      message.includes('rate') ||
+      message.includes('limit') ||
+      message.includes('timeout');
+
+    if (!retryable || retries <= 0) {
+      throw error;
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, delayMs));
+    return retryAsync(fn, retries - 1, delayMs * 2);
+  }
+}
+
+async function createOpenRouterReading(mode: Exclude<AstrologyMode, 'kundli'>, payload: any) {
+  const apiKey = process.env.OPENROUTER_API_KEY;
+  if (!apiKey) {
+    throw new Error("AI astrology is not configured yet. Add OPENROUTER_API_KEY before using this feature.");
+  }
+
+  const { systemInstruction, prompt } = buildOpenRouterPrompt(mode, payload);
+  const response = await retryAsync(async () => {
+    const apiResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+        "HTTP-Referer": process.env.VITE_APP_URL || "http://localhost:3000",
+        "X-OpenRouter-Title": "PunyaSeva Astrology",
+      },
+      body: JSON.stringify({
+        model: process.env.OPENROUTER_MODEL || "openrouter/free",
+        temperature: 0.7,
+        max_tokens: 900,
+        messages: [
+          { role: "system", content: systemInstruction },
+          { role: "user", content: prompt },
+        ],
+      }),
+    });
+
+    const data = await apiResponse.json();
+    if (!apiResponse.ok) {
+      const detail = data?.error?.message || data?.message || `OpenRouter request failed with status ${apiResponse.status}`;
+      throw new Error(detail);
+    }
+    return data;
+  });
+
+  const content = response?.choices?.[0]?.message?.content;
+  if (typeof content === "string" && content.trim()) {
+    return content.trim();
+  }
+  throw new Error("The AI astrology response was empty.");
+}
 
 async function initDatabase() {
   const dbType = process.env.DB_TYPE || 'firestore';
@@ -155,6 +218,38 @@ async function startServer() {
 
   app.use(express.json());
   console.log("Express middleware configured.");
+
+  const astrologyLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 30,
+    message: { error: "Too many astrology requests, please try again shortly." },
+  });
+
+  app.post("/api/astrology/reading", astrologyLimiter, async (req, res) => {
+    const { mode, payload } = req.body as { mode?: AstrologyMode; payload?: any };
+
+    if (!mode || !payload) {
+      return res.status(400).json({ error: "mode and payload are required" });
+    }
+
+    try {
+      if (mode === "kundli") {
+        const reading = generateKundliReading(payload);
+        return res.json(reading);
+      }
+
+      const supportedModes: AstrologyMode[] = ["birth-chart", "rashifal", "adv-chart"];
+      if (!supportedModes.includes(mode)) {
+        return res.status(400).json({ error: "Unsupported astrology mode" });
+      }
+
+      const reading = await createOpenRouterReading(mode, payload);
+      return res.json({ reading });
+    } catch (error) {
+      console.error("[API] POST /api/astrology/reading error:", error);
+      return res.status(500).json({ error: (error as Error).message });
+    }
+  });
 
   app.post("/api/admin/send-announcement", async (req, res) => {
     const { title, message, targetRole } = req.body;
@@ -1403,4 +1498,3 @@ async function startServer() {
 }
 
 startServer();
-
