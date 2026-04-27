@@ -165,10 +165,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
             <Link to="/" className="flex items-center shrink-0">
-              <img 
-                src={resolvedTheme === 'dark' ? '/logo/dark-logo.svg' : '/logo/full-logo.svg'} 
-                alt="PunyaSeva" 
-                className="h-10 w-auto hidden md:block" 
+              <img
+                src={resolvedTheme === 'dark' ? '/logo/dark-logo.svg' : '/logo/horizontal-logo.svg'}
+                alt="PunyaSeva"
+                className="h-10 w-auto hidden md:block"
                 referrerPolicy="no-referrer"
               />
               <img 
@@ -458,10 +458,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div className="col-span-1 md:col-span-2">
               <div className="mb-6">
-                <img 
-                  src="/logo/full-logo.svg" 
-                  alt="PunyaSeva" 
-                  className="h-10 md:h-12 w-auto" 
+                <img
+                  src="/logo/dark-logo.svg"
+                  alt="PunyaSeva"
+                  className="h-10 md:h-12 w-auto"
                   referrerPolicy="no-referrer"
                 />
               </div>
