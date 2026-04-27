@@ -11,7 +11,7 @@ export default defineConfig(() => {
   return {
     base: '/',
     build: {
-      outDir: 'docs',
+      outDir: 'dist',
       emptyOutDir: true,
       // Split vendor libraries into logical groups to reduce initial load
       rollupOptions: {

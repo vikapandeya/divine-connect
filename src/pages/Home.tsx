@@ -284,10 +284,10 @@ export default function Home() {
             className="max-w-3xl"
           >
             <div className="mb-4 md:mb-6">
-              <img 
-                src="/logo/full-logo.svg" 
-                alt="PunyaSeva" 
-                className="h-12 md:h-20 w-auto" 
+              <img
+                src="/logo/dark-logo.svg"
+                alt="PunyaSeva"
+                className="h-12 md:h-20 w-auto"
                 referrerPolicy="no-referrer"
               />
             </div>
