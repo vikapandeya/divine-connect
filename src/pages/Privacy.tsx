@@ -13,7 +13,7 @@ export default function Privacy() {
         >
           <div className="mb-8">
             <img 
-              src="/logo/icon-only.png" 
+              src="/logo/icon-only.svg" 
               alt="PunyaSeva" 
               className="h-12 w-auto" 
               referrerPolicy="no-referrer"

@@ -544,8 +544,13 @@ export default function TempleKnowledge() {
       {/* Hero */}
       <section className="relative h-[50vh] flex items-center overflow-hidden mb-12">
         <div className="absolute inset-0 z-0">
-          <img src="https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&q=80&w=1920" alt="Sacred Temples" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-          <div className="absolute inset-0 bg-stone-950/65 backdrop-blur-[1px]" />
+          <img
+            src="/hero/temples-hero.png"
+            alt="Sacred Temples"
+            className="w-full h-full object-cover"
+            referrerPolicy="no-referrer"
+          />
+          <div className="absolute inset-0 bg-stone-950/60 backdrop-blur-[2px]" />
         </div>
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center w-full">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>

@@ -6,7 +6,12 @@ CREATE TABLE IF NOT EXISTS users (
   password VARCHAR(255),
   photoURL TEXT,
   address TEXT,
+  phoneNumber VARCHAR(20),
+  bio TEXT,
+  bannerURL TEXT,
   role ENUM('devotee', 'vendor', 'admin') DEFAULT 'devotee',
+  vendorStatus ENUM('none', 'pending', 'approved', 'rejected') DEFAULT 'none',
+  fcmToken TEXT,
   createdAt DATETIME
 );
 

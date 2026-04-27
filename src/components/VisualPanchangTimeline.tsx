@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Sun, Moon, Clock, Info } from 'lucide-react';
+import { getPanchangForDate, PanchangData } from '../services/panchangService';
 
 interface TimelineSection {
   label: string;
@@ -15,44 +16,49 @@ interface TimelineRow {
 }
 
 export default function VisualPanchangTimeline() {
+  const [panchang, setPanchang] = useState<PanchangData | null>(null);
+
+  useEffect(() => {
+    setPanchang(getPanchangForDate());
+  }, []);
+
+  if (!panchang) return null;
+
   const tithiRow: TimelineRow = {
     title: "Tithi",
     sections: [
-      { label: "Dwitiya", time: "10:49", width: 25, color: "bg-orange-500/20" },
-      { label: "Tritiya", width: 75, color: "bg-orange-500/10" }
+      { label: panchang.tithiName, time: "Now", width: 45, color: "bg-orange-500/20" },
+      { label: "Transitioning", width: 55, color: "bg-orange-500/10" }
     ]
   };
 
   const nakshatraRow: TimelineRow = {
     title: "Nakshatra",
     sections: [
-      { label: "Bharani", time: "07:10", width: 10, color: "bg-blue-500/20" },
-      { label: "Krittika", time: "04:35 (Next)", width: 85, color: "bg-blue-500/10" },
-      { label: "Rohini", width: 5, color: "bg-blue-500/5" }
+      { label: panchang.nakshatra, width: 70, color: "bg-blue-500/20" },
+      { label: "Purnavasu", width: 30, color: "bg-blue-500/10" }
     ]
   };
 
   const yogaRow: TimelineRow = {
     title: "Yoga",
     sections: [
-      { label: "Ayushmana", time: "08:02", width: 60, color: "bg-purple-500/20" },
-      { label: "Saubhagya", width: 40, color: "bg-purple-500/10" }
+      { label: panchang.yoga, width: 100, color: "bg-purple-500/20" }
     ]
   };
 
   const karanaRow: TimelineRow = {
     title: "Karana",
     sections: [
-      { label: "Kaulava", time: "10:49", width: 25, color: "bg-emerald-500/20" },
-      { label: "Taitila", time: "09:07", width: 45, color: "bg-emerald-500/15" },
-      { label: "Garaja", width: 30, color: "bg-emerald-500/10" }
+      { label: panchang.karana, width: 50, color: "bg-emerald-500/20" },
+      { label: "Taitila", width: 50, color: "bg-emerald-500/15" }
     ]
   };
 
   const weekdayRow: TimelineRow = {
     title: "Weekday",
     sections: [
-      { label: "Raviwara", width: 100, color: "bg-stone-500/10" }
+      { label: panchang.weekday, width: 100, color: "bg-stone-500/10" }
     ]
   };
 
@@ -66,18 +72,18 @@ export default function VisualPanchangTimeline() {
             <Clock className="w-8 h-8 text-orange-500" />
             Vedic Timeline Chart
           </h2>
-          <p className="text-stone-500 dark:text-stone-400 text-sm mt-1">Linear visualization of cosmic transitions for April 19, 2026</p>
+          <p className="text-stone-500 dark:text-stone-400 text-sm mt-1">Linear visualization for {panchang.date}</p>
         </div>
         <div className="flex items-center gap-4 bg-white dark:bg-stone-800 p-3 rounded-2xl shadow-sm border border-stone-100 dark:border-stone-700">
            <div className="flex flex-col items-center px-4 border-r border-stone-200 dark:border-stone-700">
               <Sun className="w-5 h-5 text-orange-500 mb-1" />
               <span className="text-[10px] font-black text-stone-400 uppercase">Sunrise</span>
-              <span className="text-xs font-bold text-stone-900 dark:text-white">05:52 AM</span>
+              <span className="text-xs font-bold text-stone-900 dark:text-white">{panchang.sunrise}</span>
            </div>
            <div className="flex flex-col items-center px-4">
               <Sun className="w-5 h-5 text-red-500 mb-1" />
               <span className="text-[10px] font-black text-stone-400 uppercase">Sunset</span>
-              <span className="text-xs font-bold text-stone-900 dark:text-white">06:49 PM</span>
+              <span className="text-xs font-bold text-stone-900 dark:text-white">{panchang.sunset}</span>
            </div>
         </div>
       </div>

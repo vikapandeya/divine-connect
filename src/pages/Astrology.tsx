@@ -97,8 +97,8 @@ export default function Astrology() {
     setError('');
     setReading(null);
 
-    // Caching logic for Rashifal
-    const cacheKey = activeTab === 'rashifal' 
+    // Client-side Rashifal cache (per day)
+    const cacheKey = activeTab === 'rashifal'
       ? `rashifal_${rashifalData.sign}_${rashifalData.timeframe}_${new Date().toISOString().split('T')[0]}`
       : null;
 
@@ -123,6 +123,9 @@ export default function Astrology() {
 
       const result = await response.json();
       if (!response.ok) {
+        if (response.status === 429) {
+          throw new Error('RATE_LIMIT');
+        }
         throw new Error(result?.error || 'The stars are currently obscured. Please try again later.');
       }
 
@@ -130,7 +133,7 @@ export default function Astrology() {
       if (!reply) {
         throw new Error('The astrology response was empty.');
       }
-      
+
       setReading(reply);
       if (cacheKey && reply) {
         localStorage.setItem(cacheKey, reply);
@@ -162,7 +165,7 @@ export default function Astrology() {
       <div className="max-w-4xl mx-auto relative z-10">
         <div className="flex justify-center mb-8">
           <img 
-            src="/logo/icon-only.png" 
+            src="/logo/icon-only.svg" 
             alt="PunyaSeva" 
             className="h-12 w-auto brightness-0 invert" 
             referrerPolicy="no-referrer"

@@ -7,11 +7,12 @@ interface FeedbackModalProps {
   isOpen: boolean;
   onClose: () => void;
   serviceId?: string;
+  vendorId?: string;
   type: 'puja' | 'product' | 'general';
   serviceName?: string;
 }
 
-export default function FeedbackModal({ isOpen, onClose, serviceId, type, serviceName }: FeedbackModalProps) {
+export default function FeedbackModal({ isOpen, onClose, serviceId, vendorId, type, serviceName }: FeedbackModalProps) {
   const currentUser = auth?.currentUser;
   const [rating, setRating] = useState(5);
   const [hoverRating, setHoverRating] = useState(0);
@@ -39,6 +40,7 @@ export default function FeedbackModal({ isOpen, onClose, serviceId, type, servic
           rating,
           message,
           serviceId,
+          vendorId,
           type
         })
       });

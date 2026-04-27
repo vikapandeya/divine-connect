@@ -6,15 +6,11 @@ import { useSearchParams, Link } from 'react-router-dom';
 import { addToCart } from '../lib/cart';
 import { formatIndianRupees } from '../lib/utils';
 import { addToWishlist, removeFromWishlist, isInWishlist } from '../lib/wishlist';
-import { auth } from '../firebase';
+import { auth, db } from '../firebase';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import AIGroundedSearch from '../components/AIGroundedSearch';
 
 const categories = ['all', ...PRODUCT_CATEGORIES];
-
-
-const makeProductImage = (label: string, c1: string, c2: string): string => {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="${c1}"/><stop offset="100%" stop-color="${c2}"/></linearGradient></defs><rect width="400" height="400" fill="url(#g)" rx="12"/><text x="200" y="195" text-anchor="middle" dominant-baseline="middle" font-family="Georgia,serif" font-size="24" fill="rgba(255,255,255,0.95)" font-weight="bold">${label}</text></svg>`;
-  return `data:image/svg+xml,${encodeURIComponent(svg)}`;
-};
 
 const fallbackProducts = [
   {
@@ -23,7 +19,7 @@ const fallbackProducts = [
     price: 1299,
     category: 'Idols',
     rating: 4.8,
-    image: makeProductImage('Brass Ganesha Idol', '#f59e0b', '#d97706'),
+    image: 'https://images.unsplash.com/photo-1544731612-de7f96afe55f?auto=format&fit=crop&q=80&w=400',
   },
   {
     id: '2',
@@ -31,7 +27,7 @@ const fallbackProducts = [
     price: 250,
     category: 'Incense',
     rating: 4.5,
-    image: makeProductImage('Sandalwood Incense', '#84cc16', '#4d7c0f'),
+    image: 'https://images.unsplash.com/photo-1512411956555-523c06e897a6?auto=format&fit=crop&q=80&w=400',
   },
   {
     id: '3',
@@ -39,7 +35,7 @@ const fallbackProducts = [
     price: 599,
     category: 'Mala',
     rating: 4.9,
-    image: makeProductImage('Rudraksha Mala', '#7c3aed', '#5b21b6'),
+    image: 'https://images.unsplash.com/photo-1596464716127-f2a82984de30?auto=format&fit=crop&q=80&w=400',
   },
   {
     id: '4',
@@ -47,7 +43,7 @@ const fallbackProducts = [
     price: 450,
     category: 'Books',
     rating: 5.0,
-    image: makeProductImage('Bhagavad Gita', '#1e40af', '#1e3a8a'),
+    image: 'https://images.unsplash.com/photo-1545105511-930777907912?auto=format&fit=crop&q=80&w=400',
   },
   {
     id: '5',
@@ -55,7 +51,7 @@ const fallbackProducts = [
     price: 899,
     category: 'Yantras',
     rating: 4.7,
-    image: makeProductImage('Shree Yantra', '#9333ea', '#7e22ce'),
+    image: 'https://images.unsplash.com/photo-1590050752117-23a9d7fc6bbd?auto=format&fit=crop&q=80&w=400',
   },
   {
     id: '6',
@@ -63,7 +59,7 @@ const fallbackProducts = [
     price: 250,
     category: 'Prasad',
     rating: 4.9,
-    image: makeProductImage('Kashi Prasad', '#f97316', '#c2410c'),
+    image: 'https://images.unsplash.com/photo-1561361058-c24cecae35ca?auto=format&fit=crop&q=80&w=400',
     templeName: 'Kashi Vishwanath',
     weightOptions: [{ label: '250g', price: 250 }, { label: '500g', price: 450 }]
   },
@@ -73,7 +69,7 @@ const fallbackProducts = [
     price: 350,
     category: 'Prasad',
     rating: 5.0,
-    image: makeProductImage('Tirupati Laddu', '#ec4899', '#be185d'),
+    image: 'https://images.unsplash.com/photo-1545105511-930777907912?auto=format&fit=crop&q=80&w=400',
     templeName: 'Tirupati Balaji',
     weightOptions: [{ label: '1 Unit', price: 350 }, { label: '2 Units', price: 650 }]
   },
@@ -110,9 +106,11 @@ export default function Shop() {
   useEffect(() => {
     const fetchWishlist = async () => {
       if (!auth.currentUser) return;
-      const raw = JSON.parse(localStorage.getItem('wishlist') || '[]');
-      const itemIds = new Set(raw.filter((i: any) => i.userId === auth.currentUser!.uid && i.type === 'product').map((i: any) => i.itemId));
-      setWishlistItems(itemIds as Set<string>);
+      const wishlistRef = collection(db, 'wishlist');
+      const q = query(wishlistRef, where('userId', '==', auth.currentUser.uid), where('type', '==', 'product'));
+      const snapshot = await getDocs(q);
+      const itemIds = new Set(snapshot.docs.map(doc => doc.data().itemId));
+      setWishlistItems(itemIds);
     };
     fetchWishlist();
   }, []);
@@ -260,7 +258,7 @@ export default function Shop() {
       <section className="relative h-[40vh] flex items-center overflow-hidden mb-12">
         <div className="absolute inset-0 z-0">
           <img
-            src="https://picsum.photos/seed/shop-hero/1920/1080?blur=2"
+            src="/hero/shop-hero.png"
             alt="Spiritual Marketplace"
             className="w-full h-full object-cover"
             referrerPolicy="no-referrer"
@@ -275,9 +273,9 @@ export default function Shop() {
           >
             <div className="flex justify-center mb-8">
               <img 
-                src="/logo/full-logo.png" 
+                src="/logo/full-logo.svg" 
                 alt="PunyaSeva" 
-                className="h-20 w-auto brightness-0 invert" 
+                className="h-12 md:h-16 w-auto" 
                 referrerPolicy="no-referrer"
               />
             </div>
@@ -434,6 +432,8 @@ export default function Shop() {
           </div>
         </div>
 
+        <AIGroundedSearch query={searchInput} type="product" />
+
         {selectedCategory === 'Prasad' && temples.length > 0 && (
           <div className="mb-8 p-6 bg-stone-100 dark:bg-stone-900 rounded-3xl border border-stone-200 dark:border-stone-800">
             <h3 className="text-sm font-bold text-stone-900 dark:text-white mb-4">Filter by Temple:</h3>
@@ -457,8 +457,15 @@ export default function Shop() {
           </div>
         )}
 
-        <div className="mb-10 text-sm text-stone-500">
-          {loading ? 'Refreshing catalog...' : `${filteredProducts.length} items found`}
+        <div className="mb-10 flex items-center gap-3">
+          {loading ? (
+            <div className="flex items-center gap-2 text-sm text-orange-500 font-medium">
+              <div className="w-4 h-4 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
+              Refreshing catalog...
+            </div>
+          ) : (
+            <span className="text-sm text-stone-500 font-medium">{filteredProducts.length} items found</span>
+          )}
         </div>
 
         {filteredProducts.length === 0 ? (

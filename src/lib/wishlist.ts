@@ -1,34 +1,53 @@
-import { auth } from '../firebase';
-
-const KEY = 'wishlist';
-
-type WishItem = { userId: string; itemId: string; type: string };
-
-function load(): WishItem[] {
-  try { return JSON.parse(localStorage.getItem(KEY) || '[]'); } catch { return []; }
-}
-function save(items: WishItem[]) {
-  localStorage.setItem(KEY, JSON.stringify(items));
-}
+import { db, auth } from '../firebase';
+import { collection, addDoc, query, where, getDocs, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
 
 export const addToWishlist = async (itemId: string, type: 'product' | 'puja') => {
   if (!auth.currentUser) return;
-  const items = load();
-  if (!items.some(i => i.userId === auth.currentUser!.uid && i.itemId === itemId && i.type === type)) {
-    items.push({ userId: auth.currentUser.uid, itemId, type });
-    save(items);
+
+  const wishlistRef = collection(db, 'wishlist');
+  const q = query(wishlistRef, 
+    where('userId', '==', auth.currentUser.uid), 
+    where('itemId', '==', itemId),
+    where('type', '==', type)
+  );
+
+  const snapshot = await getDocs(q);
+  if (snapshot.empty) {
+    await addDoc(wishlistRef, {
+      userId: auth.currentUser.uid,
+      itemId,
+      type,
+      createdAt: serverTimestamp()
+    });
   }
 };
 
 export const removeFromWishlist = async (itemId: string, type: 'product' | 'puja') => {
   if (!auth.currentUser) return;
-  save(load().filter(i => !(i.userId === auth.currentUser!.uid && i.itemId === itemId && i.type === type)));
+
+  const wishlistRef = collection(db, 'wishlist');
+  const q = query(wishlistRef, 
+    where('userId', '==', auth.currentUser.uid), 
+    where('itemId', '==', itemId),
+    where('type', '==', type)
+  );
+
+  const snapshot = await getDocs(q);
+  snapshot.forEach(async (document) => {
+    await deleteDoc(doc(db, 'wishlist', document.id));
+  });
 };
 
-export const isInWishlist = async (itemId: string, type: 'product' | 'puja'): Promise<boolean> => {
+export const isInWishlist = async (itemId: string, type: 'product' | 'puja') => {
   if (!auth.currentUser) return false;
-  return load().some(i => i.userId === auth.currentUser!.uid && i.itemId === itemId && i.type === type);
-};
 
-export const getWishlistItems = (userId: string) =>
-  load().filter(i => i.userId === userId);
+  const wishlistRef = collection(db, 'wishlist');
+  const q = query(wishlistRef, 
+    where('userId', '==', auth.currentUser.uid), 
+    where('itemId', '==', itemId),
+    where('type', '==', type)
+  );
+
+  const snapshot = await getDocs(q);
+  return !snapshot.empty;
+};

@@ -187,7 +187,7 @@ export default function Contact() {
       <section className="relative h-[40vh] flex items-center overflow-hidden mb-12">
         <div className="absolute inset-0 z-0">
           <img
-            src="https://picsum.photos/seed/contact-hero/1920/1080?blur=2"
+            src="/hero/services-hero.png"
             alt="Contact PunyaSeva"
             className="w-full h-full object-cover"
             referrerPolicy="no-referrer"
@@ -202,7 +202,7 @@ export default function Contact() {
           >
             <div className="flex justify-center mb-8">
               <img 
-                src="/logo/full-logo.png" 
+                src="/logo/full-logo.svg" 
                 alt="PunyaSeva" 
                 className="h-20 w-auto brightness-0 invert" 
                 referrerPolicy="no-referrer"

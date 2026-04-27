@@ -28,6 +28,18 @@ export default function PujaDetail() {
   const [showWhatsAppModal, setShowWhatsAppModal] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
 
+  const totalAmount = useMemo(() => {
+    if (!puja) return 0;
+    return isOnline 
+      ? (puja.onlinePrice || 0) 
+      : (puja.offlinePrice || 0) + (bringSamagri ? (puja.samagriPrice || 0) : 0);
+  }, [puja, isOnline, bringSamagri]);
+
+  const basePrice = useMemo(() => {
+    if (!puja) return 0;
+    return isOnline ? (puja.onlinePrice || 0) : (puja.offlinePrice || 0);
+  }, [puja, isOnline]);
+
   const pujaImages = useMemo(() => [
     `https://picsum.photos/seed/${id}_1/1200/800`,
     `https://picsum.photos/seed/${id}_2/1200/800`,
@@ -98,9 +110,6 @@ export default function PujaDetail() {
   const handleBooking = async () => {
     setShowConfirmation(false);
     setIsBooking(true);
-    const totalAmount = isOnline 
-      ? (puja?.onlinePrice || 0) 
-      : (puja?.offlinePrice || 0) + (bringSamagri ? (puja?.samagriPrice || 0) : 0);
 
     try {
       const response = await fetch('/api/bookings', {
@@ -146,12 +155,8 @@ export default function PujaDetail() {
     setShowConfirmation(true);
   };
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
-  if (!puja) return <div className="min-h-screen flex items-center justify-center">Puja not found.</div>;
-
-  const basePrice = isOnline ? puja.onlinePrice : puja.offlinePrice;
-  const samagriCost = (!isOnline && bringSamagri) ? (puja.samagriPrice || 0) : 0;
-  const totalAmount = basePrice + samagriCost;
+  if (loading) return <div className="min-h-screen flex items-center justify-center font-serif text-stone-500">Loading sacred space...</div>;
+  if (!puja) return <div className="min-h-screen flex items-center justify-center font-serif text-stone-500">Puja not found.</div>;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -498,18 +503,29 @@ export default function PujaDetail() {
                     </div>
                   </div>
 
-                  <div className="space-y-3 px-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-stone-500">Service Mode</span>
-                      <span className="font-bold text-stone-900">{isOnline ? 'Online (Video Call)' : 'Offline (At Home)'}</span>
-                    </div>
-                    {!isOnline && (
+                    <div className="space-y-2 px-2 pb-4 border-b border-stone-100">
                       <div className="flex justify-between text-sm">
-                        <span className="text-stone-500">Samagri Arrangement</span>
-                        <span className="font-bold text-stone-900">{bringSamagri ? 'Pandit Ji Brings' : 'I will Arrange'}</span>
+                        <span className="text-stone-500">Service Mode</span>
+                        <span className="font-bold text-stone-900">{isOnline ? 'Online (Video Call)' : 'Offline (At Home)'}</span>
                       </div>
-                    )}
-                    <div className="flex justify-between text-sm pt-3 border-t border-stone-100">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-stone-500">Base Price</span>
+                        <div className="flex items-center font-bold text-stone-900">
+                          <IndianRupee className="w-3 h-3" />
+                          <span>{basePrice}</span>
+                        </div>
+                      </div>
+                      {!isOnline && bringSamagri && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-stone-500">Samagri Cost</span>
+                          <div className="flex items-center font-bold text-stone-900">
+                            <IndianRupee className="w-3 h-3" />
+                            <span>{puja.samagriPrice || 0}</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex justify-between text-sm pt-2 px-2">
                       <span className="text-stone-900 font-bold">Total Amount</span>
                       <div className="flex items-center text-xl font-serif font-bold text-orange-600">
                         <IndianRupee className="w-4 h-4" />
@@ -517,9 +533,8 @@ export default function PujaDetail() {
                       </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="flex gap-3">
+                  <div className="flex gap-3">
                   <button
                     onClick={() => setShowConfirmation(false)}
                     className="flex-1 py-3 rounded-xl font-bold text-stone-600 bg-stone-100 hover:bg-stone-200 transition-colors"
@@ -724,6 +739,7 @@ export default function PujaDetail() {
           }
         }}
         serviceId={id}
+        vendorId={puja.vendorId}
         type="puja"
         serviceName={puja.title}
       />

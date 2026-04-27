@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { auth } from '../firebase';
+import { db, auth } from '../firebase';
+import { collection, query, where, getDocs, doc, getDoc, deleteDoc } from 'firebase/firestore';
 import { Product, WishlistItem } from '../types';
 import { motion } from 'framer-motion';
 import { Heart, ShoppingCart, Trash2, IndianRupee, ArrowRight } from 'lucide-react';
@@ -50,8 +51,7 @@ export default function Wishlist() {
 
   const removeItem = async (wishlistId: string) => {
     try {
-      const items = JSON.parse(localStorage.getItem('wishlist') || '[]');
-      localStorage.setItem('wishlist', JSON.stringify(items.filter((i: any) => i.itemId !== wishlistId)));
+      await deleteDoc(doc(db, 'wishlist', wishlistId));
       setItems(prev => prev.filter(item => item.wishlistId !== wishlistId));
     } catch (error) {
       console.error('Error removing item from wishlist:', error);

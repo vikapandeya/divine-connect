@@ -295,6 +295,21 @@
         "rating": { "type": "number" }
       },
       "required": ["vendorId", "title", "price", "duration", "location"]
+    },
+    "NaamJap": {
+      "title": "Naam Jap",
+      "description": "User's meditation counts for specific mantras.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "mantraId": { "type": "string" },
+        "mantraName": { "type": "string" },
+        "count": { "type": "integer" },
+        "target": { "type": "integer" },
+        "date": { "type": "string", "format": "date" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "mantraName", "count", "date"]
     }
   },
   "firestore": {
@@ -312,6 +327,7 @@
     "/vendor_wallets/{vendorId}": { "schema": "VendorWallet", "description": "Vendor wallet balances." },
     "/vendor_payouts/{payoutId}": { "schema": "VendorPayout", "description": "Vendor payout requests." },
     "/vendor_transactions/{transactionId}": { "schema": "VendorTransaction", "description": "Vendor wallet transactions." },
-    "/yatras/{yatraId}": { "schema": "Yatra", "description": "Yatra packages." }
+    "/yatras/{yatraId}": { "schema": "Yatra", "description": "Yatra packages." },
+    "/naam_jap/{japId}": { "schema": "NaamJap", "description": "User's mantra counting progress." }
   }
 }

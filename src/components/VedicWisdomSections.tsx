@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Globe, Sun, Moon, Star, Calendar, Clock, 
-  ChevronRight, Sparkles, BookOpen, Compass,
-  Layout, Activity, Info, X, Zap, Loader2
+  ChevronRight, Sparkles, Compass,
+  Layout, Activity, Info, X, Zap
 } from 'lucide-react';
 import VisualPanchangTimeline from './VisualPanchangTimeline';
+import { getPanchangForDate, PanchangData } from '../services/panchangService';
 
 // --- Types ---
 type ToolType = 'lunar' | 'muhurta' | 'chronology' | 'timeline' | null;
@@ -52,7 +53,7 @@ const ADVANCED_WISDOM = [
     id: 'mantri',
     title: 'Mantri Mandala',
     subtitle: 'The Celestial Governance',
-    content: "Every Samvat Year has a 'Planetary Cabinet'. In Vikrama Samvata 2083, Guru (Jupiter) reigns as King 👑, ensuring a focus on spiritual wealth and wisdom. Chandra serves as the Commander-in-Chief ⚔️, influencing emotional tides and nourishment.",
+    content: "Every Samvat Year has a 'Planetary Cabinet'. In the current Samvata, Guru (Jupiter) or other designated planets influence the global landscape, defining our spiritual and emotional tides.",
     icon: <Star className="w-6 h-6 text-yellow-500" />,
     linkText: 'Explore Depth'
   },
@@ -68,7 +69,7 @@ const ADVANCED_WISDOM = [
     id: 'disha',
     title: 'Disha Shool & Vasa',
     subtitle: 'Space & Direction Wisdom',
-    content: "Avoid 'Disha Shool' (Directional Pain) to align with favorable flows. For instance, traveling West on Sundays is often avoided. It also guides 'Agnivasa' and 'Shivavasa' for auspicious ceremonies.",
+    content: "Avoid 'Disha Shool' (Directional Pain) to align with favorable flows. For instance, traveling West on Sundays is often avoided. I guides 'Agnivasa' and 'Shivavasa' for auspicious ceremonies.",
     icon: <Compass className="w-6 h-6 text-blue-500" />,
     linkText: 'Explore Depth'
   }
@@ -95,7 +96,7 @@ const TOOLS = [
     id: 'chronology',
     title: 'Vedic Chronology',
     subtitle: 'The Great Epochs',
-    description: 'Track the vast timelines of Dharma. Explore the transition of Samvatsaras and the influence of the 2083 Mantri Mandala.',
+    description: 'Track the vast timelines of Dharma. Explore the transition of Samvatsaras and the influence of the current Samvat cycle.',
     icon: <Activity className="w-6 h-6 text-red-400" />,
     tag: 'Epochs'
   },
@@ -111,14 +112,22 @@ const TOOLS = [
 
 // --- Mini Tools Components ---
 
-const LunarPhaseTracker = () => {
-    // Current date is April 19, 2026. 
-    // April 17 is New Moon (Amavasya) approximately. So Apr 19 is Shukla Dwitiya/Tritiya.
-    const tithis = Array.from({ length: 30 }, (_, i) => ({
-        id: i + 1,
-        name: i < 15 ? `Shukla ${i + 1}` : `Krishna ${i - 14}`,
-        isCurrent: i === 1 // Dwitiya
-    }));
+const TITHI_NAMES = [
+  "Pratipada", "Dwitiya", "Tritiya", "Chaturthi", "Panchami", "Shashthi", "Saptami", "Ashtami", "Navami", "Dashami",
+  "Ekadashi", "Dwadashi", "Trayodashi", "Chaturdashi", "Purnima",
+  "Pratipada", "Dwitiya", "Tritiya", "Chaturthi", "Panchami", "Shashthi", "Saptami", "Ashtami", "Navami", "Dashami",
+  "Ekadashi", "Dwadashi", "Trayodashi", "Chaturdashi", "Amavasya"
+];
+
+const LunarPhaseTracker = ({ data }: { data: PanchangData }) => {
+    const tithis = Array.from({ length: 30 }, (_, i) => {
+        const currentTithiIndex = Math.floor(data.moonPhase * 30) % 30;
+        return {
+            id: i + 1,
+            name: i < 15 ? `Shukla ${TITHI_NAMES[i]}` : `Krishna ${TITHI_NAMES[i-15]}`,
+            isCurrent: i === currentTithiIndex
+        };
+    });
 
     return (
         <div className="space-y-6">
@@ -126,6 +135,7 @@ const LunarPhaseTracker = () => {
                 {tithis.map((t) => (
                     <div 
                         key={t.id}
+                        title={t.name}
                         className={`aspect-square rounded-lg flex flex-col items-center justify-center p-1 border transition-all ${
                             t.isCurrent 
                             ? 'bg-orange-500 border-orange-400 scale-110 shadow-lg shadow-orange-500/20' 
@@ -142,44 +152,48 @@ const LunarPhaseTracker = () => {
             <div className="bg-orange-500/10 border border-orange-500/20 p-4 rounded-2xl">
                 <h4 className="text-orange-400 font-bold mb-1 flex items-center gap-2">
                     <Zap className="w-4 h-4" />
-                    Current Phase: Shukla Dwitiya
+                    Current Phase: {data.tithi}
                 </h4>
-                <p className="text-stone-400 text-xs"> The mental energy is growing as the Moon moves away from the Sun. An excellent time for starting new creative projects.</p>
+                <p className="text-stone-400 text-xs">
+                    {data.paksha === 'Shukla' 
+                        ? "The mental energy is growing as the Moon moves away from the Sun. An excellent time for expansion and starting new creative projects."
+                        : "The energy is turning inward. Ideal for introspection, completing deep work, and spiritual purification."}
+                </p>
             </div>
         </div>
     );
 };
 
-const VedicChronologyTracker = () => {
+const VedicChronologyTracker = ({ data }: { data: PanchangData }) => {
     return (
         <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="bg-white/5 p-4 rounded-2xl border border-white/10">
                     <span className="text-[10px] font-black text-stone-500 uppercase">Current Kaliyuga Year</span>
-                    <h4 className="text-2xl font-serif text-white">5,127 Years</h4>
+                    <h4 className="text-2xl font-serif text-white">{data.kaliyugaYear.toLocaleString()} Years</h4>
                     <div className="mt-2 w-full h-1 bg-white/10 rounded-full overflow-hidden">
                         <div className="w-[1%] h-full bg-orange-500" />
                     </div>
                 </div>
                 <div className="bg-white/5 p-4 rounded-2xl border border-white/10">
                     <span className="text-[10px] font-black text-stone-500 uppercase">Current Samvatsara</span>
-                    <h4 className="text-2xl font-serif text-white">Siddharthi</h4>
-                    <p className="text-stone-500 text-xs mt-1">The 53rd year in the 60-year Jupiter cycle.</p>
+                    <h4 className="text-2xl font-serif text-white">{data.samvatsara}</h4>
+                    <p className="text-stone-500 text-xs mt-1">The current sovereign of the sixty-year Jovian cycle.</p>
                 </div>
             </div>
             <div className="p-4 rounded-2xl border border-emerald-500/20 bg-emerald-500/5">
-                <p className="text-stone-300 text-sm italic">"Time is a wheel, and we are but observers of its grand rotation. Every Samvat brings a new cosmic flavor to humanity."</p>
+                <p className="text-stone-300 text-sm italic">"Time is a wheel, and we are but observers of its grand rotation. We are currently navigating the Vikram Samvat {data.samvat} era."</p>
             </div>
         </div>
     );
 };
 
-const MuhurtaMasteryTool = () => {
+const MuhurtaMasteryTool = ({ data }: { data: PanchangData }) => {
     const Muhurtas = [
         { name: 'Ravi Yoga', time: 'Full Day', type: 'Success', color: 'text-orange-400' },
-        { name: 'Anandadi Yoga', time: '05:52 AM - 12:47 PM', type: 'Progress', color: 'text-emerald-400' },
-        { name: 'Siddha Yoga', time: '01:22 PM - Sunset', type: 'Completion', color: 'text-blue-400' },
-        { name: 'Amrit Kaal', time: '09:30 PM (Night)', type: 'Spiritual', color: 'text-purple-400' }
+        { name: 'Nakshatra: ' + data.nakshatra, time: 'Current Star Alignment', type: 'Celestial', color: 'text-emerald-400' },
+        { name: 'Yoga: ' + data.yoga, time: 'Dynamic Flow', type: 'Auspicious', color: 'text-blue-400' },
+        { name: 'Karana: ' + data.karana, time: 'Action Window', type: 'Productive', color: 'text-purple-400' }
     ];
 
     return (
@@ -207,6 +221,13 @@ const MuhurtaMasteryTool = () => {
 export default function VedicWisdomSections() {
   const [activeTool, setActiveTool] = useState<ToolType>(null);
   const [activeWisdom, setActiveWisdom] = useState<WisdomType>(null);
+  const [panchang, setPanchang] = useState<PanchangData | null>(null);
+
+  useEffect(() => {
+    setPanchang(getPanchangForDate());
+  }, []);
+
+  if (!panchang) return null;
 
   return (
     <div className="space-y-24 mt-20">
@@ -214,7 +235,7 @@ export default function VedicWisdomSections() {
       <section>
         <div className="text-center mb-12">
           <h2 className="text-4xl font-serif font-bold text-white mb-4">Regional Calendar Guides</h2>
-          <p className="text-stone-400">Understanding diverse spiritual time-keeping across India</p>
+          <p className="text-stone-400">Current Date: {new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -352,9 +373,9 @@ export default function VedicWisdomSections() {
               </div>
 
               <div className="p-8 overflow-y-auto flex-grow custom-scrollbar">
-                {activeTool === 'lunar' && <LunarPhaseTracker />}
-                {activeTool === 'muhurta' && <MuhurtaMasteryTool />}
-                {activeTool === 'chronology' && <VedicChronologyTracker />}
+                {activeTool === 'lunar' && <LunarPhaseTracker data={panchang} />}
+                {activeTool === 'muhurta' && <MuhurtaMasteryTool data={panchang} />}
+                {activeTool === 'chronology' && <VedicChronologyTracker data={panchang} />}
                 {activeTool === 'timeline' && <VisualPanchangTimeline />}
                 
                 {activeWisdom === 'mantri' && (
@@ -363,7 +384,7 @@ export default function VedicWisdomSections() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
                         <span className="text-orange-400 font-bold block mb-1">Raja (The King)</span>
-                        <p className="text-sm">Guru (Jupiter) rules this year, bringing expansion of knowledge, spiritual growth, and prosperity to those aligned with Dharma.</p>
+                        <p className="text-sm">Guru (Jupiter) rules many years, bringing expansion of knowledge, spiritual growth, and prosperity to those aligned with Dharma.</p>
                       </div>
                       <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
                         <span className="text-blue-400 font-bold block mb-1">Mantri (The Minister)</span>
@@ -378,15 +399,15 @@ export default function VedicWisdomSections() {
                     <p className="leading-relaxed">Vedic time is not just linear but qualitative. Specific Muhurtas offer unique cosmic windows for various activities.</p>
                     <div className="space-y-3">
                       <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
-                        <h5 className="font-bold text-white mb-2 underline decoration-purple-500 underline-offset-4">Brahma Muhurta (04:24 AM - 05:12 AM)</h5>
+                        <h5 className="font-bold text-white mb-2 underline decoration-purple-500 underline-offset-4">Brahma Muhurta ({panchang.sunrise} - Pre-dawn)</h5>
                         <p className="text-sm">The 'Time of the Creator'. Ideal for meditation, study, and self-reflection as the Sattva Guna is dominant.</p>
                       </div>
                       <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
-                        <h5 className="font-bold text-white mb-2 underline decoration-emerald-500 underline-offset-4">Vijaya Muhurta (01:50 PM - 02:40 PM)</h5>
+                        <h5 className="font-bold text-white mb-2 underline decoration-emerald-500 underline-offset-4">Vijaya Muhurta (Auspicious Window)</h5>
                         <p className="text-sm">The 'Time of Victory'. Highly auspicious for starting legal matters, competitive tasks, or important journeys.</p>
                       </div>
                       <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
-                        <h5 className="font-bold text-white mb-2 underline decoration-orange-500 underline-offset-4">Godhuli (Sunset Period)</h5>
+                        <h5 className="font-bold text-white mb-2 underline decoration-orange-500 underline-offset-4">Godhuli ({panchang.sunset} Period)</h5>
                         <p className="text-sm">Literally 'Dust of the Cows'. A peaceful time suitable for prayer, lighting lamps, and homecoming.</p>
                       </div>
                     </div>
@@ -410,7 +431,7 @@ export default function VedicWisdomSections() {
                         <li className="text-stone-400">Fri: West</li>
                         <li className="text-stone-400">Sat: East</li>
                       </ul>
-                      <p className="mt-6 text-stone-500 text-xs italic">Note: These are general guidelines. Consult a Panchang for specific lunar and planetary overlaps.</p>
+                      <p className="mt-6 text-stone-500 text-xs italic">Note: These are general guidelines based on the {panchang.weekday} Disha Shool.</p>
                     </div>
                   </div>
                 )}

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { auth } from '../firebase';
 import { UserProfile, Booking, Order } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -6,7 +7,6 @@ import { User, Package, Calendar, Settings, Phone, Mail, Download, Printer, X, F
 import { formatIndianRupees } from '../lib/utils';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../hooks/useAuth';
-import { VendorRegistrationModal } from '../components/VendorRegistrationModal';
 
 interface ReceiptData {
   receiptId: string;
@@ -35,13 +35,6 @@ export default function Profile() {
   const [isResetting, setIsResetting] = useState(false);
   const [selectedReceipt, setSelectedReceipt] = useState<ReceiptData | null>(null);
   const [loadingReceipt, setLoadingReceipt] = useState(false);
-  const [isVendorModalOpen, setIsVendorModalOpen] = useState(false);
-  const [vendorForm, setVendorForm] = useState({
-    businessName: '',
-    businessType: 'Pandit' as 'Pandit' | 'Shop',
-    description: ''
-  });
-  const [vendorLoading, setVendorLoading] = useState(false);
 
   useEffect(() => {
     if (!currentUser || authLoading) return;
@@ -119,31 +112,6 @@ export default function Profile() {
 
   const handlePrint = () => {
     window.print();
-  };
-
-  const handleVendorRegister = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!currentUser) return;
-    setVendorLoading(true);
-    try {
-      const response = await fetch('/api/vendor/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: currentUser.uid,
-          ...vendorForm
-        })
-      });
-      if (response.ok) {
-        setIsVendorModalOpen(false);
-        alert('Vendor registration submitted successfully! Your account will be reviewed.');
-        window.location.reload();
-      }
-    } catch (error) {
-      console.error('Error registering as vendor:', error);
-    } finally {
-      setVendorLoading(false);
-    }
   };
 
   const handleResetPassword = async (e: React.FormEvent) => {
@@ -362,7 +330,7 @@ export default function Profile() {
 
                     <div className="pt-8 border-t border-stone-100 dark:border-stone-800">
                       <h4 className="text-sm font-bold text-stone-900 dark:text-white mb-4">Vendor Account</h4>
-                      {profile?.role === 'vendor' || profile?.vendorStatus === 'rejected' ? (
+                      {profile?.vendorStatus && profile.vendorStatus !== 'none' ? (
                         <div className={`p-4 border rounded-2xl flex items-center justify-between ${
                           profile.vendorStatus === 'pending' 
                             ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-900/30' 
@@ -381,6 +349,11 @@ export default function Profile() {
                               <p className="text-sm font-bold text-stone-900 dark:text-white">
                                 {profile.vendorStatus === 'pending' ? 'Registration Pending' : 
                                  profile.vendorStatus === 'rejected' ? 'Registration Rejected' : 'You are a Vendor'}
+                                {profile.vendorDetails?.businessName && (
+                                  <span className="ml-2 py-0.5 px-2 bg-white/50 dark:bg-stone-800/50 rounded-lg text-[10px] font-medium border border-current opacity-60">
+                                    {profile.vendorDetails.businessName}
+                                  </span>
+                                )}
                               </p>
                               <p className="text-xs text-stone-500 dark:text-stone-400">
                                 {profile.vendorStatus === 'pending' 
@@ -392,20 +365,20 @@ export default function Profile() {
                             </div>
                           </div>
                           {profile.vendorStatus === 'approved' && (
-                            <button 
-                              onClick={() => window.location.href = '/vendor'}
+                            <Link 
+                              to="/vendor"
                               className="px-4 py-2 bg-green-600 text-white text-xs font-bold rounded-xl hover:bg-green-700 transition-colors"
                             >
                               Go to Dashboard
-                            </button>
+                            </Link>
                           )}
                           {profile.vendorStatus === 'rejected' && (
-                            <button 
-                              onClick={() => setIsVendorModalOpen(true)}
+                            <Link 
+                              to="/vendor-registration"
                               className="px-4 py-2 bg-stone-900 text-white text-xs font-bold rounded-xl hover:bg-stone-800 transition-colors"
                             >
                               Re-apply
-                            </button>
+                            </Link>
                           )}
                         </div>
                       ) : (
@@ -419,12 +392,12 @@ export default function Profile() {
                               <p className="text-xs text-stone-500 dark:text-stone-400">Start selling your spiritual products or services</p>
                             </div>
                           </div>
-                          <button 
-                            onClick={() => setIsVendorModalOpen(true)}
+                          <Link 
+                            to="/vendor-registration"
                             className="px-4 py-2 bg-orange-600 text-white text-xs font-bold rounded-xl hover:bg-orange-700 transition-colors"
                           >
                             Register Now
-                          </button>
+                          </Link>
                         </div>
                       )}
                     </div>
@@ -741,16 +714,6 @@ export default function Profile() {
           </div>
         </div>
       )}
-      {/* Vendor Registration Modal */}
-      <VendorRegistrationModal
-        isOpen={isVendorModalOpen}
-        onClose={() => setIsVendorModalOpen(false)}
-        userId={currentUser.uid}
-        onSuccess={() => {
-          // Refresh profile data
-          window.location.reload();
-        }}
-      />
     </div>
   );
 }

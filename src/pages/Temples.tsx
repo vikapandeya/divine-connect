@@ -2,13 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { MapPin, Star, ArrowRight, Search, Filter, Info, Calendar } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import AIGroundedSearch from '../components/AIGroundedSearch';
 
 const temples = [
   {
     id: 'kashi',
     name: 'Kashi Vishwanath Temple',
     location: 'Varanasi, Uttar Pradesh',
-    image: 'https://picsum.photos/seed/kashi/800/600',
+    image: 'https://images.unsplash.com/photo-1561361058-c24cecae35ca?auto=format&fit=crop&q=80&w=800',
     description: 'One of the most famous Hindu temples dedicated to Lord Shiva. It is located in Varanasi, the holiest city for Hindus.',
     rating: 4.9,
     services: ['Puja', 'Prasad Delivery', 'Darshan Guidance'],
@@ -18,7 +19,7 @@ const temples = [
     id: 'tirupati',
     name: 'Tirupati Balaji Temple',
     location: 'Tirumala, Andhra Pradesh',
-    image: 'https://picsum.photos/seed/tirupati/800/600',
+    image: 'https://images.unsplash.com/photo-1621360241104-79948730b474?auto=format&fit=crop&q=80&w=800',
     description: 'Dedicated to Lord Venkateswara, an incarnation of Vishnu, who is believed to have appeared here to save mankind from trials and troubles of Kali Yuga.',
     rating: 5.0,
     services: ['Laddu Prasad', 'Special Entry Darshan', 'Seva Booking'],
@@ -28,7 +29,7 @@ const temples = [
     id: 'somnath',
     name: 'Somnath Temple',
     location: 'Prabhas Patan, Gujarat',
-    image: 'https://picsum.photos/seed/somnath/800/600',
+    image: 'https://images.unsplash.com/photo-1590050752117-23a9d7fc6bbd?auto=format&fit=crop&q=80&w=800',
     description: 'The first among the twelve Jyotirlinga shrines of Shiva. It is an important pilgrimage and tourist spot of Gujarat.',
     rating: 4.8,
     services: ['Aarti Booking', 'Prasad Delivery', 'Accommodation'],
@@ -38,7 +39,7 @@ const temples = [
     id: 'meenakshi',
     name: 'Meenakshi Amman Temple',
     location: 'Madurai, Tamil Nadu',
-    image: 'https://picsum.photos/seed/madurai/800/600',
+    image: 'https://images.unsplash.com/photo-1582510003544-4d00b7f74220?auto=format&fit=crop&q=80&w=800',
     description: 'A historic Hindu temple located on the southern bank of the Vaigai River in the temple city of Madurai.',
     rating: 4.9,
     services: ['Guided Tour', 'Special Puja', 'Cultural Events'],
@@ -48,7 +49,7 @@ const temples = [
     id: 'jagannath',
     name: 'Jagannath Temple',
     location: 'Puri, Odisha',
-    image: 'https://picsum.photos/seed/puri/800/600',
+    image: 'https://images.unsplash.com/photo-1605631729606-d713c8751e06?auto=format&fit=crop&q=80&w=800',
     description: 'An important Hindu temple dedicated to Jagannath, a form of Vishnu, in Puri in the state of Odisha on the eastern coast of India.',
     rating: 4.8,
     services: ['Mahaprasad', 'Ratha Yatra Guidance', 'Puja'],
@@ -70,7 +71,7 @@ export default function Temples() {
       <section className="relative h-[50vh] flex items-center overflow-hidden mb-12">
         <div className="absolute inset-0 z-0">
           <img
-            src="https://picsum.photos/seed/temples-hero/1920/1080?blur=2"
+            src="/hero/temples-hero.png"
             alt="Famous Temples of India"
             className="w-full h-full object-cover"
             referrerPolicy="no-referrer"
@@ -85,9 +86,9 @@ export default function Temples() {
           >
             <div className="flex justify-center mb-8">
               <img 
-                src="/logo/full-logo.png" 
+                src="/logo/full-logo.svg" 
                 alt="PunyaSeva" 
-                className="h-20 w-auto brightness-0 invert" 
+                className="h-12 md:h-16 w-auto" 
                 referrerPolicy="no-referrer"
               />
             </div>
@@ -118,6 +119,8 @@ export default function Temples() {
             <span>{filteredTemples.length} Temples Found</span>
           </div>
         </div>
+
+        <AIGroundedSearch query={searchTerm} type="general" />
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {filteredTemples.map((temple, index) => (

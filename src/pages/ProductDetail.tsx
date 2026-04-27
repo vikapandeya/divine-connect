@@ -140,6 +140,7 @@ export default function ProductDetail() {
           rating: newReview.rating,
           message: newReview.comment,
           serviceId: id,
+          vendorId: product?.vendorId,
           type: 'product'
         })
       });

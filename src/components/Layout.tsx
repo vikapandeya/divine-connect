@@ -24,8 +24,18 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const [cartCount, setCartCount] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
   const navigate = useNavigate();
-  const { pathname } = useLocation(); // Correctly use useLocation
+  const location = useLocation();
+  const { pathname } = location;
   const [notification, setNotification] = useState<{title: string, body: string} | null>(null);
+
+  // Auto-open auth modal when ProtectedRoute redirects unauthenticated users
+  useEffect(() => {
+    if ((location.state as any)?.openAuth) {
+      setIsAuthModalOpen(true);
+      // Clear the state so navigating back doesn't re-open
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state]);
 
   // Request notification permission
   useEffect(() => {
@@ -73,10 +83,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const navLinks = [
     { to: '/', label: t('Home') },
     { to: '/services', label: t('Services') },
+    { to: '/naam-jap', label: t('Naam Jap') },
     { to: '/shop', label: t('Shop') },
     { to: '/temples', label: t('Temples') },
     { to: '/astrology', label: t('AI Astrology') },
-    { to: '/naam-jap', label: '🕉️ Jap Counter' },
   ];
 
   useEffect(() => {
@@ -115,7 +125,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     event.preventDefault();
 
     const query = searchTerm.trim();
-    navigate(query ? `/shop?q=${encodeURIComponent(query)}` : '/shop');
+    navigate(query ? `/search?q=${encodeURIComponent(query)}` : '/shop');
     setIsMenuOpen(false);
   };
 
@@ -154,15 +164,15 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
-            <Link to="/" className="flex items-center">
+            <Link to="/" className="flex items-center shrink-0">
               <img 
-                src={resolvedTheme === 'dark' ? '/logo/dark-logo.png' : '/logo/full-logo.png'} 
+                src={resolvedTheme === 'dark' ? '/logo/dark-logo.svg' : '/logo/full-logo.svg'} 
                 alt="PunyaSeva" 
                 className="h-10 w-auto hidden md:block" 
                 referrerPolicy="no-referrer"
               />
               <img 
-                src="/logo/icon-only.png" 
+                src="/logo/icon-only.svg" 
                 alt="PunyaSeva" 
                 className="h-8 w-auto md:hidden" 
                 referrerPolicy="no-referrer"
@@ -170,7 +180,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             </Link>
 
             {/* Desktop Nav */}
-            <nav className="hidden md:flex items-center space-x-8">
+            <nav className="hidden lg:flex items-center space-x-4 xl:space-x-8">
               {navLinks.map((link) => (
                 <NavLink
                   key={link.to}
@@ -195,14 +205,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 </div>
               )}
 
-              <form onSubmit={handleSearch} className="hidden sm:flex items-center bg-stone-100 dark:bg-stone-800 rounded-full px-3 py-1.5">
+              <form onSubmit={handleSearch} className="hidden xl:flex items-center bg-stone-100 dark:bg-stone-800 rounded-full px-3 py-1.5 focus-within:ring-2 focus-within:ring-orange-500/20 transition-all">
                 <Search className="w-4 h-4 text-stone-400" />
                 <input 
                   type="text" 
                   placeholder={t('Search...')} 
                   value={searchTerm}
                   onChange={(event) => setSearchTerm(event.target.value)}
-                  className="bg-transparent border-none focus:ring-0 text-sm w-32 lg:w-48 ml-2 dark:text-stone-100"
+                  className="bg-transparent border-none focus:ring-0 text-sm w-32 xl:w-48 ml-2 dark:text-stone-100"
                 />
               </form>
               
@@ -375,7 +385,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 </AnimatePresence>
               </div>
 
-              <button className="md:hidden p-2 text-stone-600 dark:text-stone-400" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+              <button className="lg:hidden p-2 text-stone-600 dark:text-stone-400" onClick={() => setIsMenuOpen(!isMenuOpen)}>
                 {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
               </button>
             </div>
@@ -389,12 +399,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="md:hidden bg-white dark:bg-stone-900 border-t border-stone-100 dark:border-stone-800 overflow-hidden"
+              className="lg:hidden bg-white dark:bg-stone-900 border-t border-stone-100 dark:border-stone-800 overflow-hidden"
             >
               <div className="px-4 pt-2 pb-6 space-y-1">
                 <div className="px-3 py-4 border-b border-stone-100 dark:border-stone-800 mb-2">
                   <img 
-                    src="/logo/icon-only.png" 
+                    src="/logo/icon-only.svg" 
                     alt="PunyaSeva" 
                     className="h-10 w-auto" 
                     referrerPolicy="no-referrer"
@@ -449,9 +459,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <div className="col-span-1 md:col-span-2">
               <div className="mb-6">
                 <img 
-                  src="/logo/full-logo.png" 
+                  src="/logo/full-logo.svg" 
                   alt="PunyaSeva" 
-                  className="h-16 w-auto brightness-0 invert" 
+                  className="h-10 md:h-12 w-auto" 
                   referrerPolicy="no-referrer"
                 />
               </div>
@@ -474,7 +484,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 <li><Link to="/contact" className="hover:text-orange-500 transition-colors">{t('Contact Us')}</Link></li>
                 <li><a href="https://punyaseva.in" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors">www.punyaseva.in</a></li>
                 <li>support@punyaseva.in</li>
-                <li>+91 1800-DIVINE-00</li>
+                <li>{import.meta.env.VITE_WHATSAPP_NUMBER || '+91 91287 70114'}</li>
                 <li>Varanasi, Uttar Pradesh, India</li>
               </ul>
             </div>

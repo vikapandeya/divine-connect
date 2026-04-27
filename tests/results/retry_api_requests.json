@@ -2,79 +2,79 @@
     "createBooking":  {
                           "ok":  false,
                           "responseBody":  null,
-                          "message":  "Unable to connect to the remote server",
-                          "status":  null
+                          "message":  "The remote server returned an error: (500) Internal Server Error.",
+                          "status":  500
                       },
     "createOrder":  {
                         "ok":  false,
                         "responseBody":  null,
-                        "message":  "Unable to connect to the remote server",
-                        "status":  null
+                        "message":  "The remote server returned an error: (500) Internal Server Error.",
+                        "status":  500
                     },
     "userLogin":  {
                       "ok":  false,
                       "responseBody":  null,
-                      "message":  "Unable to connect to the remote server",
-                      "status":  null
+                      "message":  "The remote server returned an error: (500) Internal Server Error.",
+                      "status":  500
                   },
     "vendorLogin":  {
                         "ok":  false,
                         "responseBody":  null,
-                        "message":  "Unable to connect to the remote server",
-                        "status":  null
+                        "message":  "The remote server returned an error: (500) Internal Server Error.",
+                        "status":  500
                     },
     "getUserProfile":  {
                            "ok":  false,
                            "responseBody":  null,
-                           "message":  "Unable to connect to the remote server",
-                           "status":  null
+                           "message":  "The remote server returned an error: (500) Internal Server Error.",
+                           "status":  500
                        },
     "getOrders":  {
                       "ok":  false,
                       "responseBody":  null,
-                      "message":  "Unable to connect to the remote server",
-                      "status":  null
+                      "message":  "The remote server returned an error: (500) Internal Server Error.",
+                      "status":  500
                   },
     "adminLogin":  {
                        "ok":  false,
                        "responseBody":  null,
-                       "message":  "Unable to connect to the remote server",
-                       "status":  null
+                       "message":  "The remote server returned an error: (500) Internal Server Error.",
+                       "status":  500
                    },
     "sendAnnouncement":  {
                              "ok":  false,
                              "responseBody":  null,
-                             "message":  "Unable to connect to the remote server",
-                             "status":  null
+                             "message":  "The remote server returned an error: (500) Internal Server Error.",
+                             "status":  500
                          },
     "vendorWallet":  {
                          "ok":  false,
                          "responseBody":  null,
-                         "message":  "Unable to connect to the remote server",
-                         "status":  null
+                         "message":  "The remote server returned an error: (500) Internal Server Error.",
+                         "status":  500
                      },
     "getVendorProfile":  {
                              "ok":  false,
                              "responseBody":  null,
-                             "message":  "Unable to connect to the remote server",
-                             "status":  null
+                             "message":  "The remote server returned an error: (500) Internal Server Error.",
+                             "status":  500
                          },
     "adminPendingVendors":  {
                                 "ok":  false,
                                 "responseBody":  null,
-                                "message":  "Unable to connect to the remote server",
-                                "status":  null
+                                "message":  "The remote server returned an error: (500) Internal Server Error.",
+                                "status":  500
                             },
     "adminStats":  {
                        "ok":  false,
                        "responseBody":  null,
-                       "message":  "Unable to connect to the remote server",
-                       "status":  null
+                       "message":  "The remote server returned an error: (500) Internal Server Error.",
+                       "status":  500
                    },
     "vendorBookings":  {
                            "ok":  false,
                            "responseBody":  null,
-                           "message":  "Unable to connect to the remote server",
-                           "status":  null
+                           "message":  "The remote server returned an error: (500) Internal Server Error.",
+                           "status":  500
                        }
 }
