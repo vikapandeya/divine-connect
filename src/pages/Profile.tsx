@@ -218,7 +218,7 @@ export default function Profile() {
                 <Package className="w-5 h-5 mr-3" />
                 My Orders
               </button>
-              {profile?.role === 'vendor' && (
+              { (profile?.role === 'vendor' || profile?.role === 'devotee') && (
                 <button 
                   onClick={() => window.location.href = '/vendor'}
                   className="w-full flex items-center px-6 py-4 text-sm font-bold text-stone-600 dark:text-stone-400 hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors"

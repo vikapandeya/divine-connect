@@ -402,7 +402,11 @@ export class FirestoreAdapter implements DatabaseAdapter {
   async getUsersByRole(role: string): Promise<any[]> {
     let query: admin.firestore.Query = this.db.collection("users");
     if (role && role !== 'all') {
-      query = query.where("role", "==", role);
+      if (role === 'vendor') {
+        query = query.where("role", "in", ["vendor", "devotee"]);
+      } else {
+        query = query.where("role", "==", role);
+      }
     }
     const snap = await query.get();
     return snap.docs.map(doc => ({ uid: doc.id, ...doc.data() }));
@@ -944,8 +948,12 @@ export class MySQLAdapter implements DatabaseAdapter {
     let sql = "SELECT * FROM users";
     const params = [];
     if (role && role !== 'all') {
-      sql += " WHERE role = ?";
-      params.push(role);
+      if (role === 'vendor') {
+        sql += " WHERE role IN ('vendor', 'devotee')";
+      } else {
+        sql += " WHERE role = ?";
+        params.push(role);
+      }
     }
     return this.query(sql, params);
   }
