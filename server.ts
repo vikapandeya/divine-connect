@@ -11,6 +11,9 @@ import { getFirestore } from "firebase-admin/firestore";
 import Stripe from "stripe";
 import mysql from "mysql2/promise";
 import rateLimit from "express-rate-limit";
+import helmet from "helmet";
+import jwt from "jsonwebtoken";
+import cookieParser from "cookie-parser";
 import { buildOpenRouterPrompt, generateKundliReading, type AstrologyMode } from "./src/lib/astrology.ts";
 import { GoogleGenAI, Type } from "@google/genai";
 import { DatabaseAdapter, FirestoreAdapter, MySQLAdapter } from "./src/lib/db.ts";
@@ -246,6 +249,7 @@ async function initDatabase() {
 async function startServer() {
   console.log("Starting server initialization...");
   const app = express();
+  app.set("trust proxy", 1); // Trust Cloudflare + Nginx
   const PORT = Number(process.env.PORT) || 3000;
 
   try {
@@ -270,6 +274,9 @@ async function startServer() {
   const allowedOrigins = [
     'http://localhost:3000',
     'http://localhost:5173',
+    'https://pre.punyaseva.in',
+    'https://punyaseva.in',
+    'https://www.punyaseva.in',
     ...(process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim()) : []),
   ];
   app.use(cors({
@@ -311,7 +318,44 @@ async function startServer() {
   app.use('/api', apiRateLimit);
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
+  app.use(cookieParser());
+
+  // ── Security headers ──────────────────────────────────────────────────────
+  app.use(helmet({
+    contentSecurityPolicy: false, // Managed by Cloudflare / configured separately
+    crossOriginEmbedderPolicy: false,
+  }));
+  app.disable("x-powered-by");
+  app.use((_req, res, next) => {
+    res.setHeader("X-Frame-Options", "SAMEORIGIN");
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+    res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+    next();
+  });
+
   console.log("Express middleware configured.");
+
+  // ── Auth middleware ───────────────────────────────────────────────────────
+  const JWT_SECRET = process.env.JWT_SECRET || "change-me-in-production";
+  const requireAuth = (req: any, res: any, next: any) => {
+    const token = req.cookies?.authToken || req.headers.authorization?.replace("Bearer ", "");
+    if (!token) return res.status(401).json({ error: "Authentication required" });
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET) as any;
+      req.user = decoded;
+      next();
+    } catch {
+      return res.status(401).json({ error: "Invalid or expired session" });
+    }
+  };
+  const requireAdmin = (req: any, res: any, next: any) => {
+    requireAuth(req, res, () => {
+      if (req.user?.role !== "admin") return res.status(403).json({ error: "Admin access required" });
+      next();
+    });
+  };
+
 
   // Response logger
   app.use((req, res, next) => {
@@ -391,7 +435,7 @@ async function startServer() {
     }
   });
 
-  app.post("/api/admin/send-announcement", async (req, res) => {
+  app.post("/api/admin/send-announcement", requireAdmin, async (req, res) => {
     const { title, message, targetRole } = req.body;
     try {
       const users = await adapter.getUsersByRole(targetRole);
@@ -625,6 +669,9 @@ async function startServer() {
 
     app.post("/api/auth/register", async (req, res) => {
       const { email, password, displayName, role } = req.body;
+      if (!email || !password || !displayName) {
+        return res.status(400).json({ error: "email, password, and displayName are required" });
+      }
       try {
       const existingUser = await adapter.getUserByEmail(email);
       if (existingUser) {
@@ -673,12 +720,50 @@ async function startServer() {
         return res.status(401).json({ message: "Invalid credentials" });
       }
       
+      const token = jwt.sign(
+        { uid: user.uid, email: user.email, role: user.role },
+        JWT_SECRET,
+        { expiresIn: "7d" }
+      );
+      res.cookie("authToken", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      });
       res.json({ success: true, user: { uid: user.uid, email: user.email, displayName: user.displayName, role: user.role } });
     } catch (error) {
       console.error("[API] POST /api/auth/login error:", error);
       res.status(500).json({ error: (error as Error).message });
     }
   });
+
+    app.post("/api/auth/logout", (req, res) => {
+    res.clearCookie("authToken");
+    res.json({ success: true });
+  });
+
+  app.post("/api/auth/reset-password", async (req, res) => {
+      const { email, newPassword } = req.body;
+      if (!email || !newPassword) {
+        return res.status(400).json({ error: "email and newPassword are required" });
+      }
+      try {
+        const user = await adapter.getUserByEmail(email);
+        if (!user) {
+          return res.status(404).json({ error: "No account found with that email" });
+        }
+        if (!user.password) {
+          return res.status(400).json({ error: "This account uses Google sign-in. Reset your Google password instead." });
+        }
+        const hashed = await bcrypt.hash(newPassword, 10);
+        await adapter.updateUser(user.uid, { password: hashed });
+        res.json({ success: true });
+      } catch (error) {
+        console.error("[API] POST /api/auth/reset-password error:", error);
+        res.status(500).json({ error: (error as Error).message });
+      }
+    });
 
     // Users
     app.get("/api/users/:uid", async (req, res) => {
@@ -738,7 +823,8 @@ async function startServer() {
       const vendors = await adapter.getUsersByRole('vendor');
       const vendorDetails = await Promise.all(vendors.map(async (v: any) => {
         const details = await adapter.getVendor(v.uid);
-        return { ...v, ...details };
+        const { password: _pw, ...safe } = { ...v, ...details };
+        return safe;
       }));
       res.json(vendorDetails);
     } catch (error) {
@@ -857,12 +943,8 @@ async function startServer() {
         return res.status(404).json({ message: "Vendor not found" });
       }
       
-      // Merge data for the profile
-      res.json({
-        ...userData,
-        ...vendorData,
-        uid: vendorId // Ensure UID is correct
-      });
+      const { password: _pw, ...safeUser } = userData as any;
+      res.json({ ...safeUser, ...vendorData, uid: vendorId });
     } catch (error) {
       console.error(`[API] GET /api/vendors/${vendorId} error:`, error);
       res.status(500).json({ error: (error as Error).message });
@@ -1259,7 +1341,7 @@ async function startServer() {
     }
   }
 
-  app.get("/api/vendor/wallet/:vendorId", async (req, res) => {
+  app.get("/api/vendor/wallet/:vendorId", requireAuth, async (req, res) => {
     try {
       const { vendorId } = req.params;
       const wallet = await adapter.getWallet(vendorId);

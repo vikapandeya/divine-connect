@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
+import CookieConsent from './components/CookieConsent';
 
 // ─── Lazy-loaded pages (code-split per route) ──────────────────────────────
 const Home               = lazy(() => import('./pages/Home'));
@@ -91,6 +92,7 @@ function App() {
           </Routes>
         </Suspense>
       </Layout>
+      <CookieConsent />
     </Router>
   );
 }

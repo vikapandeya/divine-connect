@@ -139,7 +139,7 @@ const signInWithSocial = async (provider: GoogleAuthProvider | FacebookAuthProvi
         email: firebaseUser.email,
         displayName: firebaseUser.displayName,
         photoURL: firebaseUser.photoURL,
-        role: userRole
+        role: role
       })
     });
     
