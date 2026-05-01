@@ -56,7 +56,7 @@ export default function DailyPanchang() {
     }, 1000);
 
     const getPanchang = async () => {
-      const dateKey = `panchang_${new Date().toISOString().split('T')[0]}_${i18n.language}`;
+      const dateKey = `panchang_v3_${new Date().toISOString().split('T')[0]}_${i18n.language}`;
       const cached = localStorage.getItem(dateKey);
 
       if (cached) {

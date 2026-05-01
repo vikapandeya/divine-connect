@@ -15,6 +15,7 @@ import helmet from "helmet";
 import jwt from "jsonwebtoken";
 import cookieParser from "cookie-parser";
 import { buildOpenRouterPrompt, generateKundliReading, type AstrologyMode } from "./src/lib/astrology.ts";
+import { calculatePanchang } from "./src/lib/panchangCalc.ts";
 import { GoogleGenAI, Type } from "@google/genai";
 import { DatabaseAdapter, FirestoreAdapter, MySQLAdapter } from "./src/lib/db.ts";
 
@@ -89,44 +90,87 @@ async function retryAsync<T>(fn: () => Promise<T>, retries = 3, delayMs = 1000):
 
 async function createOpenRouterReading(mode: Exclude<AstrologyMode, 'kundli'>, payload: any) {
   const apiKey = process.env.OPENROUTER_API_KEY;
-  if (!apiKey) {
-    throw new Error("AI astrology is not configured yet. Add OPENROUTER_API_KEY before using this feature.");
-  }
-
   const { systemInstruction, prompt } = buildOpenRouterPrompt(mode, payload);
-  const response = await retryAsync(async () => {
-    const apiResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-        "HTTP-Referer": process.env.VITE_APP_URL || "http://localhost:3000",
-        "X-OpenRouter-Title": "PunyaSeva Astrology",
-      },
-      body: JSON.stringify({
-        model: process.env.OPENROUTER_MODEL || "openrouter/free",
-        temperature: 0.7,
-        max_tokens: 900,
-        messages: [
-          { role: "system", content: systemInstruction },
-          { role: "user", content: prompt },
-        ],
-      }),
+
+  // If OpenRouter key is available, use it
+  if (apiKey) {
+    const response = await retryAsync(async () => {
+      const apiResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+          "HTTP-Referer": process.env.VITE_APP_URL || "http://localhost:3000",
+          "X-OpenRouter-Title": "PunyaSeva Astrology",
+        },
+        body: JSON.stringify({
+          model: process.env.OPENROUTER_MODEL || "openrouter/free",
+          temperature: 0.7,
+          max_tokens: 900,
+          messages: [
+            { role: "system", content: systemInstruction },
+            { role: "user", content: prompt },
+          ],
+        }),
+      });
+
+      const data = await apiResponse.json();
+      if (!apiResponse.ok) {
+        const detail = data?.error?.message || data?.message || `OpenRouter request failed with status ${apiResponse.status}`;
+        throw new Error(detail);
+      }
+      return data;
     });
 
-    const data = await apiResponse.json();
-    if (!apiResponse.ok) {
-      const detail = data?.error?.message || data?.message || `OpenRouter request failed with status ${apiResponse.status}`;
-      throw new Error(detail);
+    const content = response?.choices?.[0]?.message?.content;
+    if (typeof content === "string" && content.trim()) {
+      return content.trim();
     }
-    return data;
-  });
-
-  const content = response?.choices?.[0]?.message?.content;
-  if (typeof content === "string" && content.trim()) {
-    return content.trim();
+    throw new Error("The AI astrology response was empty.");
   }
-  throw new Error("The AI astrology response was empty.");
+
+  // Fallback to Gemini (free tier via GEMINI_API_KEY)
+  if (aiClient) {
+    const result = await withRetry(() =>
+      aiClient!.models.generateContent({
+        model: "gemini-2.0-flash",
+        contents: `${systemInstruction}\n\n${prompt}`,
+        config: { temperature: 0.7, maxOutputTokens: 900 },
+      })
+    );
+    const text = result.text?.trim();
+    if (text) return text;
+    throw new Error("The AI astrology response was empty.");
+  }
+
+  throw new Error("AI astrology is not configured yet. Add GEMINI_API_KEY (free at aistudio.google.com) or OPENROUTER_API_KEY to enable this feature.");
+}
+
+async function openRouterChat(systemPrompt: string, userPrompt: string): Promise<string> {
+  const apiKey = process.env.OPENROUTER_API_KEY;
+  if (!apiKey) throw new Error("No OpenRouter key");
+  const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+      "HTTP-Referer": process.env.VITE_APP_URL || "http://localhost:5000",
+    },
+    body: JSON.stringify({
+      model: process.env.OPENROUTER_MODEL || "openai/gpt-oss-20b:free",
+      temperature: 0.7,
+      max_tokens: 900,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ],
+    }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data?.error?.message || "OpenRouter error");
+  const text = data?.choices?.[0]?.message?.content?.trim();
+  if (!text) throw new Error("Empty response");
+  return text;
 }
 
 async function initDatabase() {
@@ -1872,64 +1916,39 @@ async function startServer() {
   app.get("/api/ai/panchang", async (req, res) => {
     const dateStr = (req.query.date as string) || new Date().toISOString().split('T')[0];
     const lang = (req.query.lang as string) || 'en';
-    const cacheKey = `panchang_${dateStr}_${lang}`;
-    
-    // Check in-memory cache (resets when server restarts — that's fine)
+    const cacheKey = `panchang_calc_${dateStr}_${lang}`;
+
     if ((app as any)._panchangCache?.[cacheKey]) {
       return res.json((app as any)._panchangCache[cacheKey]);
     }
 
-    const fallback = {
-      tithi: 'Dwitiya', paksha: 'Shukla Paksha', nakshatra: 'Pushya',
-      yoga: 'Siddha', karana: 'Vanija', mahina: 'Vaishakha',
-      vikramSamvat: '2083', samvatName: 'Siddharthi',
-      sunrise: '05:52 AM', sunset: '06:49 PM',
-      moonrise: '07:38 AM', moonset: '08:52 PM',
-      rahukaal: '05:12 PM - 06:49 PM', gulika: '03:35 PM - 05:12 PM',
-      yamaganda: '12:21 PM - 01:58 PM', auspicious: 'Abhijit Muhurat: 11:55 AM - 12:47 PM',
-      location: 'New Delhi, India'
-    };
-
-    if (!aiClient) return res.json(fallback);
-
     try {
-      const langLabel = lang === 'hi' ? 'Hindi' : lang === 'sa' ? 'Sanskrit' : 'English';
-      const prompt = `Return detailed Vedic Panchang for ${dateStr} for New Delhi, India. Include: Vikram Samvat year, Samvatsara name, Paksha, Tithi with end time, Nakshatra with end time, Yoga, Karana, Hindu month, Sunrise, Sunset, Moonrise, Moonset, Rahukaal, Gulika, Yamaganda, Abhijit Muhurta, festivals list, Sun sign, Moon sign. Labels and values in ${langLabel}. Return as JSON.`;
-      const result = await withRetry(() => aiClient!.models.generateContent({
-        model: "gemini-2.0-flash",
-        contents: prompt,
-        config: {
-          responseMimeType: "application/json",
-          responseSchema: {
-            type: Type.OBJECT,
-            properties: {
-              tithi: { type: Type.STRING }, tithiEnd: { type: Type.STRING },
-              paksha: { type: Type.STRING }, nakshatra: { type: Type.STRING },
-              nakshatraEnd: { type: Type.STRING }, yoga: { type: Type.STRING },
-              yogaEnd: { type: Type.STRING }, karana: { type: Type.STRING },
-              karanaEnd: { type: Type.STRING }, mahina: { type: Type.STRING },
-              vikramSamvat: { type: Type.STRING }, samvatName: { type: Type.STRING },
-              sunrise: { type: Type.STRING }, sunset: { type: Type.STRING },
-              moonrise: { type: Type.STRING }, moonset: { type: Type.STRING },
-              rahukaal: { type: Type.STRING }, gulika: { type: Type.STRING },
-              yamaganda: { type: Type.STRING }, auspicious: { type: Type.STRING },
-              festivals: { type: Type.ARRAY, items: { type: Type.STRING } },
-              sunSign: { type: Type.STRING }, moonSign: { type: Type.STRING },
-              location: { type: Type.STRING }
-            },
-            required: ["tithi","paksha","nakshatra","yoga","karana","mahina","vikramSamvat","samvatName","sunrise","sunset","moonrise","moonset","rahukaal","gulika","yamaganda","auspicious","location"]
-          }
+      // Accurate astronomical calculation — no AI hallucination
+      const [y, m, d] = dateStr.split('-').map(Number);
+      const date = new Date(y, m - 1, d, 12, 0, 0);
+      const data = calculatePanchang(date);
+
+      // Try to enrich with festivals via AI (optional, non-blocking)
+      try {
+        const festivalPrompt = `List any Hindu festivals, vrats, or important observances on ${dateStr} (Tithi: ${data.tithi}, ${data.paksha}). Return ONLY a JSON array of strings. Empty array if none. No explanation.`;
+        let raw = '';
+        if (aiClient) {
+          const r = await aiClient.models.generateContent({ model: 'gemini-2.0-flash', contents: festivalPrompt });
+          raw = r.text?.trim() || '';
+        } else {
+          raw = await openRouterChat('Return only a JSON array of strings. No explanation.', festivalPrompt);
         }
-      }));
-      const text = result.text || "";
-      if (!text) throw new Error("Empty response");
-      const data = JSON.parse(text);
+        const cleaned = raw.replace(/```json|```/g, '').trim();
+        const festivals = JSON.parse(cleaned);
+        if (Array.isArray(festivals)) data.festivals = festivals;
+      } catch { /* festivals optional */ }
+
       if (!(app as any)._panchangCache) (app as any)._panchangCache = {};
       (app as any)._panchangCache[cacheKey] = data;
       res.json(data);
     } catch (err: any) {
-      console.warn("[AI] Panchang fallback used:", err.message);
-      res.json(fallback);
+      console.warn("[Panchang] Calculation error:", err.message);
+      res.status(500).json({ error: err.message });
     }
   });
 
@@ -1945,16 +1964,26 @@ async function startServer() {
     }
 
     const fallback = "The stars illuminate your path with grace and divine purpose today. Embrace tranquility and let your inner wisdom be your guide.";
-    if (!aiClient) return res.json({ prediction: fallback });
+
+    const langLabel = lang === 'hi' ? 'Hindi' : lang === 'sa' ? 'Sanskrit' : 'English';
+    const horoscopePrompt = `As a spiritual Vedic Astrologer, write a 2-3 sentence daily horoscope for ${sign} for ${today}. Tone: spiritual, encouraging, divine. Language: ${langLabel}. Return only the prediction text, no labels or intros.`;
 
     try {
-      const langLabel = lang === 'hi' ? 'Hindi' : lang === 'sa' ? 'Sanskrit' : 'English';
-      const result = await withRetry(() => aiClient!.models.generateContent({
-        model: "gemini-2.0-flash",
-        contents: `As a spiritual Vedic Astrologer, write a 2-3 sentence daily horoscope for ${sign} for ${today}. Tone: spiritual, encouraging, divine. Language: ${langLabel}. Return only the prediction text, no labels or intros.`,
-        config: { temperature: 0.8, topP: 0.95 }
-      }));
-      const prediction = result.text?.trim() || fallback;
+      let prediction = fallback;
+      if (aiClient) {
+        try {
+          const result = await withRetry(() => aiClient!.models.generateContent({
+            model: "gemini-2.0-flash",
+            contents: horoscopePrompt,
+            config: { temperature: 0.8, topP: 0.95 }
+          }));
+          prediction = result.text?.trim() || fallback;
+        } catch {
+          prediction = await openRouterChat("You are a spiritual Vedic astrologer.", horoscopePrompt);
+        }
+      } else {
+        prediction = await openRouterChat("You are a spiritual Vedic astrologer.", horoscopePrompt);
+      }
       if (!(app as any)._horoscopeCache) (app as any)._horoscopeCache = {};
       (app as any)._horoscopeCache[cacheKey] = prediction;
       res.json({ prediction });

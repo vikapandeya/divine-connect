@@ -1,12 +1,114 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, MapPin, Send, Star, Moon, Sun, Info, Lock, ArrowRight, Users, Calendar, Compass } from 'lucide-react';
+import { Sparkles, MapPin, Send, Star, Moon, Sun, Info, Lock, ArrowRight, Users, Calendar, Compass, Heart } from 'lucide-react';
 import { auth, type User as FirebaseUser } from '../firebase';
 import AuthModal from '../components/AuthModal';
 import { Link } from 'react-router-dom';
 import type { AstrologyMode, BirthChartRequest, KundliRequest, RashifalRequest } from '../lib/astrology';
 
 type TabType = AstrologyMode;
+
+function verdictColor(verdict: string) {
+  if (verdict === 'Excellent') return 'text-emerald-400';
+  if (verdict === 'Good') return 'text-green-400';
+  if (verdict === 'Average') return 'text-amber-400';
+  return 'text-red-400';
+}
+
+function scoreColor(score: number, max: number) {
+  const pct = max > 0 ? score / max : 0;
+  if (pct >= 0.75) return 'bg-emerald-500';
+  if (pct >= 0.5) return 'bg-amber-500';
+  return 'bg-red-500';
+}
+
+function KundliReport({ data }: { data: any }) {
+  const { total, verdict, scores, groom, bride } = data;
+  const totalPct = Math.round((total / 36) * 100);
+
+  return (
+    <motion.div key="kundli-report" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+
+      {/* Score Hero */}
+      <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-orange-500/20 via-rose-500/10 to-purple-500/20 border border-white/10 p-6 text-center">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-orange-500/10 to-transparent" />
+        <div className="relative">
+          <div className="flex items-center justify-center mb-3">
+            <Heart className="w-5 h-5 text-rose-400 mr-2" />
+            <span className="text-stone-400 text-sm font-medium uppercase tracking-widest">Guna Milan Score</span>
+          </div>
+          <div className="text-6xl font-bold text-white mb-1">
+            {total}<span className="text-2xl text-stone-400 font-normal"> / 36</span>
+          </div>
+          <div className={`text-xl font-serif font-bold mb-4 ${verdictColor(verdict)}`}>{verdict}</div>
+          <div className="w-full bg-white/10 rounded-full h-3 mx-auto max-w-xs">
+            <div
+              className={`h-3 rounded-full transition-all ${totalPct >= 75 ? 'bg-emerald-500' : totalPct >= 50 ? 'bg-amber-500' : 'bg-red-500'}`}
+              style={{ width: `${totalPct}%` }}
+            />
+          </div>
+          <p className="text-stone-400 text-xs mt-2">{totalPct}% compatibility</p>
+        </div>
+      </div>
+
+      {/* People Cards */}
+      <div className="grid grid-cols-2 gap-3">
+        {[{ label: 'Groom', p: groom }, { label: 'Bride', p: bride }].map(({ label, p }) => (
+          <div key={label} className="rounded-xl border border-white/10 bg-white/5 p-4 space-y-2">
+            <div className="flex items-center space-x-2 mb-3">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${label === 'Groom' ? 'bg-blue-500/20 text-blue-300' : 'bg-rose-500/20 text-rose-300'}`}>
+                {p?.name?.[0]?.toUpperCase() || '?'}
+              </div>
+              <div>
+                <p className="text-white font-semibold text-sm">{p?.name}</p>
+                <p className="text-stone-500 text-xs">{label}</p>
+              </div>
+            </div>
+            <div className="space-y-1 text-xs">
+              {[
+                ['Rashi', p?.rashi],
+                ['Nakshatra', p?.nakshatra],
+                ['Gana', p?.gana],
+                ['Nadi', p?.nadi],
+                ['Yoni', p?.yoni],
+              ].map(([k, v]) => (
+                <div key={k} className="flex justify-between">
+                  <span className="text-stone-500">{k}</span>
+                  <span className="text-stone-200">{v}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Ashta Koota Scores */}
+      <div className="rounded-xl border border-white/10 bg-white/5 overflow-hidden">
+        <div className="px-4 py-3 border-b border-white/10">
+          <p className="text-white font-semibold text-sm">Ashta Koota Breakdown</p>
+        </div>
+        <div className="divide-y divide-white/5">
+          {scores?.map((s: any) => {
+            const pct = s.max > 0 ? Math.round((s.score / s.max) * 100) : 0;
+            return (
+              <div key={s.name} className="px-4 py-3">
+                <div className="flex justify-between items-center mb-1">
+                  <span className="text-stone-300 text-sm font-medium">{s.name}</span>
+                  <span className="text-white text-sm font-bold tabular-nums">{s.score}<span className="text-stone-500 font-normal">/{s.max}</span></span>
+                </div>
+                <div className="w-full bg-white/10 rounded-full h-1.5 mb-1.5">
+                  <div className={`h-1.5 rounded-full ${scoreColor(s.score, s.max)}`} style={{ width: `${pct}%` }} />
+                </div>
+                <p className="text-stone-500 text-xs leading-relaxed">{s.summary}</p>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+    </motion.div>
+  );
+}
 
 const ZODIAC_SIGNS = [
   'Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo',
@@ -42,6 +144,7 @@ export default function Astrology() {
   });
 
   const [reading, setReading] = useState<string | null>(null);
+  const [kundliResult, setKundliResult] = useState<any | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -96,6 +199,7 @@ export default function Astrology() {
     setLoading(true);
     setError('');
     setReading(null);
+    setKundliResult(null);
 
     // Client-side Rashifal cache (per day)
     const cacheKey = activeTab === 'rashifal'
@@ -129,14 +233,14 @@ export default function Astrology() {
         throw new Error(result?.error || 'The stars are currently obscured. Please try again later.');
       }
 
-      const reply = result?.reading;
-      if (!reply) {
-        throw new Error('The astrology response was empty.');
-      }
-
-      setReading(reply);
-      if (cacheKey && reply) {
-        localStorage.setItem(cacheKey, reply);
+      if (activeTab === 'kundli') {
+        if (!result?.reading) throw new Error('The astrology response was empty.');
+        setKundliResult(result);
+      } else {
+        const reply = result?.reading;
+        if (!reply) throw new Error('The astrology response was empty.');
+        setReading(reply);
+        if (cacheKey && reply) localStorage.setItem(cacheKey, reply);
       }
     } catch (err) {
       console.error('Astrology error:', err);
@@ -468,14 +572,6 @@ export default function Astrology() {
                     </>
                   )}
                 </button>
-                {activeTab === 'kundli' && (
-                  <div className="flex items-start space-x-3 rounded-2xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-left">
-                    <Info className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
-                    <p className="text-sm text-amber-200">
-                      Kundli matching uses a free built-in guna milan engine. For exact ephemeris-grade marriage matching, add a full astrology backend later.
-                    </p>
-                  </div>
-                )}
               </form>
             </div>
           </motion.div>
@@ -524,6 +620,8 @@ export default function Astrology() {
                         <p className="text-stone-500 text-sm">Our AI is analyzing your birth chart across the cosmos.</p>
                       </div>
                     </motion.div>
+                  ) : kundliResult ? (
+                    <KundliReport data={kundliResult} />
                   ) : reading ? (
                     <motion.div
                       key="reading"
