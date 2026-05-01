@@ -38,7 +38,7 @@ export default function ProductDetail() {
               weightOptions: typeof found.weightOptions === 'string' ? JSON.parse(found.weightOptions) : found.weightOptions
             };
             setProduct(parsed);
-            setMainImage(parsed.image || `https://picsum.photos/seed/${parsed.name}/800/800`);
+            setMainImage(parsed.image || `https://images.unsplash.com/photo-1524492412937-b28074a5d7da?auto=format&fit=crop&q=80&w=800`);
             if (parsed.weightOptions && parsed.weightOptions.length > 0) {
               setSelectedOption(parsed.weightOptions[0]);
             }
@@ -184,11 +184,13 @@ export default function ProductDetail() {
     );
   }
 
+  const mainImg = product.image || `https://images.unsplash.com/photo-1524492412937-b28074a5d7da?auto=format&fit=crop&q=80&w=800`;
+  // Use the same image with different crop anchors for a natural multi-view gallery
   const galleryImages = [
-    product.image || `https://picsum.photos/seed/${product.name}/800/800`,
-    `https://picsum.photos/seed/${product.name}-1/800/800`,
-    `https://picsum.photos/seed/${product.name}-2/800/800`,
-    `https://picsum.photos/seed/${product.name}-3/800/800`,
+    `${mainImg.split('?')[0]}?auto=format&fit=crop&q=80&w=800`,
+    `${mainImg.split('?')[0]}?auto=format&fit=crop&q=80&w=800&crop=top`,
+    `${mainImg.split('?')[0]}?auto=format&fit=crop&q=80&w=800&crop=center`,
+    `${mainImg.split('?')[0]}?auto=format&fit=crop&q=80&w=800&crop=bottom`,
   ];
 
   return (

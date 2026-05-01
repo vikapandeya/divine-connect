@@ -582,23 +582,97 @@ async function startServer() {
           // Seed Products
           const products = [
             {
-              name: "Premium Brass Diya",
-              description: "Handcrafted brass diya for your daily puja needs.",
-              price: 499,
-              category: "Puja Essentials",
+              name: "Brass Ganesha Idol",
+              description: "Handcrafted pure brass Ganesha idol for your home altar. Intricately detailed with traditional motifs, perfect for daily worship and gifting on auspicious occasions.",
+              price: 1250,
+              category: "Idols",
               stock: 50,
               rating: 4.8,
-              image: "https://picsum.photos/seed/diya/400/400",
+              image: "https://images.unsplash.com/photo-1524492412937-b28074a5d7da?auto=format&fit=crop&q=80&w=400",
               vendorId: "system"
             },
             {
               name: "Sandalwood Incense Sticks",
-              description: "Pure sandalwood fragrance for a peaceful atmosphere.",
+              description: "Premium Mysore sandalwood incense sticks. Each stick burns for 45–60 minutes, filling your space with a calming, divine aroma ideal for meditation and daily puja.",
               price: 150,
               category: "Incense",
-              stock: 100,
+              stock: 200,
               rating: 4.5,
-              image: "https://picsum.photos/seed/incense/400/400",
+              image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&q=80&w=400",
+              vendorId: "system"
+            },
+            {
+              name: "Rudraksha Mala",
+              description: "Original 108+1 beads Panchmukhi Rudraksha mala sourced from Nepal. Energized and blessed as per Vedic rituals — ideal for japa meditation and spiritual protection.",
+              price: 450,
+              category: "Mala",
+              stock: 100,
+              rating: 4.9,
+              image: "https://images.unsplash.com/photo-1596464716127-f2a82984de30?auto=format&fit=crop&q=80&w=400",
+              vendorId: "system"
+            },
+            {
+              name: "Bhagavad Gita",
+              description: "The Bhagavad Gita As It Is — Deluxe hardbound edition with original Sanskrit shlokas, English transliteration, word-for-word meanings, and Srila Prabhupada's commentary.",
+              price: 599,
+              category: "Books",
+              stock: 75,
+              rating: 5.0,
+              image: "https://images.unsplash.com/photo-1532012197267-da84d127e765?auto=format&fit=crop&q=80&w=400",
+              vendorId: "system"
+            },
+            {
+              name: "Copper Shri Yantra",
+              description: "Geometrically precise energized copper Shri Yantra for prosperity and positive energy. Consecrated as per Vedic rituals and charged under specific planetary configurations.",
+              price: 850,
+              category: "Yantras",
+              stock: 30,
+              rating: 4.7,
+              image: "https://images.unsplash.com/photo-1590050752117-23a9d7fc6bbd?auto=format&fit=crop&q=80&w=400",
+              vendorId: "system"
+            },
+            {
+              name: "Kashi Vishwanath Prasad",
+              description: "Special Ladoo Prasad from Kashi Vishwanath Temple, Varanasi. Freshly prepared by temple priests and dispatched with the blessings of Lord Shiva.",
+              price: 250,
+              category: "Prasad",
+              stock: 100,
+              rating: 4.9,
+              image: "https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&q=80&w=400",
+              vendorId: "system",
+              templeName: "Kashi Vishwanath",
+              weightOptions: [{ label: "250g", price: 250 }, { label: "500g", price: 450 }]
+            },
+            {
+              name: "Tirupati Laddu",
+              description: "Authentic Tirupati Balaji Temple Laddu Prasad prepared by temple priests using the original sacred recipe. Carries the divine blessings of Lord Venkateswara.",
+              price: 350,
+              category: "Prasad",
+              stock: 50,
+              rating: 5.0,
+              image: "https://images.unsplash.com/photo-1606808214785-6ccf20e5b7df?auto=format&fit=crop&q=80&w=400",
+              vendorId: "system",
+              templeName: "Tirupati Balaji",
+              weightOptions: [{ label: "1 Unit", price: 350 }, { label: "2 Units", price: 650 }]
+            },
+            {
+              name: "Premium Brass Diya",
+              description: "Handcrafted brass diya with intricate engravings. Perfect for daily puja, Diwali celebrations, and auspicious occasions. Comes with a cotton wick.",
+              price: 499,
+              category: "Puja Essentials",
+              stock: 50,
+              rating: 4.8,
+              image: "https://images.unsplash.com/photo-1604014237800-1c9102c219da?auto=format&fit=crop&q=80&w=400",
+              vendorId: "system"
+            },
+            {
+              name: "Puja Samagri Kit",
+              description: "Complete puja samagri kit with all essentials — kumkum, haldi, chandan, camphor, dhoop, supari, paan, and more. Everything you need for a complete puja in one box.",
+              price: 349,
+              category: "Samagri Kits",
+              stock: 80,
+              rating: 4.6,
+              image: "https://images.unsplash.com/photo-1615485290382-441e4d049cb5?auto=format&fit=crop&q=80&w=400",
               vendorId: "system"
             }
           ];
