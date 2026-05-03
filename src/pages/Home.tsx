@@ -94,36 +94,36 @@ const featuredProducts = [
   {
     id: '1',
     name: 'Brass Ganesha Idol',
-    price: 1299,
-    image: 'https://images.unsplash.com/photo-1544731612-de7f96afe55f?auto=format&fit=crop&q=80&w=400',
+    price: 1250,
+    image: '/products/ganesha-idol.jpg',
     rating: 4.8,
   },
   {
     id: '2',
-    name: 'Natural Sandalwood Incense',
-    price: 250,
-    image: 'https://images.unsplash.com/photo-1512411956555-523c06e897a6?auto=format&fit=crop&q=80&w=400',
+    name: 'Sandalwood Incense Sticks',
+    price: 150,
+    image: '/products/incense-sticks.jpg',
     rating: 4.5,
   },
   {
     id: '3',
-    name: 'Rudraksha Mala (108 Beads)',
-    price: 599,
-    image: 'https://images.unsplash.com/photo-1596464716127-f2a82984de30?auto=format&fit=crop&q=80&w=400',
+    name: 'Rudraksha Mala',
+    price: 450,
+    image: '/products/rudraksha-mala.jpg',
     rating: 4.9,
   },
   {
-    id: '4',
-    name: 'Handcrafted Puja Thali',
-    price: 850,
-    image: 'https://images.unsplash.com/photo-1610214436215-64d88e40f7f3?auto=format&fit=crop&q=80&w=400',
+    id: '8',
+    name: 'Premium Brass Diya',
+    price: 499,
+    image: '/products/brass-diya.jpg',
     rating: 4.7,
   },
 ];
 
 const feedback = [
   {
-    userName: 'Anjali Sharma',
+    name: 'Anjali Sharma',
     city: 'Mumbai',
     rating: 5,
     message:
@@ -131,7 +131,7 @@ const feedback = [
     imageURL: undefined as string | undefined,
   },
   {
-    userName: 'Rohan Iyer',
+    name: 'Rohan Iyer',
     city: 'Bengaluru',
     rating: 5,
     message:
@@ -139,7 +139,7 @@ const feedback = [
     imageURL: undefined as string | undefined,
   },
   {
-    userName: 'Meera Kapoor',
+    name: 'Meera Kapoor',
     city: 'Delhi',
     rating: 4.9,
     message:
@@ -264,7 +264,7 @@ export default function Home() {
   };
 
   return (
-    <div className="space-y-20 pb-20 bg-white dark:bg-stone-950 transition-colors duration-300">
+    <div className="space-y-12 sm:space-y-16 md:space-y-20 pb-16 md:pb-20 bg-white dark:bg-stone-950 transition-colors duration-300">
       <section className="relative min-h-[80vh] lg:min-h-[90vh] py-12 md:py-24 flex items-center overflow-hidden">
         <div className="absolute inset-0 z-0">
           <img
@@ -310,12 +310,12 @@ export default function Home() {
               <input 
                 name="search"
                 type="text" 
-                placeholder="Search for Pujas, Products, or Spiritual Knowledge..." 
-                className="w-full pl-16 pr-6 py-5 bg-white/10 backdrop-blur-xl border border-white/20 rounded-[2rem] text-white placeholder:text-stone-300 focus:ring-2 focus:ring-orange-500/50 outline-none transition-all shadow-2xl"
+                placeholder="Search Pujas, Products..."
+                className="w-full pl-12 sm:pl-16 pr-24 sm:pr-6 py-4 sm:py-5 bg-white/10 backdrop-blur-xl border border-white/20 rounded-[2rem] text-white placeholder:text-stone-300 focus:ring-2 focus:ring-orange-500/50 outline-none transition-all shadow-2xl text-sm sm:text-base"
               />
               <button 
                 type="submit"
-                className="absolute right-3 top-1/2 -translate-y-1/2 bg-orange-500 text-white px-6 py-2.5 rounded-2xl font-bold hover:bg-orange-600 transition-all shadow-lg"
+                className="absolute right-3 top-1/2 -translate-y-1/2 bg-orange-500 text-white px-4 sm:px-6 py-3 rounded-2xl font-bold hover:bg-orange-600 transition-all shadow-lg text-sm sm:text-base"
               >
                 Search
               </button>
@@ -349,11 +349,11 @@ export default function Home() {
         <motion.div 
           initial={{ opacity: 0, scale: 0.95 }}
           whileInView={{ opacity: 1, scale: 1 }}
-          className="bg-stone-50 dark:bg-stone-900/50 rounded-[3rem] p-10 md:p-16 text-center border border-stone-200 dark:border-stone-800 relative overflow-hidden"
+          className="bg-white dark:bg-stone-900/50 rounded-[2rem] sm:rounded-[3rem] p-6 sm:p-10 md:p-16 text-center border border-stone-200 dark:border-stone-800 relative overflow-hidden shadow-sm"
         >
           <div className="absolute top-0 left-0 w-32 h-32 bg-orange-500/5 rounded-full -translate-x-1/2 -translate-y-1/2 blur-2xl" />
           <Quote className="w-12 h-12 text-orange-200 dark:text-orange-900/30 mx-auto mb-8" />
-          <h2 className="text-2xl md:text-4xl font-serif italic text-stone-800 dark:text-stone-200 mb-6 leading-relaxed">
+          <h2 className="text-lg sm:text-2xl md:text-4xl font-serif italic text-stone-800 dark:text-stone-200 mb-4 sm:mb-6 leading-relaxed">
             &ldquo;{currentQuote.text}&rdquo;
           </h2>
           <div className="flex items-center justify-center space-x-4">
@@ -367,8 +367,8 @@ export default function Home() {
       </section>
 
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16 animate-fade-in">
-          <h2 className="text-4xl md:text-5xl font-serif font-bold text-stone-900 dark:text-white mb-6 tracking-tight">
+        <div className="text-center mb-8 sm:mb-12 md:mb-16 animate-fade-in">
+          <h2 className="text-2xl sm:text-4xl md:text-5xl font-serif font-bold text-stone-900 dark:text-white mb-4 sm:mb-6 tracking-tight">
             Spiritual <span className="text-orange-500">Knowledge</span>
           </h2>
           <p className="text-stone-600 dark:text-stone-400 text-lg leading-relaxed max-w-2xl mx-auto font-medium">
@@ -382,8 +382,8 @@ export default function Home() {
       </section>
 
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16 animate-fade-in">
-          <h2 className="text-4xl md:text-5xl font-serif font-bold text-stone-900 dark:text-white mb-6 tracking-tight">
+        <div className="text-center mb-8 sm:mb-12 md:mb-16 animate-fade-in">
+          <h2 className="text-2xl sm:text-4xl md:text-5xl font-serif font-bold text-stone-900 dark:text-white mb-4 sm:mb-6 tracking-tight">
             Sacred <span className="text-orange-500">Services</span>
           </h2>
           <p className="text-stone-600 dark:text-stone-400 text-lg leading-relaxed max-w-2xl mx-auto font-medium">
@@ -391,7 +391,7 @@ export default function Home() {
           </p>
         </div>
 
-        <div className="flex flex-wrap justify-center gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
           {services.map((service, index) => (
             <motion.div
               key={service.id}
@@ -399,17 +399,17 @@ export default function Home() {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
               viewport={{ once: true }}
-              className="group bg-white dark:bg-stone-900 p-5 md:p-8 rounded-[2rem] md:rounded-3xl border border-stone-100 dark:border-stone-800 hover:border-orange-200 dark:hover:border-orange-900/50 hover:shadow-xl hover:shadow-orange-500/5 transition-all w-full sm:w-[calc(50%-1.5rem)] lg:w-[calc(33.33%-1.5rem)] xl:w-[calc(20%-1.5rem)] min-w-[240px] max-w-sm"
+              className="group bg-white dark:bg-stone-900 p-4 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl border border-stone-100 dark:border-stone-800 hover:border-orange-200 dark:hover:border-orange-900/50 hover:shadow-xl hover:shadow-orange-500/5 transition-all"
             >
               <div
-                className={`${service.color} dark:bg-stone-800 w-12 h-12 md:w-16 md:h-16 rounded-2xl flex items-center justify-center mb-4 md:mb-6 group-hover:scale-110 transition-transform`}
+                className={`${service.color} dark:bg-stone-800 w-10 h-10 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl flex items-center justify-center mb-3 sm:mb-5 group-hover:scale-110 transition-transform shrink-0`}
               >
-                {service.icon}
+                <span className="scale-75 sm:scale-100">{service.icon}</span>
               </div>
-              <h3 className="text-xl font-bold text-stone-900 dark:text-white mb-2">
+              <h3 className="text-sm sm:text-base md:text-lg font-bold text-stone-900 dark:text-white mb-1 sm:mb-2 leading-snug">
                 {t(service.title)}
               </h3>
-              <p className="text-stone-600 dark:text-stone-400 text-sm mb-6 leading-relaxed">
+              <p className="text-stone-600 dark:text-stone-400 text-xs sm:text-sm mb-3 sm:mb-5 leading-relaxed hidden sm:block">
                 {t(service.description)}
               </p>
               <Link
@@ -429,7 +429,7 @@ export default function Home() {
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="relative rounded-[3rem] overflow-hidden h-[500px] group"
+          className="relative rounded-[2rem] sm:rounded-[3rem] overflow-hidden h-[280px] sm:h-[380px] md:h-[500px] group"
         >
           <img
             src="https://images.unsplash.com/photo-1545105511-930777907912?auto=format&fit=crop&q=80&w=1920"
@@ -439,30 +439,30 @@ export default function Home() {
           />
           <div className="absolute inset-0 bg-gradient-to-r from-stone-950/80 via-stone-950/40 to-transparent" />
           
-          <div className="absolute inset-0 flex flex-col justify-center p-12 md:p-20">
+          <div className="absolute inset-0 flex flex-col justify-center p-6 sm:p-12 md:p-20">
             <motion.div
               initial={{ opacity: 0, x: -30 }}
               whileInView={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.2 }}
               className="max-w-xl"
             >
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-12 h-px bg-orange-500" />
-                <span className="text-orange-500 font-bold uppercase tracking-[0.3em] text-xs">Pilgrimage Services</span>
+              <div className="flex items-center gap-3 mb-3 sm:mb-6">
+                <div className="w-8 sm:w-12 h-px bg-orange-500" />
+                <span className="text-orange-500 font-bold uppercase tracking-[0.2em] sm:tracking-[0.3em] text-[10px] sm:text-xs">Pilgrimage Services</span>
               </div>
-              <h2 className="text-4xl md:text-6xl font-serif font-bold text-white mb-6 leading-tight">
+              <h2 className="text-2xl sm:text-4xl md:text-6xl font-serif font-bold text-white mb-3 sm:mb-6 leading-tight">
                 Embark on a Divine Yatra
               </h2>
-              <p className="text-stone-200 text-lg mb-10 leading-relaxed">
-                Experience spiritual enlightenment with our guided pilgrimage tours to India's most sacred sites. 
+              <p className="text-stone-200 text-sm sm:text-lg mb-5 sm:mb-10 leading-relaxed hidden sm:block">
+                Experience spiritual enlightenment with our guided pilgrimage tours to India's most sacred sites.
                 From Char Dham to Amarnath, we ensure a safe and soulful journey.
               </p>
               <Link
                 to="/services/yatra"
-                className="inline-flex items-center gap-3 bg-orange-500 text-white px-10 py-4 rounded-full font-bold text-lg hover:bg-orange-600 transition-all shadow-xl shadow-orange-500/20"
+                className="inline-flex items-center gap-2 bg-orange-500 text-white px-6 sm:px-10 py-3 sm:py-4 rounded-full font-bold text-sm sm:text-lg hover:bg-orange-600 transition-all shadow-xl shadow-orange-500/20"
               >
                 Explore Yatra Packages
-                <ArrowRight className="w-5 h-5" />
+                <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
               </Link>
             </motion.div>
           </div>
@@ -470,12 +470,12 @@ export default function Home() {
       </section>
 
       {/* Live Darshan Section */}
-      <section className="py-24 bg-stone-950 text-white overflow-hidden relative">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,_rgba(249,115,22,0.1),_transparent_40%)]" />
+      <section className="py-12 sm:py-16 md:py-24 bg-stone-100 dark:bg-stone-950 overflow-hidden relative">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,_rgba(249,115,22,0.08),_transparent_40%)]" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 md:mb-16 gap-5 md:gap-8">
             <div className="max-w-2xl">
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 className="flex items-center gap-3 mb-6"
@@ -486,18 +486,18 @@ export default function Home() {
                 </span>
                 <span className="text-red-500 font-bold uppercase tracking-[0.3em] text-xs">{t('home.liveNow')}</span>
               </motion.div>
-          <h2 className="text-4xl md:text-5xl font-serif font-bold text-stone-900 dark:text-white mb-6 tracking-tight">
-            Live Darshan <span className="text-orange-500">& Pujas</span>
-          </h2>
-              <p className="text-stone-400 text-lg leading-relaxed">{t('home.liveDarshanSubtitle')}</p>
+              <h2 className="text-2xl sm:text-4xl md:text-5xl font-serif font-bold text-stone-900 dark:text-white mb-4 sm:mb-6 tracking-tight">
+                Live Darshan <span className="text-orange-500">& Pujas</span>
+              </h2>
+              <p className="text-stone-500 dark:text-stone-400 text-lg leading-relaxed">{t('home.liveDarshanSubtitle')}</p>
             </div>
-            <Link to="/services" className="group flex items-center gap-3 px-10 py-4 bg-white text-stone-950 rounded-[2rem] font-bold hover:bg-orange-500 hover:text-white transition-all shadow-2xl shadow-orange-500/10">
+            <Link to="/services" className="group flex items-center gap-3 px-8 sm:px-10 py-4 bg-stone-900 dark:bg-white text-white dark:text-stone-950 rounded-[2rem] font-bold hover:bg-orange-500 dark:hover:bg-orange-500 dark:hover:text-white transition-all shadow-xl shadow-stone-900/10">
               {t('home.viewAllLive')}
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
 
-          <div className="flex flex-wrap justify-center gap-10">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
             {[
               { id: 'l1', title: 'home.gangaAarti', temple: 'home.harKiPauri', viewers: '12.5k', image: 'https://images.unsplash.com/photo-1544607549-d75d4156674e?auto=format&fit=crop&q=80&w=800' },
               { id: 'l2', title: 'home.eveningAarti', temple: 'home.kashiVishwanath', viewers: '8.2k', image: 'https://images.unsplash.com/photo-1584277274775-5231c1837865?auto=format&fit=crop&q=80&w=800' },
@@ -509,7 +509,7 @@ export default function Home() {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.15 }}
                 viewport={{ once: true }}
-                className="group relative rounded-[3rem] overflow-hidden aspect-[4/5] shadow-2xl border border-white/5 w-full md:w-[calc(50%-1.5rem)] lg:w-[calc(33.33%-2.5rem)] min-w-[280px] max-w-sm"
+                className="group relative rounded-[2rem] sm:rounded-[3rem] overflow-hidden aspect-[3/2] sm:aspect-[4/5] shadow-2xl border border-white/5"
               >
                 <img src={live.image} alt={t(live.title)} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" referrerPolicy="no-referrer" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/20 to-transparent" />
@@ -525,11 +525,11 @@ export default function Home() {
                   </div>
                 </div>
 
-                <div className="absolute bottom-8 left-8 right-8">
-                  <p className="text-orange-400 text-xs font-bold uppercase tracking-[0.2em] mb-2">{t(live.temple)}</p>
-                  <h3 className="text-3xl font-serif font-bold mb-6">{t(live.title)}</h3>
-                  <button className="w-full py-4 bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl font-bold hover:bg-white hover:text-stone-950 transition-all flex items-center justify-center gap-3 group/btn">
-                    <Play className="w-5 h-5 fill-current group-hover/btn:scale-110 transition-transform" />
+                <div className="absolute bottom-4 sm:bottom-8 left-4 sm:left-8 right-4 sm:right-8">
+                  <p className="text-orange-400 text-xs font-bold uppercase tracking-[0.2em] mb-1 sm:mb-2">{t(live.temple)}</p>
+                  <h3 className="text-xl sm:text-3xl font-serif font-bold mb-3 sm:mb-6">{t(live.title)}</h3>
+                  <button className="w-full py-3 sm:py-4 bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl font-bold hover:bg-white hover:text-stone-950 transition-all flex items-center justify-center gap-3 group/btn text-sm sm:text-base">
+                    <Play className="w-4 h-4 sm:w-5 sm:h-5 fill-current group-hover/btn:scale-110 transition-transform" />
                     {t('home.watchLive')}
                   </button>
                 </div>
@@ -540,8 +540,8 @@ export default function Home() {
       </section>
 
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16 animate-fade-in">
-          <h2 className="text-4xl md:text-5xl font-serif font-bold text-stone-900 dark:text-white mb-6 tracking-tight">
+        <div className="text-center mb-8 sm:mb-12 md:mb-16 animate-fade-in">
+          <h2 className="text-2xl sm:text-4xl md:text-5xl font-serif font-bold text-stone-900 dark:text-white mb-4 sm:mb-6 tracking-tight">
             Shared <span className="text-orange-500">Experience</span>
           </h2>
           <p className="text-stone-600 dark:text-stone-400 text-lg leading-relaxed max-w-2xl mx-auto font-medium">
@@ -549,7 +549,7 @@ export default function Home() {
           </p>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-[0.9fr_1.1fr] gap-8 items-stretch">
-          <div className="bg-stone-900 dark:bg-stone-900 text-white rounded-[3rem] p-8 md:p-10 relative overflow-hidden border border-white/5 shadow-2xl">
+          <div className="bg-stone-900 dark:bg-stone-900 text-white rounded-[2rem] sm:rounded-[3rem] p-6 sm:p-8 md:p-10 relative overflow-hidden border border-white/5 shadow-2xl">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(249,115,22,0.3),_transparent_35%)]" />
             <div className="relative z-10">
               <p className="text-xs font-bold uppercase tracking-[0.3em] text-orange-300 mb-4">
@@ -577,7 +577,7 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-5">
             {feedbackList.map((item, idx) => (
               <motion.div
                 key={idx}
@@ -611,7 +611,7 @@ export default function Home() {
                   {item.message}
                 </p>
                 <div>
-                  <p className="font-bold text-stone-900 dark:text-white">{item.userName}</p>
+                  <p className="font-bold text-stone-900 dark:text-white">{(item as any).name || (item as any).userName}</p>
                   <p className="text-sm text-stone-500 dark:text-stone-500">{item.city}</p>
                 </div>
               </motion.div>
@@ -620,10 +620,10 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="bg-stone-100 dark:bg-stone-900 py-20">
+      <section className="bg-stone-100 dark:bg-stone-900 py-12 md:py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16 animate-fade-in">
-            <h2 className="text-4xl md:text-5xl font-serif font-bold text-stone-900 dark:text-white mb-6 tracking-tight">
+          <div className="text-center mb-8 sm:mb-12 md:mb-16 animate-fade-in">
+            <h2 className="text-2xl sm:text-4xl md:text-5xl font-serif font-bold text-stone-900 dark:text-white mb-4 sm:mb-6 tracking-tight">
               Spiritual <span className="text-orange-500">Essentials</span>
             </h2>
             <p className="text-stone-600 dark:text-stone-400 text-lg leading-relaxed max-w-2xl mx-auto">
@@ -631,7 +631,7 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5 lg:gap-8">
             {featuredProducts.map((product) => (
               <div
                 key={product.id}
@@ -653,21 +653,21 @@ export default function Home() {
                     </div>
                   </div>
                 </Link>
-                <div className="p-4 md:p-6">
+                <div className="p-3 sm:p-5 lg:p-6">
                   <Link to={`/product/${product.id}`}>
-                    <h3 className="text-sm md:text-base font-bold text-stone-900 dark:text-white mb-1 hover:text-orange-500 transition-colors">{product.name}</h3>
+                    <h3 className="text-xs sm:text-sm lg:text-base font-bold text-stone-900 dark:text-white mb-1 hover:text-orange-500 transition-colors leading-snug line-clamp-2">{product.name}</h3>
                   </Link>
-                  <div className="flex justify-between items-center gap-2 md:gap-3 mt-2 md:mt-0">
-                    <div className="flex items-center text-base md:text-lg font-serif font-bold text-orange-600 dark:text-orange-400">
-                      <IndianRupee className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                  <div className="flex justify-between items-center gap-2 mt-2">
+                    <div className="flex items-center text-sm sm:text-base font-serif font-bold text-orange-600 dark:text-orange-400">
+                      <IndianRupee className="w-3 h-3 sm:w-4 sm:h-4" />
                       <span>{formatIndianRupees(product.price)}</span>
                     </div>
                     <button
                       type="button"
                       onClick={() => addToCart(product)}
-                      className="bg-stone-900 dark:bg-stone-700 text-white p-1.5 md:p-2 rounded-lg md:rounded-xl hover:bg-orange-500 transition-colors"
+                      className="bg-stone-900 dark:bg-stone-700 text-white p-1.5 sm:p-2 rounded-lg sm:rounded-xl hover:bg-orange-500 transition-colors shrink-0"
                     >
-                      <ShoppingCart className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                      <ShoppingCart className="w-3 h-3 sm:w-4 sm:h-4" />
                     </button>
                   </div>
                 </div>
@@ -688,8 +688,8 @@ export default function Home() {
       </section>
 
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16 animate-fade-in">
-          <h2 className="text-4xl md:text-5xl font-serif font-bold text-stone-900 dark:text-white mb-6 tracking-tight">
+        <div className="text-center mb-8 sm:mb-12 md:mb-16 animate-fade-in">
+          <h2 className="text-2xl sm:text-4xl md:text-5xl font-serif font-bold text-stone-900 dark:text-white mb-4 sm:mb-6 tracking-tight">
             Share Your <span className="text-orange-500">Experience</span>
           </h2>
           <p className="text-stone-600 dark:text-stone-400 text-lg leading-relaxed max-w-2xl mx-auto">
@@ -697,11 +697,11 @@ export default function Home() {
           </p>
         </div>
 
-        <div className="bg-white dark:bg-stone-900 rounded-[3rem] border border-stone-200 dark:border-stone-800 p-8 md:p-12 shadow-xl shadow-stone-200/50 dark:shadow-none relative overflow-hidden">
+        <div className="bg-white dark:bg-stone-900 rounded-[2rem] sm:rounded-[3rem] border border-stone-200 dark:border-stone-800 p-5 sm:p-8 md:p-12 shadow-xl shadow-stone-200/50 dark:shadow-none relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500/5 rounded-full translate-x-1/2 -translate-y-1/2 blur-3xl" />
           
           <form onSubmit={handleSubmit} className="relative z-10 max-w-4xl mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-8 mb-6 md:mb-8">
               <div className="space-y-6">
                 <div>
                   <label className="block text-sm font-bold text-stone-700 dark:text-stone-300 mb-2">
@@ -745,13 +745,13 @@ export default function Home() {
                   <label className="block text-sm font-bold text-stone-700 dark:text-stone-300 mb-4">
                     {t('home.rating')}
                   </label>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-1">
                     {[1, 2, 3, 4, 5].map((star) => (
                       <button
                         key={star}
                         type="button"
                         onClick={() => setFormData({ ...formData, rating: star })}
-                        className="focus:outline-none group"
+                        className="focus:outline-none group p-1 min-w-[44px] min-h-[44px] flex items-center justify-center"
                       >
                         <Star
                           className={`w-8 h-8 transition-all ${
@@ -784,14 +784,14 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="flex items-center justify-between">
-              <p className="text-stone-500 dark:text-stone-400 text-sm max-w-md">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <p className="text-stone-500 dark:text-stone-400 text-xs sm:text-sm max-w-md">
                 By submitting, you agree to share your feedback publicly on our platform.
               </p>
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className={`flex items-center space-x-2 px-10 py-4 rounded-full font-bold text-lg transition-all shadow-lg ${
+                className={`w-full sm:w-auto flex items-center justify-center space-x-2 px-6 sm:px-10 py-3 sm:py-4 rounded-full font-bold text-base sm:text-lg transition-all shadow-lg shrink-0 ${
                   isSuccess
                     ? 'bg-emerald-500 text-white shadow-emerald-500/20'
                     : 'bg-orange-500 text-white hover:bg-orange-600 shadow-orange-500/20'
@@ -838,8 +838,8 @@ export default function Home() {
       </section>
 
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16 animate-fade-in">
-          <h2 className="text-4xl md:text-5xl font-serif font-bold text-stone-900 dark:text-white mb-6 tracking-tight">
+        <div className="text-center mb-8 sm:mb-12 md:mb-16 animate-fade-in">
+          <h2 className="text-2xl sm:text-4xl md:text-5xl font-serif font-bold text-stone-900 dark:text-white mb-4 sm:mb-6 tracking-tight">
             Discover <span className="text-orange-500">More</span>
           </h2>
           <p className="text-stone-600 dark:text-stone-400 text-lg leading-relaxed max-w-2xl mx-auto font-medium">
@@ -847,7 +847,7 @@ export default function Home() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8">
           {[
             {
               title: "Pooja Samagri Kits",
@@ -877,13 +877,13 @@ export default function Home() {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.1 }}
               viewport={{ once: true }}
-              className={`${item.color} p-10 rounded-[3rem] border border-stone-200 dark:border-stone-800 hover:shadow-xl transition-all group`}
+              className={`${item.color} p-5 sm:p-8 md:p-10 rounded-[2rem] sm:rounded-[3rem] border border-stone-200 dark:border-stone-800 hover:shadow-xl transition-all group`}
             >
-              <div className="bg-white dark:bg-stone-900 w-16 h-16 rounded-2xl flex items-center justify-center mb-8 shadow-sm group-hover:scale-110 transition-transform">
+              <div className="bg-white dark:bg-stone-900 w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl flex items-center justify-center mb-4 sm:mb-6 shadow-sm group-hover:scale-110 transition-transform">
                 {item.icon}
               </div>
-              <h3 className="text-2xl font-serif font-bold text-stone-900 dark:text-white mb-4">{item.title}</h3>
-              <p className="text-stone-600 dark:text-stone-400 mb-8 leading-relaxed">{item.desc}</p>
+              <h3 className="text-lg sm:text-xl md:text-2xl font-serif font-bold text-stone-900 dark:text-white mb-2 sm:mb-4">{item.title}</h3>
+              <p className="text-stone-600 dark:text-stone-400 mb-4 sm:mb-8 leading-relaxed text-sm sm:text-base">{item.desc}</p>
               <Link
                 to={item.link}
                 className="inline-flex items-center gap-2 text-stone-900 dark:text-white font-bold group-hover:text-orange-500 transition-colors"
@@ -896,7 +896,7 @@ export default function Home() {
       </section>
 
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8">
           <div className="bg-orange-50 dark:bg-orange-900/20 p-8 rounded-[2.5rem] border border-orange-100 dark:border-orange-900/30 flex items-center justify-between">
             <div>
               <p className="text-sm font-bold text-orange-600 dark:text-orange-400 uppercase tracking-wider mb-1">{t('home.newVisitors')}</p>

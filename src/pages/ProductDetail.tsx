@@ -38,7 +38,7 @@ export default function ProductDetail() {
               weightOptions: typeof found.weightOptions === 'string' ? JSON.parse(found.weightOptions) : found.weightOptions
             };
             setProduct(parsed);
-            setMainImage(parsed.image || `https://images.unsplash.com/photo-1524492412937-b28074a5d7da?auto=format&fit=crop&q=80&w=800`);
+            setMainImage(parsed.image || `/products/ganesha-idol.jpg`);
             if (parsed.weightOptions && parsed.weightOptions.length > 0) {
               setSelectedOption(parsed.weightOptions[0]);
             }
@@ -184,14 +184,8 @@ export default function ProductDetail() {
     );
   }
 
-  const mainImg = product.image || `https://images.unsplash.com/photo-1524492412937-b28074a5d7da?auto=format&fit=crop&q=80&w=800`;
-  // Use the same image with different crop anchors for a natural multi-view gallery
-  const galleryImages = [
-    `${mainImg.split('?')[0]}?auto=format&fit=crop&q=80&w=800`,
-    `${mainImg.split('?')[0]}?auto=format&fit=crop&q=80&w=800&crop=top`,
-    `${mainImg.split('?')[0]}?auto=format&fit=crop&q=80&w=800&crop=center`,
-    `${mainImg.split('?')[0]}?auto=format&fit=crop&q=80&w=800&crop=bottom`,
-  ];
+  const mainImg = product.image || `/products/ganesha-idol.jpg`;
+  const galleryImages = [mainImg, mainImg, mainImg, mainImg];
 
   return (
     <div className="bg-stone-50 dark:bg-stone-950 pb-20 transition-colors duration-300">
@@ -234,7 +228,7 @@ export default function ProductDetail() {
               </AnimatePresence>
             </div>
             
-            <div className="grid grid-cols-4 gap-4">
+            <div className="grid grid-cols-4 gap-2 sm:gap-4">
               {galleryImages.map((img, i) => (
                 <div 
                   key={i} 
@@ -303,7 +297,7 @@ export default function ProductDetail() {
                 </div>
               </div>
               
-              <h1 className="text-4xl md:text-5xl font-serif font-bold text-stone-900 dark:text-white mb-4 leading-tight">
+              <h1 className="text-2xl sm:text-3xl md:text-5xl font-serif font-bold text-stone-900 dark:text-white mb-4 leading-tight">
                 {product.name}
               </h1>
               

@@ -35,10 +35,19 @@ export default function DailyHoroscope() {
 
   useEffect(() => {
     const getHoroscope = async () => {
+      const today = new Date().toISOString().slice(0, 10);
+      const cacheKey = `horoscope_v1_${selectedSign.name}_${i18n.language}_${today}`;
+      const cached = localStorage.getItem(cacheKey);
+      if (cached) {
+        setHoroscope(cached);
+        setIsLoading(false);
+        return;
+      }
       try {
         setIsLoading(true);
         const prediction = await fetchLiveHoroscope(selectedSign.name, i18n.language);
         setHoroscope(prediction);
+        localStorage.setItem(cacheKey, prediction);
       } catch (error) {
         console.error('Failed to fetch live horoscope:', error);
         setHoroscope(t(`horoscope.predictions.${selectedSign.name}`));
@@ -111,7 +120,7 @@ export default function DailyHoroscope() {
           </button>
         </div>
 
-        <div className="relative p-4 md:p-6 bg-amber-50 dark:bg-amber-900/10 rounded-2xl md:rounded-3xl border border-amber-100 dark:border-amber-900/20 flex-grow flex items-center justify-center">
+        <div className="relative p-4 sm:p-6 bg-amber-50 dark:bg-amber-900/10 rounded-3xl border border-amber-100 dark:border-amber-900/20 flex-grow flex items-center justify-center">
           {isLoading ? (
             <div className="flex flex-col items-center justify-center text-amber-500">
               <Loader2 className="w-8 h-8 animate-spin mb-2" />
@@ -127,7 +136,7 @@ export default function DailyHoroscope() {
           )}
         </div>
 
-        <div className="mt-8 grid grid-cols-6 gap-2">
+        <div className="mt-8 grid grid-cols-4 sm:grid-cols-6 gap-2">
           {zodiacSigns.map((sign) => (
             <button
               key={sign.name}

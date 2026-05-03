@@ -132,13 +132,13 @@ export default function DailyPanchang() {
         </div>
       </div>
 
-      <div className="p-4 md:p-8 relative">
+      <div className="p-4 sm:p-8 relative">
         {isLoading && (
           <div className="absolute inset-0 bg-white/50 dark:bg-stone-900/50 backdrop-blur-sm z-10 flex items-center justify-center">
             <Loader2 className="w-8 h-8 text-orange-500 animate-spin" />
           </div>
         )}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8 p-6 bg-orange-50 dark:bg-orange-950/20 rounded-3xl border border-orange-100 dark:border-orange-900/30">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6 mb-6 sm:mb-8 p-4 sm:p-6 bg-orange-50 dark:bg-orange-950/20 rounded-2xl sm:rounded-3xl border border-orange-100 dark:border-orange-900/30">
           <div className="space-y-1">
             <p className="text-[10px] font-bold text-orange-500 uppercase tracking-wider">{t('panchang.vikramSamvat')}</p>
             <p className="text-sm font-black text-stone-900 dark:text-white">{data.vikramSamvat} {data.samvatName}</p>
@@ -171,7 +171,7 @@ export default function DailyPanchang() {
           </div>
         )}
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 mb-6 sm:mb-8">
           <div className="space-y-1">
             <p className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">{t('panchang.nakshatra')}</p>
             <p className="text-sm font-bold text-stone-900 dark:text-white">{data.nakshatra}</p>
@@ -196,8 +196,8 @@ export default function DailyPanchang() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 flex-grow mb-6 md:mb-8">
-          <div className="bg-stone-50 dark:bg-stone-800 p-4 rounded-2xl border border-stone-100 dark:border-stone-700">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6 sm:mb-8">
+          <div className="bg-stone-50 dark:bg-stone-800 p-3 sm:p-4 rounded-2xl border border-stone-100 dark:border-stone-700">
             <p className="text-[10px] font-bold text-stone-400 mb-1">{t('panchang.sunrise')}</p>
             <p className="text-sm font-bold text-stone-900 dark:text-white">{data.sunrise}</p>
           </div>
@@ -215,7 +215,7 @@ export default function DailyPanchang() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-6">
           <div className="flex justify-between items-center p-4 bg-red-50 dark:bg-red-900/10 rounded-2xl border border-red-100 dark:border-red-900/20">
             <div>
               <p className="text-[10px] font-bold text-red-600 dark:text-red-400 uppercase tracking-wider mb-1">{t('panchang.rahukaal')}</p>

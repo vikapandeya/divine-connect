@@ -97,11 +97,11 @@ export default function About() {
                 referrerPolicy="no-referrer"
               />
             </div>
-            <h1 className="text-5xl md:text-7xl font-serif font-bold text-white mb-6">
+            <h1 className="text-3xl sm:text-5xl md:text-7xl font-serif font-bold text-white mb-6">
               Bridging the <span className="text-orange-400 italic">Divine</span> & the{' '}
               <span className="text-orange-400 italic">Digital</span>
             </h1>
-            <p className="text-xl text-stone-200 max-w-3xl mx-auto leading-relaxed">
+            <p className="text-lg sm:text-xl text-stone-200 max-w-3xl mx-auto leading-relaxed">
               PunyaSeva is designed to make spiritual services more accessible,
               organized, and trustworthy for devotees everywhere.
             </p>

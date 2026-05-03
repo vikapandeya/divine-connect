@@ -14,6 +14,7 @@ import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 import jwt from "jsonwebtoken";
 import cookieParser from "cookie-parser";
+import multer from "multer";
 import { buildOpenRouterPrompt, generateKundliReading, type AstrologyMode } from "./src/lib/astrology.ts";
 import { calculatePanchang } from "./src/lib/panchangCalc.ts";
 import { GoogleGenAI, Type } from "@google/genai";
@@ -147,6 +148,10 @@ async function createOpenRouterReading(mode: Exclude<AstrologyMode, 'kundli'>, p
 }
 
 async function openRouterChat(systemPrompt: string, userPrompt: string): Promise<string> {
+  return openRouterChatMessages(systemPrompt, [{ role: "user", content: userPrompt }]);
+}
+
+async function openRouterChatMessages(systemPrompt: string, messages: { role: string; content: string }[]): Promise<string> {
   const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey) throw new Error("No OpenRouter key");
   const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
@@ -162,7 +167,7 @@ async function openRouterChat(systemPrompt: string, userPrompt: string): Promise
       max_tokens: 900,
       messages: [
         { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt },
+        ...messages,
       ],
     }),
   });
@@ -380,8 +385,14 @@ async function startServer() {
 
   console.log("Express middleware configured.");
 
+  // ── Password reset OTP store (in-memory, 15-min expiry) ──────────────────
+  const passwordResetOTPs = new Map<string, { otp: string; expiresAt: number }>();
+
   // ── Auth middleware ───────────────────────────────────────────────────────
   const JWT_SECRET = process.env.JWT_SECRET || "change-me-in-production";
+  if (!process.env.JWT_SECRET || process.env.JWT_SECRET === "change-me-in-production") {
+    console.warn("[SECURITY] JWT_SECRET is not set or is using the default value. Set a strong secret in .env.");
+  }
   const requireAuth = (req: any, res: any, next: any) => {
     const token = req.cookies?.authToken || req.headers.authorization?.replace("Bearer ", "");
     if (!token) return res.status(401).json({ error: "Authentication required" });
@@ -400,6 +411,29 @@ async function startServer() {
     });
   };
 
+  // ── File upload (multer) ──────────────────────────────────────────────────
+  const uploadsDir = path.join(__dirname, "public", "uploads");
+  fs.mkdir(uploadsDir, { recursive: true }).catch(() => {});
+  const storage = multer.diskStorage({
+    destination: (_req, _file, cb) => cb(null, uploadsDir),
+    filename: (_req, file, cb) => {
+      const ext = path.extname(file.originalname).toLowerCase();
+      cb(null, `product_${Date.now()}${ext}`);
+    }
+  });
+  const upload = multer({
+    storage,
+    limits: { fileSize: 5 * 1024 * 1024 },
+    fileFilter: (_req, file, cb) => {
+      if (/^image\/(jpeg|jpg|png|webp|gif)$/.test(file.mimetype)) cb(null, true);
+      else cb(new Error("Only image files are allowed (jpg, png, webp, gif)"));
+    }
+  });
+  app.use("/uploads", express.static(uploadsDir));
+  app.post("/api/upload", requireAdmin, upload.single("image"), (req: any, res) => {
+    if (!req.file) return res.status(400).json({ error: "No file uploaded" });
+    res.json({ url: `/uploads/${req.file.filename}` });
+  });
 
   // Response logger
   app.use((req, res, next) => {
@@ -588,7 +622,7 @@ async function startServer() {
               category: "Idols",
               stock: 50,
               rating: 4.8,
-              image: "https://images.unsplash.com/photo-1524492412937-b28074a5d7da?auto=format&fit=crop&q=80&w=400",
+              image: "/products/ganesha-idol.jpg",
               vendorId: "system"
             },
             {
@@ -598,7 +632,7 @@ async function startServer() {
               category: "Incense",
               stock: 200,
               rating: 4.5,
-              image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&q=80&w=400",
+              image: "/products/incense-sticks.jpg",
               vendorId: "system"
             },
             {
@@ -608,7 +642,7 @@ async function startServer() {
               category: "Mala",
               stock: 100,
               rating: 4.9,
-              image: "https://images.unsplash.com/photo-1596464716127-f2a82984de30?auto=format&fit=crop&q=80&w=400",
+              image: "/products/rudraksha-mala.jpg",
               vendorId: "system"
             },
             {
@@ -618,7 +652,7 @@ async function startServer() {
               category: "Books",
               stock: 75,
               rating: 5.0,
-              image: "https://images.unsplash.com/photo-1532012197267-da84d127e765?auto=format&fit=crop&q=80&w=400",
+              image: "/products/bhagavad-gita.jpg",
               vendorId: "system"
             },
             {
@@ -628,7 +662,7 @@ async function startServer() {
               category: "Yantras",
               stock: 30,
               rating: 4.7,
-              image: "https://images.unsplash.com/photo-1590050752117-23a9d7fc6bbd?auto=format&fit=crop&q=80&w=400",
+              image: "/products/shri-yantra.jpg",
               vendorId: "system"
             },
             {
@@ -638,7 +672,7 @@ async function startServer() {
               category: "Prasad",
               stock: 100,
               rating: 4.9,
-              image: "https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&q=80&w=400",
+              image: "/products/kashi-prasad.jpg",
               vendorId: "system",
               templeName: "Kashi Vishwanath",
               weightOptions: [{ label: "250g", price: 250 }, { label: "500g", price: 450 }]
@@ -650,7 +684,7 @@ async function startServer() {
               category: "Prasad",
               stock: 50,
               rating: 5.0,
-              image: "https://images.unsplash.com/photo-1606808214785-6ccf20e5b7df?auto=format&fit=crop&q=80&w=400",
+              image: "/products/tirupati-laddu.jpg",
               vendorId: "system",
               templeName: "Tirupati Balaji",
               weightOptions: [{ label: "1 Unit", price: 350 }, { label: "2 Units", price: 650 }]
@@ -662,7 +696,7 @@ async function startServer() {
               category: "Puja Essentials",
               stock: 50,
               rating: 4.8,
-              image: "https://images.unsplash.com/photo-1604014237800-1c9102c219da?auto=format&fit=crop&q=80&w=400",
+              image: "/products/brass-diya.jpg",
               vendorId: "system"
             },
             {
@@ -672,7 +706,7 @@ async function startServer() {
               category: "Samagri Kits",
               stock: 80,
               rating: 4.6,
-              image: "https://images.unsplash.com/photo-1615485290382-441e4d049cb5?auto=format&fit=crop&q=80&w=400",
+              image: "/products/puja-samagri.jpg",
               vendorId: "system"
             }
           ];
@@ -871,30 +905,60 @@ async function startServer() {
     res.json({ success: true });
   });
 
+  // Step 1: request an OTP (in production this would be emailed; here it's returned for dev)
+  app.post("/api/auth/request-password-reset", async (req, res) => {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: "email is required" });
+    try {
+      const user = await adapter.getUserByEmail(email);
+      if (!user) {
+        // Return 200 with generic message to prevent email enumeration
+        return res.json({ success: true, message: "If that email exists, an OTP has been sent." });
+      }
+      if (!user.password) {
+        return res.status(400).json({ error: "This account uses Google sign-in. Reset your Google password instead." });
+      }
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      passwordResetOTPs.set(email.toLowerCase(), { otp, expiresAt: Date.now() + 15 * 60 * 1000 });
+      console.log(`[Auth] Password reset OTP for ${email}: ${otp}`);
+      // TODO: send OTP via email (nodemailer/SendGrid) when email service is configured
+      res.json({ success: true, message: "OTP sent to your email address.", ...(process.env.NODE_ENV !== 'production' && { otp }) });
+    } catch (error) {
+      console.error("[API] POST /api/auth/request-password-reset error:", error);
+      res.status(500).json({ error: (error as Error).message });
+    }
+  });
+
+  // Step 2: verify OTP and set new password
   app.post("/api/auth/reset-password", async (req, res) => {
-      const { email, newPassword } = req.body;
-      if (!email || !newPassword) {
-        return res.status(400).json({ error: "email and newPassword are required" });
+    const { email, otp, newPassword } = req.body;
+    if (!email || !otp || !newPassword) {
+      return res.status(400).json({ error: "email, otp, and newPassword are required" });
+    }
+    try {
+      const stored = passwordResetOTPs.get(email.toLowerCase());
+      if (!stored) return res.status(400).json({ error: "No OTP requested for this email. Request a password reset first." });
+      if (Date.now() > stored.expiresAt) {
+        passwordResetOTPs.delete(email.toLowerCase());
+        return res.status(400).json({ error: "OTP has expired. Please request a new one." });
       }
-      try {
-        const user = await adapter.getUserByEmail(email);
-        if (!user) {
-          return res.status(404).json({ error: "No account found with that email" });
-        }
-        if (!user.password) {
-          return res.status(400).json({ error: "This account uses Google sign-in. Reset your Google password instead." });
-        }
-        const hashed = await bcrypt.hash(newPassword, 10);
-        await adapter.updateUser(user.uid, { password: hashed });
-        res.json({ success: true });
-      } catch (error) {
-        console.error("[API] POST /api/auth/reset-password error:", error);
-        res.status(500).json({ error: (error as Error).message });
-      }
-    });
+      if (stored.otp !== otp) return res.status(400).json({ error: "Invalid OTP." });
+
+      const user = await adapter.getUserByEmail(email);
+      if (!user) return res.status(404).json({ error: "No account found with that email" });
+
+      const hashed = await bcrypt.hash(newPassword, 10);
+      await adapter.updateUser(user.uid, { password: hashed });
+      passwordResetOTPs.delete(email.toLowerCase());
+      res.json({ success: true });
+    } catch (error) {
+      console.error("[API] POST /api/auth/reset-password error:", error);
+      res.status(500).json({ error: (error as Error).message });
+    }
+  });
 
     // Users
-    app.get("/api/users/:uid", async (req, res) => {
+    app.get("/api/users/:uid", requireAuth, async (req, res) => {
     const { uid } = req.params;
     if (!uid || uid === "undefined" || uid === "null") {
       return res.status(400).json({ message: "Invalid UID" });
@@ -902,16 +966,31 @@ async function startServer() {
     try {
       const user = await adapter.getUser(uid);
       if (!user) return res.status(404).json({ message: "User not found" });
-      
+
+      const { password: _pw, vendorBankDetails: _bank, ...safeUser } = user as any;
+
+      // Strip sensitive fields unless the requesting user is fetching their own profile or is admin
+      const requestingUid = (req as any).user?.uid;
+      const isOwnProfile = requestingUid === uid;
+      const isAdmin = (req as any).user?.role === 'admin';
+      if (!isOwnProfile && !isAdmin) {
+        const { address: _addr, email: _email, ...publicUser } = safeUser;
+        if (publicUser.vendorStatus && publicUser.vendorStatus !== 'none') {
+          const vendorDetails = await adapter.getVendor(uid);
+          if (vendorDetails) return res.json({ ...publicUser, vendorDetails });
+        }
+        return res.json(publicUser);
+      }
+
       // If user is a vendor or has a pending application, merge vendor details
-      if (user.vendorStatus && user.vendorStatus !== 'none') {
+      if (safeUser.vendorStatus && safeUser.vendorStatus !== 'none') {
         const vendorDetails = await adapter.getVendor(uid);
         if (vendorDetails) {
-          return res.json({ ...user, vendorDetails });
+          return res.json({ ...safeUser, vendorDetails });
         }
       }
-      
-      res.json(user);
+
+      res.json(safeUser);
     } catch (error) {
       console.error(`[API] GET /api/users/${uid} error:`, error);
       res.status(500).json({ error: (error as Error).message });
@@ -1163,7 +1242,7 @@ async function startServer() {
     }
   });
 
-  app.get("/api/admin/stats", async (req, res) => {
+  app.get("/api/admin/stats", requireAdmin, async (req, res) => {
     try {
       const stats = await adapter.getStats();
       res.json(stats);
@@ -1173,7 +1252,7 @@ async function startServer() {
     }
   });
 
-  app.get("/api/admin/vendors-performance", async (req, res) => {
+  app.get("/api/admin/vendors-performance", requireAdmin, async (req, res) => {
     try {
       const performanceData = await adapter.getVendorsPerformance();
       res.json(performanceData);
@@ -1183,7 +1262,7 @@ async function startServer() {
     }
   });
 
-  app.get("/api/admin/pending-vendors", async (req, res) => {
+  app.get("/api/admin/pending-vendors", requireAdmin, async (req, res) => {
     try {
       const pendingVendors = await adapter.getPendingVendors();
       res.json(pendingVendors);
@@ -1193,7 +1272,7 @@ async function startServer() {
     }
   });
 
-  app.post("/api/admin/approve-vendor", async (req, res) => {
+  app.post("/api/admin/approve-vendor", requireAdmin, async (req, res) => {
     const { vendorId } = req.body;
     try {
       await adapter.updateUser(vendorId, {
@@ -1208,7 +1287,7 @@ async function startServer() {
     }
   });
 
-  app.post("/api/admin/reject-vendor", async (req, res) => {
+  app.post("/api/admin/reject-vendor", requireAdmin, async (req, res) => {
     const { vendorId, reason } = req.body;
     try {
       await adapter.updateUser(vendorId, {
@@ -1223,7 +1302,7 @@ async function startServer() {
     }
   });
 
-  app.get("/api/admin/payouts", async (req, res) => {
+  app.get("/api/admin/payouts", requireAdmin, async (req, res) => {
     try {
       const payouts = await adapter.getPayouts();
       res.json(payouts);
@@ -1233,7 +1312,7 @@ async function startServer() {
     }
   });
 
-  app.post("/api/admin/payouts/:id/status", async (req, res) => {
+  app.post("/api/admin/payouts/:id/status", requireAdmin, async (req, res) => {
     const { status } = req.body;
     try {
       await adapter.updatePayoutStatus(req.params.id, status);
@@ -1267,24 +1346,39 @@ async function startServer() {
     }
   });
 
-  app.post("/api/products", async (req, res) => {
-    const { name, description, price, category, stock, rating, image, vendorId, templeName, weightOptions } = req.body;
-    if (!name || !price) {
-      return res.status(400).json({ error: "name and price are required" });
+  app.get("/api/products/:id", async (req, res) => {
+    try {
+      const product = await adapter.getProduct(req.params.id);
+      if (!product) return res.status(404).json({ message: "Product not found" });
+      res.json(product);
+    } catch (error) {
+      console.error(`[API] GET /api/products/${req.params.id} error:`, error);
+      res.status(500).json({ error: (error as Error).message });
     }
+  });
+
+  app.post("/api/products", requireAdmin, async (req, res) => {
+    const { name, description, price, category, stock, rating, image, vendorId, templeName, weightOptions } = req.body;
+    if (!name?.trim()) return res.status(400).json({ error: "Product name is required" });
+    if (!category?.trim()) return res.status(400).json({ error: "Category is required" });
+    if (!image?.trim()) return res.status(400).json({ error: "Product image is required" });
+    const parsedPrice = Number(price);
+    const parsedStock = Number(stock);
+    if (isNaN(parsedPrice) || parsedPrice <= 0) return res.status(400).json({ error: "Price must be a positive number" });
+    if (isNaN(parsedStock) || parsedStock < 0) return res.status(400).json({ error: "Stock must be 0 or more" });
     try {
       // 'system' is not a real user — use null to satisfy FK constraint
       const resolvedVendorId = (!vendorId || vendorId === 'system') ? null : vendorId;
       await adapter.addProduct({
-        name,
-        description: description || '',
-        price: Number(price),
-        category: category || 'Other',
-        stock: Number(stock) || 0,
-        rating: Number(rating) || 4.0,
-        image: image || '',
+        name: name.trim(),
+        description: description?.trim() || '',
+        price: parsedPrice,
+        category: category.trim(),
+        stock: parsedStock,
+        rating: Number(rating) || 4.5,
+        image: image.trim(),
         vendorId: resolvedVendorId,
-        templeName: templeName || null,
+        templeName: templeName?.trim() || null,
         weightOptions: weightOptions || null,
         createdAt: new Date()
       });
@@ -1295,19 +1389,26 @@ async function startServer() {
     }
   });
 
-  app.put("/api/products/:id", async (req, res) => {
+  app.put("/api/products/:id", requireAdmin, async (req, res) => {
     const { name, description, price, category, stock, rating, image, templeName, weightOptions } = req.body;
+    if (!name?.trim()) return res.status(400).json({ error: "Product name is required" });
+    if (!category?.trim()) return res.status(400).json({ error: "Category is required" });
+    if (!image?.trim()) return res.status(400).json({ error: "Product image is required" });
+    const parsedPrice = Number(price);
+    const parsedStock = Number(stock);
+    if (isNaN(parsedPrice) || parsedPrice <= 0) return res.status(400).json({ error: "Price must be a positive number" });
+    if (isNaN(parsedStock) || parsedStock < 0) return res.status(400).json({ error: "Stock must be 0 or more" });
     try {
       await adapter.updateProduct(req.params.id, {
-        name,
-        description,
-        price: Number(price),
-        category,
-        stock: Number(stock),
-        rating: Number(rating),
-        image,
-        templeName,
-        weightOptions
+        name: name.trim(),
+        description: description?.trim() || '',
+        price: parsedPrice,
+        category: category.trim(),
+        stock: parsedStock,
+        rating: Number(rating) || 4.5,
+        image: image.trim(),
+        templeName: templeName?.trim() || null,
+        weightOptions: weightOptions || null
       });
       res.json({ success: true });
     } catch (error) {
@@ -1316,7 +1417,7 @@ async function startServer() {
     }
   });
 
-  app.delete("/api/products/:id", async (req, res) => {
+  app.delete("/api/products/:id", requireAdmin, async (req, res) => {
     try {
       await adapter.deleteProduct(req.params.id);
       res.json({ success: true });
@@ -1454,7 +1555,7 @@ async function startServer() {
     }
   });
 
-  app.post("/api/pujas", async (req, res) => {
+  app.post("/api/pujas", requireAuth, async (req, res) => {
     const { title, description, onlinePrice, offlinePrice, duration, vendorId, samagriIncluded, isOnline, rating } = req.body;
     try {
       await adapter.addPuja({
@@ -1487,7 +1588,7 @@ async function startServer() {
     }
   });
 
-  app.put("/api/pujas/:id", async (req, res) => {
+  app.put("/api/pujas/:id", requireAuth, async (req, res) => {
     const { title, description, onlinePrice, offlinePrice, duration, samagriIncluded, isOnline, rating } = req.body;
     try {
       await adapter.updatePuja(req.params.id, {
@@ -1507,7 +1608,7 @@ async function startServer() {
     }
   });
 
-  app.delete("/api/pujas/:id", async (req, res) => {
+  app.delete("/api/pujas/:id", requireAuth, async (req, res) => {
     try {
       await adapter.deletePuja(req.params.id);
       res.json({ success: true });
@@ -1708,7 +1809,7 @@ async function startServer() {
     }
   }
 
-  app.post("/api/bookings", async (req, res) => {
+  app.post("/api/bookings", requireAuth, async (req, res) => {
     const { userId, serviceId, vendorId, type, date, timeSlot, status, totalAmount, isOnline, bringSamagri, samagriList } = req.body;
     try {
       const bookingId = await adapter.addBooking({
@@ -1742,7 +1843,7 @@ async function startServer() {
     }
   });
 
-  app.patch("/api/bookings/:id/status", async (req, res) => {
+  app.patch("/api/bookings/:id/status", requireAuth, async (req, res) => {
     const { status } = req.body;
     try {
       const booking = await adapter.getBooking(req.params.id);
@@ -1773,7 +1874,7 @@ async function startServer() {
     }
   });
 
-  app.patch("/api/bookings/:id/payment", async (req, res) => {
+  app.patch("/api/bookings/:id/payment", requireAuth, async (req, res) => {
     const { amount } = req.body;
     try {
       const booking = await adapter.getBooking(req.params.id);
@@ -1808,7 +1909,7 @@ async function startServer() {
     }
   });
 
-  app.post("/api/orders", async (req, res) => {
+  app.post("/api/orders", requireAuth, async (req, res) => {
     const { userId, items, totalAmount, status, shippingAddress, couponUsed, discountAmount, paymentMethod, paymentStatus, paymentId, signatureURL } = req.body;
     try {
       const orderData = {
@@ -1867,7 +1968,7 @@ async function startServer() {
     }
   });
 
-  app.patch("/api/orders/:id/status", async (req, res) => {
+  app.patch("/api/orders/:id/status", requireAuth, async (req, res) => {
     const { status, message } = req.body;
     try {
       const trackingUpdate = {
@@ -2008,11 +2109,11 @@ async function startServer() {
   });
 
   app.post("/api/feedback", async (req, res) => {
-    const { userId, userName, city, rating, message, serviceId, type, imageURL, vendorId } = req.body;
+    const { userId, name, userName, city, rating, message, serviceId, type, imageURL, vendorId } = req.body;
     try {
       await adapter.addFeedback({
         userId: userId || null,
-        userName: userName || 'Anonymous',
+        name: name || userName || 'Anonymous',
         city: city || null,
         rating: Number(rating) || 5,
         message: message || '',
@@ -2215,59 +2316,62 @@ async function startServer() {
   // POST /api/ai/chat { message, history }
   app.post("/api/ai/chat", async (req, res) => {
     const { message, history } = req.body;
-    if (!aiClient) {
-      return res.status(503).json({ error: "AI Chat is not configured." });
-    }
+    if (!message?.trim()) return res.status(400).json({ error: "Message is required" });
 
-    try {
-      const SYSTEM_INSTRUCTION = `
-You are Veda AI, a divine Vedic Scholar and spiritual assistant for the PunyaSeva platform. 
+    const VEDA_SYSTEM = `You are Veda AI, a divine Vedic Scholar and spiritual assistant for the PunyaSeva platform.
 Your purpose is to provide sacred wisdom, explain Vedic traditions, guide users through puja bookings, and offer peace and clarity.
 
-Tone: 
-- Compassionate, wise, and serene.
-- Use spiritual metaphors where appropriate.
-- Be respectful of all traditions while focusing on Vedic/Hindu spirituality.
-- Address the user with respect (e.g., "Dear Seeker" or "Namaste").
+Tone: Compassionate, wise, and serene. Use spiritual metaphors where appropriate. Address the user respectfully (e.g. "Dear Seeker" or "Namaste").
 
 Capabilities:
-- Explain the significance of various pujas (Ganesh Puja, Lakshmi Puja, etc.).
-- Provide mantra explanations and their benefits.
-- Guide users on how to use the PunyaSeva platform (booking pujas, ordering prasad, checking astrology).
-- Offer general spiritual guidance and meditation tips.
+- Explain the significance of pujas (Ganesh Puja, Lakshmi Puja, Satyanarayan Katha, etc.)
+- Explain mantras and their benefits
+- Guide users to /services (pujas), /astrology (horoscope), /shop (spiritual items)
+- Offer general spiritual guidance, meditation tips, festival significance
 
 Rules:
-- If a user asks about booking a puja, guide them to the /services page.
-- If a user asks about their future or horoscope, guide them to the /astrology page.
 - Do not provide medical, legal, or financial advice.
-- Keep responses concise but meaningful.
-`;
+- Keep responses concise but meaningful (2-4 paragraphs max).
+- Respond in the same language the user writes in.`;
 
-      const formattedHistory = (history || []).map((m: any) => ({
-        role: m.role === 'assistant' ? 'model' : 'user',
-        parts: [{ text: m.content || '' }]
-      }));
-      formattedHistory.push({ role: 'user', parts: [{ text: message }] });
+    try {
+      let reply = "";
+      let sources: any[] = [];
 
-      const response = await withRetry(() => aiClient!.models.generateContent({
-        model: "gemini-2.0-flash",
-        contents: formattedHistory,
-        config: {
-          systemInstruction: SYSTEM_INSTRUCTION,
-          temperature: 0.7,
-          tools: [{ googleSearch: {} }],
+      // Try Gemini first
+      if (aiClient) {
+        try {
+          const formattedHistory = (history || []).map((m: any) => ({
+            role: m.role === 'assistant' ? 'model' : 'user',
+            parts: [{ text: m.content || '' }]
+          }));
+          formattedHistory.push({ role: 'user', parts: [{ text: message }] });
+
+          const response = await withRetry(() => aiClient!.models.generateContent({
+            model: "gemini-2.0-flash",
+            contents: formattedHistory,
+            config: { systemInstruction: VEDA_SYSTEM, temperature: 0.7 }
+          }));
+          reply = response.text || "";
+        } catch (geminiErr: any) {
+          console.warn("[AI Chat] Gemini failed, trying OpenRouter:", geminiErr.message);
         }
-      }));
+      }
 
-      const reply = response.text || "I am currently in deep meditation. Please try again later.";
-      const sources = (response as any).candidates?.[0]?.groundingMetadata?.groundingChunks?.map((chunk: any) => chunk.web).filter(Boolean) || [];
+      // Fall back to OpenRouter if Gemini didn't produce a reply
+      if (!reply) {
+        const msgs = (history || [])
+          .filter((m: any) => m.role === 'user' || m.role === 'assistant')
+          .map((m: any) => ({ role: m.role === 'assistant' ? 'assistant' : 'user', content: m.content || '' }));
+        msgs.push({ role: 'user', content: message });
+        reply = await openRouterChatMessages(VEDA_SYSTEM, msgs);
+      }
 
+      if (!reply) reply = "I am currently in deep meditation. Please try again later.";
       res.json({ reply, sources });
     } catch (err: any) {
       const isRateLimit = String(err.message).match(/429|rate|limit/i);
-      if (isRateLimit) {
-        return res.status(429).json({ error: "Rate limit reached" });
-      }
+      if (isRateLimit) return res.status(429).json({ error: "Rate limit reached" });
       console.error("[AI] Chat error:", err.message);
       res.status(500).json({ error: "Failed to connect to divine insights" });
     }

@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { Product, PRODUCT_CATEGORIES } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Edit2, Trash2, X, Save, Package, IndianRupee, Star, Tag, Database, Users, Store, Calendar, MessageCircle, CheckCircle2, XCircle } from 'lucide-react';
+import { Plus, Edit2, Trash2, X, Save, Package, IndianRupee, Star, Tag, Database, Users, Store, Calendar, MessageCircle, CheckCircle2, XCircle, Upload, Link, AlertCircle, Loader2, Weight } from 'lucide-react';
 
 export default function AdminDashboard() {
   const { user: currentUser, loading: authLoading } = useAuth();
@@ -17,8 +17,16 @@ export default function AdminDashboard() {
     category: '',
     stock: '',
     rating: '4.5',
-    image: ''
+    image: '',
+    templeName: '',
+    weightOptions: [] as { label: string; price: string }[]
   });
+  const [imageMode, setImageMode] = useState<'url' | 'file'>('url');
+  const [imagePreview, setImagePreview] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [formError, setFormError] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [activeTab, setActiveTab] = useState<'inventory' | 'vendors' | 'approvals' | 'whatsapp' | 'payouts'>('inventory');
   const [vendorsPerformance, setVendorsPerformance] = useState<any[]>([]);
@@ -138,8 +146,12 @@ export default function AdminDashboard() {
   }
 
   const handleOpenModal = (product?: Product) => {
+    setFormError('');
     if (product) {
       setEditingProduct(product);
+      const opts = Array.isArray(product.weightOptions)
+        ? product.weightOptions.map((o: any) => ({ label: o.label, price: String(o.price) }))
+        : [];
       setFormData({
         name: product.name,
         description: product.description,
@@ -147,77 +159,112 @@ export default function AdminDashboard() {
         category: product.category,
         stock: product.stock.toString(),
         rating: product.rating.toString(),
-        image: product.image
+        image: product.image,
+        templeName: (product as any).templeName || '',
+        weightOptions: opts
       });
+      setImagePreview(product.image);
     } else {
       setEditingProduct(null);
-      setFormData({
-        name: '',
-        description: '',
-        price: '',
-        category: '',
-        stock: '',
-        rating: '4.5',
-        image: ''
-      });
+      setFormData({ name: '', description: '', price: '', category: '', stock: '', rating: '4.5', image: '', templeName: '', weightOptions: [] });
+      setImagePreview('');
     }
+    setImageMode('url');
     setIsModalOpen(true);
   };
 
+  const handleFileUpload = async (file: File) => {
+    if (!file) return;
+    setIsUploading(true);
+    setFormError('');
+    const objectUrl = URL.createObjectURL(file);
+    setImagePreview(objectUrl);
+    try {
+      const fd = new FormData();
+      fd.append('image', file);
+      const res = await fetch('/api/upload', { method: 'POST', credentials: 'include', body: fd });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Upload failed');
+      setFormData(prev => ({ ...prev, image: data.url }));
+      setImagePreview(data.url);
+    } catch (err: any) {
+      setFormError(err.message);
+      setImagePreview('');
+      setFormData(prev => ({ ...prev, image: '' }));
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const addWeightOption = () =>
+    setFormData(prev => ({ ...prev, weightOptions: [...prev.weightOptions, { label: '', price: '' }] }));
+
+  const removeWeightOption = (i: number) =>
+    setFormData(prev => ({ ...prev, weightOptions: prev.weightOptions.filter((_, idx) => idx !== i) }));
+
+  const updateWeightOption = (i: number, field: 'label' | 'price', value: string) =>
+    setFormData(prev => ({
+      ...prev,
+      weightOptions: prev.weightOptions.map((o, idx) => idx === i ? { ...o, [field]: value } : o)
+    }));
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFormError('');
     const price = parseFloat(formData.price);
     const stock = parseInt(formData.stock);
     const rating = parseFloat(formData.rating);
 
-    if (isNaN(price) || price <= 0) {
-      alert('Please enter a valid positive price.');
-      return;
-    }
+    if (isNaN(price) || price <= 0) { setFormError('Please enter a valid positive price.'); return; }
+    if (isNaN(stock) || stock < 0) { setFormError('Stock quantity must be 0 or more.'); return; }
+    if (!formData.image.trim()) { setFormError('Please provide a product image.'); return; }
 
-    if (isNaN(stock) || stock < 0) {
-      alert('Please enter a valid stock quantity (0 or more).');
-      return;
-    }
+    const weightOptions = formData.weightOptions
+      .filter(o => o.label.trim() && o.price)
+      .map(o => ({ label: o.label.trim(), price: parseFloat(o.price) }));
 
     const url = editingProduct ? `/api/products/${editingProduct.id}` : '/api/products';
     const method = editingProduct ? 'PUT' : 'POST';
-
+    setIsSubmitting(true);
     try {
       const response = await fetch(url, {
         method,
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...formData,
+          name: formData.name,
+          description: formData.description,
           price,
           stock,
-          rating
+          rating,
+          category: formData.category,
+          image: formData.image,
+          templeName: formData.templeName || null,
+          weightOptions: weightOptions.length ? weightOptions : null
         })
       });
-
-      if (response.ok) {
-        alert(editingProduct ? 'Product updated!' : 'Product added!');
-        setIsModalOpen(false);
-        fetchProducts();
-        fetchStats();
-      }
-    } catch (error) {
-      console.error('Error saving product:', error);
+      const data = await response.json();
+      if (!response.ok) { setFormError(data.error || 'Failed to save product.'); return; }
+      setIsModalOpen(false);
+      fetchProducts();
+      fetchStats();
+    } catch (error: any) {
+      setFormError(error.message || 'Network error. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleDelete = async (id: string) => {
     if (!window.confirm('Are you sure you want to delete this product?')) return;
-
     try {
-      const response = await fetch(`/api/products/${id}`, { method: 'DELETE' });
-      if (response.ok) {
-        alert('Product deleted!');
-        fetchProducts();
-        fetchStats();
-      }
-    } catch (error) {
-      console.error('Error deleting product:', error);
+      const response = await fetch(`/api/products/${id}`, { method: 'DELETE', credentials: 'include' });
+      const data = await response.json();
+      if (!response.ok) { alert(data.error || 'Failed to delete product.'); return; }
+      fetchProducts();
+      fetchStats();
+    } catch (error: any) {
+      alert(error.message || 'Network error. Could not delete product.');
     }
   };
 
@@ -754,7 +801,7 @@ export default function AdminDashboard() {
             </div>
           ) : null}
 
-      {/* Modal */}
+      {/* Product Modal */}
       <AnimatePresence>
         {isModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -769,109 +816,175 @@ export default function AdminDashboard() {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative bg-white rounded-[2rem] shadow-2xl w-full max-w-2xl overflow-hidden"
+              className="relative bg-white dark:bg-stone-900 rounded-[2rem] shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden"
             >
-              <div className="p-8 border-b border-stone-100 flex justify-between items-center">
-                <h2 className="text-2xl font-serif font-bold text-stone-900">
+              {/* Header */}
+              <div className="p-6 border-b border-stone-100 dark:border-stone-800 flex justify-between items-center flex-shrink-0">
+                <h2 className="text-xl font-serif font-bold text-stone-900 dark:text-white">
                   {editingProduct ? 'Edit Product' : 'Add New Product'}
                 </h2>
-                <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-stone-100 rounded-full transition-colors">
-                  <X className="w-6 h-6 text-stone-400" />
+                <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-full transition-colors">
+                  <X className="w-5 h-5 text-stone-400" />
                 </button>
               </div>
 
-              <form onSubmit={handleSubmit} className="p-8 space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold text-stone-400 uppercase tracking-wider">Product Name</label>
-                    <input
-                      required
-                      type="text"
-                      value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
-                      placeholder="e.g. Brass Ganesha Idol"
-                    />
+              {/* Scrollable body */}
+              <form onSubmit={handleSubmit} className="p-6 space-y-5 overflow-y-auto flex-1">
+
+                {/* Error banner */}
+                {formError && (
+                  <div className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-sm text-red-700 dark:text-red-400">
+                    <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                    {formError}
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold text-stone-400 uppercase tracking-wider">Category</label>
-                    <select
-                      required
-                      value={formData.category}
+                )}
+
+                {/* Row 1: Name + Category */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-stone-400 uppercase tracking-wider">Product Name *</label>
+                    <input required type="text" value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      className="w-full px-4 py-2.5 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all text-stone-900 dark:text-white text-sm"
+                      placeholder="e.g. Brass Ganesha Idol" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-stone-400 uppercase tracking-wider">Category *</label>
+                    <select required value={formData.category}
                       onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                      className="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
-                    >
+                      className="w-full px-4 py-2.5 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all text-stone-900 dark:text-white text-sm">
                       <option value="">Select Category</option>
-                      {PRODUCT_CATEGORIES.map(category => (
-                        <option key={category} value={category}>{category}</option>
-                      ))}
+                      {PRODUCT_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
                     </select>
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold text-stone-400 uppercase tracking-wider">Price (₹)</label>
-                    <input
-                      required
-                      type="number"
-                      min="0.01"
-                      step="0.01"
-                      value={formData.price}
+                </div>
+
+                {/* Row 2: Price + Stock + Rating */}
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-stone-400 uppercase tracking-wider">Price (₹) *</label>
+                    <input required type="number" min="0.01" step="0.01" value={formData.price}
                       onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                      className="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
-                      placeholder="0.00"
-                    />
+                      className="w-full px-4 py-2.5 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all text-stone-900 dark:text-white text-sm"
+                      placeholder="0.00" />
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold text-stone-400 uppercase tracking-wider">Stock Quantity</label>
-                    <input
-                      required
-                      type="number"
-                      min="0"
-                      value={formData.stock}
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-stone-400 uppercase tracking-wider">Stock *</label>
+                    <input required type="number" min="0" value={formData.stock}
                       onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
-                      className="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
-                      placeholder="0"
-                    />
+                      className="w-full px-4 py-2.5 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all text-stone-900 dark:text-white text-sm"
+                      placeholder="0" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-stone-400 uppercase tracking-wider">Rating</label>
+                    <input type="number" min="1" max="5" step="0.1" value={formData.rating}
+                      onChange={(e) => setFormData({ ...formData, rating: e.target.value })}
+                      className="w-full px-4 py-2.5 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all text-stone-900 dark:text-white text-sm"
+                      placeholder="4.5" />
                   </div>
                 </div>
 
+                {/* Image section */}
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-stone-400 uppercase tracking-wider">Image URL</label>
-                  <input
-                    required
-                    type="url"
-                    value={formData.image}
-                    onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                    className="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
-                    placeholder="https://example.com/image.jpg"
-                  />
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-stone-400 uppercase tracking-wider">Product Image *</label>
+                    <div className="flex rounded-lg overflow-hidden border border-stone-200 dark:border-stone-700 text-xs font-bold">
+                      <button type="button" onClick={() => setImageMode('url')}
+                        className={`px-3 py-1 flex items-center gap-1 transition-colors ${imageMode === 'url' ? 'bg-orange-500 text-white' : 'bg-stone-50 dark:bg-stone-800 text-stone-500 hover:bg-stone-100 dark:hover:bg-stone-700'}`}>
+                        <Link className="w-3 h-3" /> URL
+                      </button>
+                      <button type="button" onClick={() => { setImageMode('file'); fileInputRef.current?.click(); }}
+                        className={`px-3 py-1 flex items-center gap-1 transition-colors ${imageMode === 'file' ? 'bg-orange-500 text-white' : 'bg-stone-50 dark:bg-stone-800 text-stone-500 hover:bg-stone-100 dark:hover:bg-stone-700'}`}>
+                        <Upload className="w-3 h-3" /> Upload
+                      </button>
+                    </div>
+                  </div>
+
+                  {imageMode === 'url' ? (
+                    <input type="text" value={formData.image}
+                      onChange={(e) => { setFormData({ ...formData, image: e.target.value }); setImagePreview(e.target.value); }}
+                      className="w-full px-4 py-2.5 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all text-stone-900 dark:text-white text-sm font-mono"
+                      placeholder="https://example.com/image.jpg or /products/image.jpg" />
+                  ) : (
+                    <div
+                      onClick={() => fileInputRef.current?.click()}
+                      className="w-full px-4 py-4 bg-stone-50 dark:bg-stone-800 border-2 border-dashed border-stone-300 dark:border-stone-600 rounded-xl cursor-pointer hover:border-orange-400 transition-colors flex items-center justify-center gap-2 text-stone-400 text-sm">
+                      {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                      {isUploading ? 'Uploading...' : 'Click to choose image file (JPG, PNG, WebP — max 5MB)'}
+                    </div>
+                  )}
+                  <input ref={fileInputRef} type="file" accept="image/*" className="hidden"
+                    onChange={(e) => { const f = e.target.files?.[0]; if (f) { setImageMode('file'); handleFileUpload(f); } }} />
+
+                  {/* Image preview */}
+                  {imagePreview && !isUploading && (
+                    <div className="relative w-full h-40 rounded-xl overflow-hidden border border-stone-200 dark:border-stone-700 bg-stone-100 dark:bg-stone-800">
+                      <img src={imagePreview} alt="Preview" className="w-full h-full object-cover"
+                        onError={() => setImagePreview('')} />
+                      <button type="button" onClick={() => { setImagePreview(''); setFormData(prev => ({ ...prev, image: '' })); }}
+                        className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors">
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  )}
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-stone-400 uppercase tracking-wider">Description</label>
-                  <textarea
-                    required
-                    rows={3}
-                    value={formData.description}
+                {/* Description */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-stone-400 uppercase tracking-wider">Description *</label>
+                  <textarea required rows={3} value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    className="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all resize-none"
-                    placeholder="Describe the product..."
-                  />
+                    className="w-full px-4 py-2.5 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all resize-none text-stone-900 dark:text-white text-sm"
+                    placeholder="Describe the product..." />
                 </div>
 
-                <div className="flex space-x-4 pt-4">
-                  <button
-                    type="button"
-                    onClick={() => setIsModalOpen(false)}
-                    className="flex-1 px-6 py-4 border border-stone-200 text-stone-600 font-bold rounded-2xl hover:bg-stone-50 transition-colors"
-                  >
+                {/* Temple Name (Prasad only) */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-stone-400 uppercase tracking-wider">Temple Name <span className="normal-case font-normal">(for Prasad products)</span></label>
+                  <input type="text" value={formData.templeName}
+                    onChange={(e) => setFormData({ ...formData, templeName: e.target.value })}
+                    className="w-full px-4 py-2.5 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all text-stone-900 dark:text-white text-sm"
+                    placeholder="e.g. Tirupati Balaji" />
+                </div>
+
+                {/* Weight Options */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-stone-400 uppercase tracking-wider">Weight / Quantity Options <span className="normal-case font-normal">(optional)</span></label>
+                    <button type="button" onClick={addWeightOption}
+                      className="text-xs font-bold text-orange-500 hover:text-orange-600 flex items-center gap-1">
+                      <Plus className="w-3 h-3" /> Add Option
+                    </button>
+                  </div>
+                  {formData.weightOptions.map((opt, i) => (
+                    <div key={i} className="flex gap-2 items-center">
+                      <input type="text" value={opt.label} placeholder="Label (e.g. 250g)"
+                        onChange={(e) => updateWeightOption(i, 'label', e.target.value)}
+                        className="flex-1 px-3 py-2 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none text-sm text-stone-900 dark:text-white" />
+                      <input type="number" value={opt.price} placeholder="Price (₹)" min="0"
+                        onChange={(e) => updateWeightOption(i, 'price', e.target.value)}
+                        className="w-28 px-3 py-2 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none text-sm text-stone-900 dark:text-white" />
+                      <button type="button" onClick={() => removeWeightOption(i)}
+                        className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                  {formData.weightOptions.length === 0 && (
+                    <p className="text-xs text-stone-400 italic">No options added. Click "Add Option" to add weight/quantity variants with separate pricing.</p>
+                  )}
+                </div>
+
+                {/* Actions */}
+                <div className="flex gap-3 pt-2">
+                  <button type="button" onClick={() => setIsModalOpen(false)}
+                    className="flex-1 px-4 py-3 border border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-400 font-bold rounded-2xl hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors text-sm">
                     Cancel
                   </button>
-                  <button
-                    type="submit"
-                    className="flex-1 px-6 py-4 bg-stone-900 text-white font-bold rounded-2xl hover:bg-orange-500 transition-colors flex items-center justify-center space-x-2"
-                  >
-                    <Save className="w-5 h-5" />
-                    <span>{editingProduct ? 'Update Product' : 'Save Product'}</span>
+                  <button type="submit" disabled={isSubmitting || isUploading}
+                    className="flex-1 px-4 py-3 bg-stone-900 dark:bg-orange-500 text-white font-bold rounded-2xl hover:bg-orange-500 dark:hover:bg-orange-600 transition-colors flex items-center justify-center gap-2 text-sm disabled:opacity-60 disabled:cursor-not-allowed">
+                    {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                    {isSubmitting ? 'Saving...' : editingProduct ? 'Update Product' : 'Save Product'}
                   </button>
                 </div>
               </form>

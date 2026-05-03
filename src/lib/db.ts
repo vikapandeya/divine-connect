@@ -18,6 +18,7 @@ export interface DatabaseAdapter {
   
   // Products
   getProducts(filters: { category?: string; vendorId?: string }): Promise<any[]>;
+  getProduct(id: string): Promise<any>;
   addProduct(productData: any): Promise<string>;
   updateProduct(id: string, productData: any): Promise<void>;
   deleteProduct(id: string): Promise<void>;
@@ -154,11 +155,12 @@ export class FirestoreAdapter implements DatabaseAdapter {
     const vendorsSnap = await this.db.collection("users").where("role", "==", "vendor").get();
     const vendors = vendorsSnap.docs.map(doc => ({ uid: doc.id, ...doc.data() }));
     return Promise.all(vendors.map(async (vendor: any) => {
+      const { password: _pw, ...safeVendor } = vendor;
       const bookingsSnap = await this.db.collection("bookings").where("vendorId", "==", vendor.uid).get();
       const vendorDoc = await this.db.collection("vendors").doc(vendor.uid).get();
       const vendorData = vendorDoc.exists ? vendorDoc.data() : {};
-      return { 
-        ...vendor, 
+      return {
+        ...safeVendor,
         totalBookings: bookingsSnap.size,
         type: (vendorData?.type as 'priest' | 'temple' | 'shop') || 'shop',
         businessType: vendorData?.type || 'shop'
@@ -176,6 +178,12 @@ export class FirestoreAdapter implements DatabaseAdapter {
     }
     const snap = await query.get();
     return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  }
+
+  async getProduct(id: string) {
+    const doc = await this.db.collection("products").doc(id).get();
+    if (!doc.exists) return null;
+    return { id: doc.id, ...doc.data() };
   }
 
   async addProduct(productData: any) {
@@ -591,12 +599,12 @@ export class MySQLAdapter implements DatabaseAdapter {
   }
 
   async getVendorsPerformance() {
-    const vendors = await this.query("SELECT * FROM users WHERE role = 'vendor'");
+    const vendors = await this.query("SELECT uid, displayName, email, photoURL, role, vendorStatus, vendorCategory, createdAt FROM users WHERE role = 'vendor'");
     return Promise.all(vendors.map(async (vendor: any) => {
       const [bookings] = await this.query("SELECT COUNT(*) as count FROM bookings WHERE vendorId = ?", [vendor.uid]);
       const vendorDetails = await this.query("SELECT * FROM vendors WHERE userId = ?", [vendor.uid]);
-      return { 
-        ...vendor, 
+      return {
+        ...vendor,
         totalBookings: bookings.count,
         type: (vendorDetails.length ? vendorDetails[0].type : 'shop') as 'priest' | 'temple' | 'shop',
         businessType: vendorDetails.length ? vendorDetails[0].type : 'shop'
@@ -616,6 +624,11 @@ export class MySQLAdapter implements DatabaseAdapter {
       params.push(filters.vendorId);
     }
     return this.query(sql, params);
+  }
+
+  async getProduct(id: string) {
+    const rows = await this.query("SELECT * FROM products WHERE id = ?", [id]);
+    return rows[0] || null;
   }
 
   async addProduct(productData: any) {
@@ -857,7 +870,8 @@ export class MySQLAdapter implements DatabaseAdapter {
   }
 
   async getTransactions(vendorId: string, limit: number) {
-    return this.query("SELECT * FROM vendor_transactions WHERE vendorId = ? ORDER BY createdAt DESC LIMIT ?", [vendorId, limit]);
+    const safeLimit = Math.max(1, parseInt(String(limit), 10) || 20);
+    return this.query(`SELECT * FROM vendor_transactions WHERE vendorId = ? ORDER BY createdAt DESC LIMIT ${safeLimit}`, [vendorId]);
   }
 
   async updateWallet(vendorId: string, earning: number, totalAmount: number, type: string, referenceId: string, commission: number) {
@@ -959,7 +973,8 @@ export class MySQLAdapter implements DatabaseAdapter {
   }
 
   async getNotifications(userId: string, limit: number): Promise<any[]> {
-    return this.query("SELECT * FROM notifications WHERE userId = ? ORDER BY createdAt DESC LIMIT ?", [userId, limit]);
+    const safeLimit = Math.max(1, parseInt(String(limit), 10) || 50);
+    return this.query(`SELECT * FROM notifications WHERE userId = ? ORDER BY createdAt DESC LIMIT ${safeLimit}`, [userId]);
   }
 
   async updateNotificationRead(id: string): Promise<void> {

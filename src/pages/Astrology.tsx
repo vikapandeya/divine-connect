@@ -288,7 +288,7 @@ export default function Astrology() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="text-5xl md:text-7xl font-serif font-bold text-white mb-6"
+            className="text-3xl sm:text-5xl md:text-7xl font-serif font-bold text-white mb-6"
           >
             AI Astrology <span className="text-orange-500 italic">&</span> Insights
           </motion.h1>
@@ -302,7 +302,7 @@ export default function Astrology() {
           </motion.p>
 
           {/* Tab Navigation */}
-          <div className="flex flex-wrap justify-center gap-4 mb-8">
+          <div className="grid grid-cols-2 sm:flex sm:flex-wrap justify-center gap-2 sm:gap-4 mb-8">
             {[
               { id: 'birth-chart', label: 'Birth Chart', icon: Star },
               { id: 'rashifal', label: 'Rashifal', icon: Calendar },
@@ -316,13 +316,13 @@ export default function Astrology() {
                   setReading(null);
                   setError('');
                 }}
-                className={`flex items-center space-x-2 px-6 py-3 rounded-2xl font-bold transition-all ${
+                className={`flex items-center justify-center space-x-2 px-4 sm:px-6 py-3 rounded-2xl font-bold transition-all text-sm sm:text-base ${
                   activeTab === tab.id
                     ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/20'
                     : 'bg-white/5 text-stone-400 hover:bg-white/10'
                 }`}
               >
-                <tab.icon className="w-5 h-5" />
+                <tab.icon className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
                 <span>{tab.label}</span>
               </button>
             ))}
@@ -388,7 +388,7 @@ export default function Astrology() {
                       />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <label className="text-xs font-bold text-stone-500 uppercase tracking-wider ml-1">Date of Birth</label>
                         <input
@@ -491,7 +491,7 @@ export default function Astrology() {
                         onChange={(e) => setKundliData({ ...kundliData, p1Name: e.target.value })}
                         className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white focus:ring-2 focus:ring-orange-500/50 outline-none"
                       />
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <input
                           required
                           type="date"
@@ -530,7 +530,7 @@ export default function Astrology() {
                         onChange={(e) => setKundliData({ ...kundliData, p2Name: e.target.value })}
                         className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white focus:ring-2 focus:ring-orange-500/50 outline-none"
                       />
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <input
                           required
                           type="date"
@@ -583,7 +583,7 @@ export default function Astrology() {
             transition={{ delay: 0.4 }}
             className="lg:col-span-7"
           >
-            <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-[2.5rem] min-h-[500px] flex flex-col overflow-hidden">
+            <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-[2.5rem] min-h-[300px] md:min-h-[500px] flex flex-col overflow-hidden">
               <div className="p-8 border-b border-white/10 flex justify-between items-center">
                 <h3 className="text-xl font-serif font-bold text-white flex items-center">
                   <Star className="w-5 h-5 mr-2 text-orange-500" />
@@ -655,9 +655,9 @@ export default function Astrology() {
             </div>
 
             {/* Live Astrologer Promo */}
-            <div className="mt-8 p-6 bg-gradient-to-r from-orange-500/20 to-purple-500/20 rounded-3xl border border-white/10 flex items-center justify-between">
+            <div className="mt-8 p-4 sm:p-6 bg-gradient-to-r from-orange-500/20 to-purple-500/20 rounded-3xl border border-white/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center">
+                <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center flex-shrink-0">
                   <UserIcon className="w-6 h-6 text-white" />
                 </div>
                 <div>

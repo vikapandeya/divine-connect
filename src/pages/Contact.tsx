@@ -294,7 +294,7 @@ export default function Contact() {
 
             <div 
               ref={scrollRef}
-              className="h-[26rem] overflow-y-auto rounded-[2rem] bg-stone-50 dark:bg-stone-950 p-4 md:p-5 space-y-3 scroll-smooth"
+              className="h-[18rem] sm:h-[26rem] overflow-y-auto rounded-[2rem] bg-stone-50 dark:bg-stone-950 p-4 md:p-5 space-y-3 scroll-smooth"
             >
               {messages.map((message, index) => {
                 const { text, options } = message.role === 'assistant' ? parseOptions(message.content) : { text: message.content, options: [] };

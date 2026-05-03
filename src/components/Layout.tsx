@@ -160,7 +160,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       </AnimatePresence>
 
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white/80 dark:bg-stone-900/80 backdrop-blur-md border-b border-stone-200 dark:border-stone-800">
+      <header className="fixed top-0 inset-x-0 z-50 bg-white/80 dark:bg-stone-900/80 backdrop-blur-md border-b border-stone-200 dark:border-stone-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
@@ -236,7 +236,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   className="flex items-center space-x-2 p-1 rounded-full hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors"
                 >
                   {user ? (
-                    <img src={user.photoURL || undefined} alt="" className="w-8 h-8 rounded-full border border-stone-200 dark:border-stone-700" />
+                    user.photoURL ? (
+                      <img src={user.photoURL} alt="" className="w-8 h-8 rounded-full border border-stone-200 dark:border-stone-700 object-cover" />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-orange-500 flex items-center justify-center text-white text-sm font-bold border border-orange-400">
+                        {(user.displayName || user.email || '?')[0].toUpperCase()}
+                      </div>
+                    )
                   ) : (
                     <div className="w-8 h-8 rounded-full bg-stone-100 dark:bg-stone-800 flex items-center justify-center text-stone-500">
                       <User className="w-5 h-5" />
@@ -259,7 +265,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 10, scale: 0.95 }}
                         onClick={(e) => e.stopPropagation()}
-                        className="absolute right-0 mt-2 w-72 bg-white dark:bg-stone-900 rounded-2xl shadow-2xl border border-stone-100 dark:border-stone-800 py-3 z-50 overflow-hidden"
+                        className="absolute right-0 mt-2 w-72 max-w-[calc(100vw-1rem)] bg-white dark:bg-stone-900 rounded-2xl shadow-2xl border border-stone-100 dark:border-stone-800 py-3 z-50 overflow-hidden"
                       >
                         {user ? (
                           <div className="px-4 py-3 border-b border-stone-100 dark:border-stone-800 mb-2">
@@ -333,11 +339,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                               >
                                 हिंदी
                               </button>
-                              <button 
+                              <button
                                 onClick={() => i18n.changeLanguage('sa')}
                                 className={`text-[10px] py-1 rounded-md transition-all ${i18n.language === 'sa' ? 'bg-white dark:bg-stone-700 text-orange-500 shadow-sm' : 'text-stone-500'}`}
                               >
-                                गृहम्
+                                संस्कृत
                               </button>
                             </div>
                           </div>
@@ -395,51 +401,158 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         {/* Mobile Menu */}
         <AnimatePresence>
           {isMenuOpen && (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
               className="lg:hidden bg-white dark:bg-stone-900 border-t border-stone-100 dark:border-stone-800 overflow-hidden"
             >
-              <div className="px-4 pt-2 pb-6 space-y-1">
-                <div className="px-3 py-4 border-b border-stone-100 dark:border-stone-800 mb-2">
-                  <img 
-                    src="/logo/icon-only.svg" 
-                    alt="PunyaSeva" 
-                    className="h-10 w-auto" 
-                    referrerPolicy="no-referrer"
-                  />
-                </div>
-                <form onSubmit={handleSearch} className="px-3 py-2">
-                  <div className="flex items-center bg-stone-100 dark:bg-stone-800 rounded-full px-3 py-2">
-                    <Search className="w-4 h-4 text-stone-400" />
-                    <input
-                      type="text"
-                      placeholder={t('Search...')}
-                      value={searchTerm}
-                      onChange={(event) => setSearchTerm(event.target.value)}
-                      className="w-full bg-transparent border-none focus:ring-0 text-sm ml-2 text-stone-900 dark:text-white"
+              <div className="max-h-[85vh] overflow-y-auto overscroll-contain">
+                <div className="px-4 pt-3 pb-6 space-y-0.5">
+
+                  {/* Full logo */}
+                  <div className="pb-3 mb-1 border-b border-stone-100 dark:border-stone-800">
+                    <img
+                      src={resolvedTheme === 'dark' ? '/logo/dark-logo.svg' : '/logo/horizontal-logo.svg'}
+                      alt="PunyaSeva"
+                      className="h-8 w-auto"
+                      referrerPolicy="no-referrer"
                     />
                   </div>
-                </form>
-                {navLinks.map((link) => (
-                  <NavLink
-                    key={link.to}
-                    to={link.to}
-                    end={link.to === '/'}
-                    onClick={() => setIsMenuOpen(false)}
-                    className={({ isActive }) => 
-                      `block px-3 py-2 text-base font-medium transition-colors ${
-                        isActive ? 'text-orange-500' : 'text-stone-600 dark:text-stone-400 hover:text-orange-500'
-                      }`
-                    }
-                  >
-                    {link.label}
-                  </NavLink>
-                ))}
-                <div className="pt-4 border-t border-stone-100 dark:border-stone-800 mt-4 space-y-2">
-                  <Link to="/about" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 text-sm text-stone-500">{t('About')}</Link>
-                  <Link to="/contact" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 text-sm text-stone-500">{t('Contact')}</Link>
+
+                  {/* Search */}
+                  <form onSubmit={handleSearch} className="py-2">
+                    <div className="flex items-center bg-stone-100 dark:bg-stone-800 rounded-full px-3 py-2 gap-2">
+                      <Search className="w-4 h-4 text-stone-400 shrink-0" />
+                      <input
+                        type="text"
+                        placeholder={t('Search...')}
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full bg-transparent border-none focus:ring-0 text-sm text-stone-900 dark:text-white placeholder-stone-400"
+                      />
+                    </div>
+                  </form>
+
+                  {/* Nav links */}
+                  {navLinks.map((link) => (
+                    <NavLink
+                      key={link.to}
+                      to={link.to}
+                      end={link.to === '/'}
+                      onClick={() => setIsMenuOpen(false)}
+                      className={({ isActive }) =>
+                        `flex items-center px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                          isActive
+                            ? 'bg-orange-50 dark:bg-orange-900/20 text-orange-500'
+                            : 'text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800'
+                        }`
+                      }
+                    >
+                      {link.label}
+                    </NavLink>
+                  ))}
+
+                  {/* Secondary links */}
+                  <NavLink to="/about" onClick={() => setIsMenuOpen(false)} className={({ isActive }) => `flex items-center px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${isActive ? 'bg-orange-50 dark:bg-orange-900/20 text-orange-500' : 'text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800'}`}>{t('About')}</NavLink>
+                  <NavLink to="/contact" onClick={() => setIsMenuOpen(false)} className={({ isActive }) => `flex items-center px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${isActive ? 'bg-orange-50 dark:bg-orange-900/20 text-orange-500' : 'text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800'}`}>{t('Contact')}</NavLink>
+
+                  {/* Language switcher */}
+                  <div className="pt-3 mt-2 border-t border-stone-100 dark:border-stone-800">
+                    <p className="px-3 text-[10px] font-bold uppercase tracking-widest text-stone-400 mb-2 flex items-center gap-1.5">
+                      <Languages className="w-3 h-3" /> {t('Language')}
+                    </p>
+                    <div className="grid grid-cols-3 gap-1 px-3">
+                      {[
+                        { code: 'en', label: 'EN' },
+                        { code: 'hi', label: 'हिंदी' },
+                        { code: 'sa', label: 'संस्कृत' },
+                      ].map(({ code, label }) => (
+                        <button
+                          key={code}
+                          onClick={() => { i18n.changeLanguage(code); }}
+                          className={`py-2 rounded-xl text-xs font-semibold transition-all ${
+                            i18n.language === code
+                              ? 'bg-orange-500 text-white shadow-sm'
+                              : 'bg-stone-100 dark:bg-stone-800 text-stone-500 dark:text-stone-400'
+                          }`}
+                        >
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Theme switcher */}
+                  <div className="pt-3">
+                    <p className="px-3 text-[10px] font-bold uppercase tracking-widest text-stone-400 mb-2 flex items-center gap-1.5">
+                      {resolvedTheme === 'dark' ? <Moon className="w-3 h-3" /> : <Sun className="w-3 h-3" />} {t('Theme')}
+                    </p>
+                    <div className="grid grid-cols-3 gap-1 px-3">
+                      {[
+                        { key: 'light', label: 'Light' },
+                        { key: 'dark', label: 'Dark' },
+                        { key: 'system', label: 'System' },
+                      ].map(({ key, label }) => (
+                        <button
+                          key={key}
+                          onClick={() => setTheme(key as 'light' | 'dark' | 'system')}
+                          className={`py-2 rounded-xl text-xs font-semibold transition-all ${
+                            theme === key
+                              ? 'bg-orange-500 text-white shadow-sm'
+                              : 'bg-stone-100 dark:bg-stone-800 text-stone-500 dark:text-stone-400'
+                          }`}
+                        >
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* User section */}
+                  <div className="pt-3 mt-2 border-t border-stone-100 dark:border-stone-800">
+                    {user ? (
+                      <div className="space-y-0.5">
+                        <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-stone-50 dark:bg-stone-800 mb-1">
+                          {user.photoURL ? (
+                          <img src={user.photoURL} alt="" className="w-8 h-8 rounded-full border border-stone-200 dark:border-stone-700 object-cover shrink-0" />
+                        ) : (
+                          <div className="w-8 h-8 rounded-full bg-orange-500 flex items-center justify-center text-white text-sm font-bold shrink-0">
+                            {(user.displayName || user.email || '?')[0].toUpperCase()}
+                          </div>
+                        )}
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold text-stone-900 dark:text-white truncate">{user.displayName || user.email}</p>
+                            <p className="text-xs text-stone-400 truncate">{user.email}</p>
+                          </div>
+                        </div>
+                        {profile?.role === 'vendor' && (
+                          <Link to="/vendor" onClick={() => setIsMenuOpen(false)} className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors">
+                            <Monitor className="w-4 h-4" /> {t('Vendor Dashboard')}
+                          </Link>
+                        )}
+                        {profile?.role === 'admin' && (
+                          <Link to="/admin" onClick={() => setIsMenuOpen(false)} className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors">
+                            <Monitor className="w-4 h-4" /> {t('Admin Panel')}
+                          </Link>
+                        )}
+                        <button
+                          onClick={() => { logout(); setIsMenuOpen(false); }}
+                          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                        >
+                          <LogOut className="w-4 h-4" /> {t('Logout')}
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => { setIsAuthModalOpen(true); setIsMenuOpen(false); }}
+                        className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-xl text-sm font-bold transition-colors"
+                      >
+                        {t('Sign In')}
+                      </button>
+                    )}
+                  </div>
+
                 </div>
               </div>
             </motion.div>
@@ -448,15 +561,15 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       </header>
 
       {/* Main Content */}
-      <main className="flex-grow">
+      <main className="flex-grow pt-16">
         {children}
       </main>
 
       {/* Footer */}
       <footer className="bg-stone-900 text-stone-400 py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div className="col-span-1 md:col-span-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
+            <div className="col-span-1 sm:col-span-2 md:col-span-2">
               <div className="mb-6">
                 <img
                   src="/logo/dark-logo.svg"
@@ -474,6 +587,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <ul className="space-y-2 text-sm">
                 <li><Link to="/services" className="hover:text-orange-500 transition-colors">{t('Services')}</Link></li>
                 <li><Link to="/shop" className="hover:text-orange-500 transition-colors">{t('Shop')}</Link></li>
+                <li><Link to="/astrology" className="hover:text-orange-500 transition-colors">{t('AI Astrology')}</Link></li>
                 <li><Link to="/wishlist" className="hover:text-orange-500 transition-colors">{t('Wishlist')}</Link></li>
                 <li><Link to="/about" className="hover:text-orange-500 transition-colors">{t('About')}</Link></li>
               </ul>
@@ -489,7 +603,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               </ul>
             </div>
           </div>
-          <div className="mt-12 pt-8 border-t border-stone-800 flex flex-col md:flex-row justify-between items-center gap-4 text-xs">
+          <div className="mt-12 pt-8 border-t border-stone-800 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs">
             <p>&copy; 2026 PunyaSeva. {t('All spiritual rights reserved.')}</p>
             <div className="flex space-x-6">
               <Link to="/terms" className="hover:text-orange-500 transition-colors">{t('Terms of Service')}</Link>

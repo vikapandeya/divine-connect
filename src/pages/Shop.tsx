@@ -20,7 +20,7 @@ const fallbackProducts = [
     price: 1299,
     category: 'Idols',
     rating: 4.8,
-    image: 'https://images.unsplash.com/photo-1524492412937-b28074a5d7da?auto=format&fit=crop&q=80&w=400',
+    image: '/products/ganesha-idol.jpg',
   },
   {
     id: '2',
@@ -29,7 +29,7 @@ const fallbackProducts = [
     price: 250,
     category: 'Incense',
     rating: 4.5,
-    image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&q=80&w=400',
+    image: '/products/incense-sticks.jpg',
   },
   {
     id: '3',
@@ -38,7 +38,7 @@ const fallbackProducts = [
     price: 599,
     category: 'Mala',
     rating: 4.9,
-    image: 'https://images.unsplash.com/photo-1596464716127-f2a82984de30?auto=format&fit=crop&q=80&w=400',
+    image: '/products/rudraksha-mala.jpg',
   },
   {
     id: '4',
@@ -47,7 +47,7 @@ const fallbackProducts = [
     price: 450,
     category: 'Books',
     rating: 5.0,
-    image: 'https://images.unsplash.com/photo-1532012197267-da84d127e765?auto=format&fit=crop&q=80&w=400',
+    image: '/products/bhagavad-gita.jpg',
   },
   {
     id: '5',
@@ -56,7 +56,7 @@ const fallbackProducts = [
     price: 899,
     category: 'Yantras',
     rating: 4.7,
-    image: 'https://images.unsplash.com/photo-1590050752117-23a9d7fc6bbd?auto=format&fit=crop&q=80&w=400',
+    image: '/products/shri-yantra.jpg',
   },
   {
     id: '6',
@@ -65,7 +65,7 @@ const fallbackProducts = [
     price: 250,
     category: 'Prasad',
     rating: 4.9,
-    image: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&q=80&w=400',
+    image: '/products/kashi-prasad.jpg',
     templeName: 'Kashi Vishwanath',
     weightOptions: [{ label: '250g', price: 250 }, { label: '500g', price: 450 }]
   },
@@ -76,7 +76,7 @@ const fallbackProducts = [
     price: 350,
     category: 'Prasad',
     rating: 5.0,
-    image: 'https://images.unsplash.com/photo-1606808214785-6ccf20e5b7df?auto=format&fit=crop&q=80&w=400',
+    image: '/products/tirupati-laddu.jpg',
     templeName: 'Tirupati Balaji',
     weightOptions: [{ label: '1 Unit', price: 350 }, { label: '2 Units', price: 650 }]
   },
@@ -87,7 +87,7 @@ const fallbackProducts = [
     price: 499,
     category: 'Puja Essentials',
     rating: 4.8,
-    image: 'https://images.unsplash.com/photo-1604014237800-1c9102c219da?auto=format&fit=crop&q=80&w=400',
+    image: '/products/brass-diya.jpg',
   },
   {
     id: '9',
@@ -96,7 +96,7 @@ const fallbackProducts = [
     price: 349,
     category: 'Samagri Kits',
     rating: 4.6,
-    image: 'https://images.unsplash.com/photo-1615485290382-441e4d049cb5?auto=format&fit=crop&q=80&w=400',
+    image: '/products/puja-samagri.jpg',
   },
 ];
 
@@ -304,7 +304,7 @@ export default function Shop() {
                 referrerPolicy="no-referrer"
               />
             </div>
-            <h1 className="text-4xl md:text-6xl font-serif font-bold text-white mb-4">
+            <h1 className="text-2xl sm:text-4xl md:text-6xl font-serif font-bold text-white mb-4">
               Spiritual Marketplace
             </h1>
             <p className="text-lg text-stone-200 max-w-2xl mx-auto">
@@ -357,8 +357,8 @@ export default function Shop() {
           </div>
         </div>
 
-        <div className="mb-12 p-8 bg-stone-50 dark:bg-stone-900/50 rounded-[2.5rem] border border-stone-200 dark:border-stone-800 shadow-sm">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="mb-12 p-5 sm:p-8 bg-stone-50 dark:bg-stone-900/50 rounded-[2rem] sm:rounded-[2.5rem] border border-stone-200 dark:border-stone-800 shadow-sm">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-8">
             <div className="space-y-3">
               <label className="text-xs font-bold text-stone-400 dark:text-stone-500 uppercase tracking-wider">Price Range (₹)</label>
               <div className="flex items-center space-x-3">
