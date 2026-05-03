@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useSearchParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, ShoppingCart, Flame, MapPin, Star, ArrowRight, Loader2, Sparkles, AlertCircle } from 'lucide-react';
@@ -10,6 +11,7 @@ import { formatIndianRupees } from '../lib/utils';
 import { addToCart } from '../lib/cart';
 
 export default function SearchResults() {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const q = searchParams.get('q') || '';
   const [loading, setLoading] = useState(true);
@@ -85,14 +87,14 @@ export default function SearchResults() {
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20">
             <Loader2 className="w-12 h-12 text-orange-500 animate-spin mb-4" />
-            <p className="text-stone-500 animate-pulse">Consulting the divine archives...</p>
+            <p className="text-stone-500 animate-pulse">{t('searchResults.consulting')}</p>
           </div>
         ) : totalResults === 0 ? (
           <div className="text-center py-20 bg-stone-50 dark:bg-stone-900/50 rounded-[3rem] border border-dashed border-stone-200 dark:border-stone-800">
             <div className="w-20 h-20 bg-stone-100 dark:bg-stone-800 rounded-full flex items-center justify-center mx-auto mb-6">
               <Search className="w-10 h-10 text-stone-400" />
             </div>
-            <h2 className="text-2xl font-serif font-bold text-stone-900 dark:text-white mb-2">No local results found</h2>
+            <h2 className="text-2xl font-serif font-bold text-stone-900 dark:text-white mb-2">{t('searchResults.noLocal')}</h2>
             <p className="text-stone-500 max-w-md mx-auto">
               We couldn't find any direct matches in our database, but our AI Insights above might still give you the spiritual guidance you seek.
             </p>
@@ -106,7 +108,7 @@ export default function SearchResults() {
                   <div className="w-10 h-10 bg-blue-50 dark:bg-blue-900/20 rounded-xl flex items-center justify-center text-blue-600">
                     <ShoppingCart className="w-5 h-5" />
                   </div>
-                  <h2 className="text-2xl font-serif font-bold text-stone-900 dark:text-white">Spiritual Products</h2>
+                  <h2 className="text-2xl font-serif font-bold text-stone-900 dark:text-white">{t('searchResults.products')}</h2>
                   <span className="text-xs font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-600 px-3 py-1 rounded-full uppercase tracking-wider ml-auto">
                     {results.products.length} Items
                   </span>
@@ -148,7 +150,7 @@ export default function SearchResults() {
                   <div className="w-10 h-10 bg-orange-50 dark:bg-orange-900/20 rounded-xl flex items-center justify-center text-orange-600">
                     <Flame className="w-5 h-5" />
                   </div>
-                  <h2 className="text-2xl font-serif font-bold text-stone-900 dark:text-white">Puja Services</h2>
+                  <h2 className="text-2xl font-serif font-bold text-stone-900 dark:text-white">{t('searchResults.pujas')}</h2>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                   {results.pujas.map(puja => (
@@ -181,7 +183,7 @@ export default function SearchResults() {
                   <div className="w-10 h-10 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl flex items-center justify-center text-emerald-600">
                     <MapPin className="w-5 h-5" />
                   </div>
-                  <h2 className="text-2xl font-serif font-bold text-stone-900 dark:text-white">Divine Yatras</h2>
+                  <h2 className="text-2xl font-serif font-bold text-stone-900 dark:text-white">{t('searchResults.yatras')}</h2>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   {results.yatras.map(yatra => (

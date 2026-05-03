@@ -554,7 +554,7 @@ export default function TempleKnowledge() {
         </div>
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center w-full">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-            <h1 className="text-4xl md:text-6xl font-serif font-bold text-white mb-4">Sacred Temples & Tirthplaces</h1>
+            <h1 className="text-4xl md:text-6xl font-serif font-bold text-white mb-4">{t('templeKnowledge.pageTitle')}</h1>
             <p className="text-lg text-stone-200 max-w-2xl mx-auto">Explore India's divine heritage — click any temple for a full in-depth article covering history, architecture, rituals, and visitor guide.</p>
           </motion.div>
         </div>
@@ -566,14 +566,18 @@ export default function TempleKnowledge() {
           <div className="flex flex-col md:flex-row gap-4 items-center">
             <div className="relative flex-grow w-full">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 w-5 h-5" />
-              <input type="text" placeholder="Search temples, cities, significance..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
+              <input type="text" placeholder={t('templeKnowledge.searchPlaceholder')} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-12 pr-4 py-3 bg-stone-50 dark:bg-stone-800 border-none rounded-2xl focus:ring-2 focus:ring-orange-500 transition-all dark:text-white" />
             </div>
             <div className="flex bg-stone-100 dark:bg-stone-800 p-1 rounded-2xl">
-              {['all', 'temples', 'tirths'].map(cat => (
-                <button key={cat} onClick={() => setActiveCategory(cat)}
-                  className={`px-6 py-2 rounded-xl text-sm font-bold transition-all ${activeCategory === cat ? 'bg-white dark:bg-stone-700 text-stone-900 dark:text-white shadow-sm' : 'text-stone-500 hover:text-stone-700 dark:hover:text-stone-300'}`}>
-                  {cat.charAt(0).toUpperCase() + cat.slice(1)}
+              {[
+                { id: 'all', label: t('templeKnowledge.all') },
+                { id: 'temples', label: t('templeKnowledge.temples') },
+                { id: 'tirths', label: t('templeKnowledge.tirths') }
+              ].map(cat => (
+                <button key={cat.id} onClick={() => setActiveCategory(cat.id)}
+                  className={`px-6 py-2 rounded-xl text-sm font-bold transition-all ${activeCategory === cat.id ? 'bg-white dark:bg-stone-700 text-stone-900 dark:text-white shadow-sm' : 'text-stone-500 hover:text-stone-700 dark:hover:text-stone-300'}`}>
+                  {cat.label}
                 </button>
               ))}
             </div>
@@ -587,8 +591,8 @@ export default function TempleKnowledge() {
               <div className="flex items-center gap-3 mb-8">
                 <div className="bg-orange-100 dark:bg-orange-900/30 p-3 rounded-2xl"><Sparkles className="w-6 h-6 text-orange-600" /></div>
                 <div>
-                  <h2 className="text-3xl font-serif font-bold text-stone-900 dark:text-white">Ancient Temples</h2>
-                  <p className="text-stone-500 dark:text-stone-400">Click any temple to read the full in-depth article</p>
+                  <h2 className="text-3xl font-serif font-bold text-stone-900 dark:text-white">{t('templeKnowledge.ancientTemples')}</h2>
+                  <p className="text-stone-500 dark:text-stone-400">{t('templeKnowledge.ancientSubtitle')}</p>
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -606,10 +610,10 @@ export default function TempleKnowledge() {
                       <div className="p-6">
                         <h3 className="text-xl font-serif font-bold text-stone-900 dark:text-white mb-1">{temple.name}</h3>
                         <p className="text-orange-500 text-xs font-semibold mb-3 italic">"{temple.tagline}"</p>
-                        <p className="text-stone-500 dark:text-stone-400 text-xs mb-1"><span className="font-semibold">Deity:</span> {temple.deity}</p>
+                        <p className="text-stone-500 dark:text-stone-400 text-xs mb-1"><span className="font-semibold">{t('templeKnowledge.deity')}</span> {temple.deity}</p>
                         <p className="text-stone-600 dark:text-stone-400 text-sm leading-relaxed mb-5 line-clamp-2">{temple.introduction.content}</p>
                         <button className="flex items-center gap-2 text-orange-600 font-bold text-sm group-hover:gap-3 transition-all">
-                          Read Full Article <ArrowRight className="w-4 h-4" />
+                          {t('templeKnowledge.readFullArticle')} <ArrowRight className="w-4 h-4" />
                         </button>
                       </div>
                     </motion.div>
@@ -626,7 +630,7 @@ export default function TempleKnowledge() {
               <div className="relative z-10">
                 <div className="flex items-center gap-3 mb-8">
                   <div className="bg-orange-500/20 p-3 rounded-2xl"><Lightbulb className="w-6 h-6 text-orange-400" /></div>
-                  <h2 className="text-3xl font-serif font-bold text-white">Did You Know?</h2>
+                  <h2 className="text-3xl font-serif font-bold text-white">{t('templeKnowledge.didYouKnow')}</h2>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                   {didYouKnow.map((item, idx) => (
@@ -647,8 +651,8 @@ export default function TempleKnowledge() {
               <div className="flex items-center gap-3 mb-8">
                 <div className="bg-blue-100 dark:bg-blue-900/30 p-3 rounded-2xl"><BookOpen className="w-6 h-6 text-blue-600" /></div>
                 <div>
-                  <h2 className="text-3xl font-serif font-bold text-stone-900 dark:text-white">Sacred Tirthplaces</h2>
-                  <p className="text-stone-500 dark:text-stone-400">Holy pilgrimage sites for spiritual awakening</p>
+                  <h2 className="text-3xl font-serif font-bold text-stone-900 dark:text-white">{t('templeKnowledge.sacredTirths')}</h2>
+                  <p className="text-stone-500 dark:text-stone-400">{t('templeKnowledge.tirthSubtitle')}</p>
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -659,7 +663,7 @@ export default function TempleKnowledge() {
                     <div className="absolute inset-0 bg-gradient-to-t from-stone-950 via-stone-950/40 to-transparent" />
                     <div className="absolute bottom-0 left-0 right-0 p-8">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="px-3 py-1 bg-orange-500 text-white text-[10px] font-bold uppercase tracking-widest rounded-full">Tirth</span>
+                        <span className="px-3 py-1 bg-orange-500 text-white text-[10px] font-bold uppercase tracking-widest rounded-full">{t('templeKnowledge.tirth')}</span>
                         <span className="text-stone-300 text-xs">{tirth.state}</span>
                       </div>
                       <h3 className="text-2xl font-serif font-bold text-white mb-2">{tirth.name}</h3>
@@ -676,8 +680,8 @@ export default function TempleKnowledge() {
           {filteredTemples.length === 0 && filteredTirths.length === 0 && (
             <div className="text-center py-20 bg-white dark:bg-stone-900 rounded-3xl border border-stone-200 dark:border-stone-800">
               <Search className="w-12 h-12 text-stone-300 mx-auto mb-4" />
-              <h3 className="text-xl font-serif font-bold text-stone-900 dark:text-white mb-2">No results found</h3>
-              <p className="text-stone-500 mb-6">Try a different search term or category.</p>
+              <h3 className="text-xl font-serif font-bold text-stone-900 dark:text-white mb-2">{t('templeKnowledge.noResults')}</h3>
+              <p className="text-stone-500 mb-6">{t('templeKnowledge.noResultsSubtitle')}</p>
               <button onClick={() => { setSearchQuery(''); setActiveCategory('all'); }}
                 className="bg-orange-500 text-white px-6 py-2 rounded-xl font-bold hover:bg-orange-600 transition-colors">
                 Clear Search

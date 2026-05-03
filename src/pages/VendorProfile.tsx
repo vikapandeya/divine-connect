@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -37,6 +38,7 @@ interface ReviewStats {
 }
 
 export default function VendorProfile() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [vendor, setVendor] = useState<VendorProfileData | null>(null);
@@ -111,7 +113,7 @@ export default function VendorProfile() {
       <div className="min-h-screen flex items-center justify-center bg-stone-50">
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 border-4 border-orange-500/30 border-t-orange-500 rounded-full animate-spin" />
-          <p className="text-stone-500 font-medium animate-pulse">Loading sacred profile...</p>
+          <p className="text-stone-500 font-medium animate-pulse">{t('vendorProfile.loading')}</p>
         </div>
       </div>
     );
@@ -122,7 +124,7 @@ export default function VendorProfile() {
       <div className="min-h-screen flex items-center justify-center bg-stone-50">
         <div className="text-center px-4">
           <Info className="w-16 h-16 text-stone-300 mx-auto mb-4" />
-          <h2 className="text-2xl font-serif font-bold text-stone-900 mb-2">Vendor Not Found</h2>
+          <h2 className="text-2xl font-serif font-bold text-stone-900 mb-2">{t('vendorProfile.notFound')}</h2>
           <p className="text-stone-500 mb-6">The vendor you're looking for doesn't exist or has been removed.</p>
           <button 
             onClick={() => navigate(-1)}
@@ -291,7 +293,7 @@ export default function VendorProfile() {
                         </p>
                         <div className="flex items-center justify-between pt-4 border-t border-stone-50">
                           <div className="flex flex-col">
-                            <span className="text-[10px] text-stone-400 uppercase font-bold tracking-wider">Starting from</span>
+                            <span className="text-[10px] text-stone-400 uppercase font-bold tracking-wider">{t('vendorProfile.startingFrom')}</span>
                             <span className="text-xl font-serif font-bold text-stone-900">₹{puja.onlinePrice}</span>
                           </div>
                           <div className="w-10 h-10 rounded-2xl bg-orange-50 text-orange-600 flex items-center justify-center group-hover:bg-orange-500 group-hover:text-white transition-all">
@@ -364,7 +366,7 @@ export default function VendorProfile() {
                   {stats && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-12 bg-stone-50/50 p-8 rounded-[2rem] border border-stone-100">
                       <div className="flex flex-col items-center justify-center text-center">
-                        <h4 className="text-sm font-bold text-stone-400 uppercase tracking-widest mb-4">Average Rating</h4>
+                        <h4 className="text-sm font-bold text-stone-400 uppercase tracking-widest mb-4">{t('vendorProfile.avgRating')}</h4>
                         <div className="text-7xl font-serif font-bold text-stone-900 mb-4">{stats.average.toFixed(1)}</div>
                         <div className="flex items-center gap-1 text-amber-500 mb-4">
                           {[1, 2, 3, 4, 5].map((s) => (
@@ -421,7 +423,7 @@ export default function VendorProfile() {
                         <p className="text-stone-600 leading-relaxed italic">"{review.message}"</p>
                         <div className="mt-6 pt-4 border-t border-stone-50 flex items-center justify-between text-[10px] text-stone-400 font-bold uppercase tracking-wider">
                           <span>{review.createdAt ? new Date(review.createdAt).toLocaleDateString() : 'Recent'}</span>
-                          {review.serviceId && <span className="text-orange-500">Service Review</span>}
+                          {review.serviceId && <span className="text-orange-500">{t('vendorProfile.serviceReview')}</span>}
                         </div>
                       </div>
                     ))}
@@ -430,7 +432,7 @@ export default function VendorProfile() {
                   {reviews.length === 0 && (
                     <div className="py-20 text-center">
                       <MessageSquare className="w-16 h-16 text-stone-200 mx-auto mb-4" />
-                      <p className="text-stone-500 font-medium">No reviews yet for this vendor.</p>
+                      <p className="text-stone-500 font-medium">{t('vendorProfile.noReviews')}</p>
                     </div>
                   )}
                 </motion.div>
@@ -440,7 +442,7 @@ export default function VendorProfile() {
             {pujas.length === 0 && products.length === 0 && (
               <div className="py-20 text-center">
                 <Package className="w-16 h-16 text-stone-200 mx-auto mb-4" />
-                <p className="text-stone-500 font-medium">This vendor hasn't listed any offerings yet.</p>
+                <p className="text-stone-500 font-medium">{t('vendorProfile.noOfferings')}</p>
               </div>
             )}
           </div>

@@ -367,8 +367,8 @@ export default function NaamJapCounter() {
       {/* Header */}
       <div className="w-full max-w-sm flex items-center justify-between mb-6 relative z-10">
         <div>
-          <p className="text-[9px] tracking-[0.35em] text-amber-500/40 uppercase font-bold mb-0.5">Sacred Practice</p>
-          <h1 className="text-base font-black tracking-tight" style={{ color: th.titleColor }}>Naam Jap</h1>
+          <p className="text-[9px] tracking-[0.35em] text-amber-500/40 uppercase font-bold mb-0.5">{t('naamjap.sacredPractice')}</p>
+          <h1 className="text-base font-black tracking-tight" style={{ color: th.titleColor }}>{t('naamjap.title')}</h1>
         </div>
         <div className="flex gap-2">
           <button
@@ -488,7 +488,7 @@ export default function NaamJapCounter() {
                   style={{ background: audioMode === 'bell' ? 'rgba(245,158,11,0.1)' : 'rgba(255,255,255,0.03)' }}
                 >
                   <Bell size={15} />
-                  <span className="text-xs font-bold">Bell</span>
+                  <span className="text-xs font-bold">{t('naamjap.bell')}</span>
                 </button>
                 <div className="flex gap-2">
                   <div className="relative flex-1">
@@ -586,7 +586,7 @@ export default function NaamJapCounter() {
                   </div>
                 </div>
               )) : (
-                <p className="text-center py-8 text-zinc-600 text-sm italic">No history found for today</p>
+                <p className="text-center py-8 text-zinc-600 text-sm italic">{t('naamjap.noHistory')}</p>
               )}
             </div>
           </motion.div>
@@ -607,7 +607,7 @@ export default function NaamJapCounter() {
               style={{ background: th.cardBg, borderColor: th.cardBorder, backdropFilter: 'blur(16px)', boxShadow: '0 8px 40px rgba(0,0,0,0.15)' }}
             >
               <div className="flex justify-between items-center mb-4 px-1">
-                <p className="text-[9px] font-black uppercase tracking-[0.3em]" style={{ color: th.sectionLabel }}>Select Mantra</p>
+                <p className="text-[9px] font-black uppercase tracking-[0.3em]" style={{ color: th.sectionLabel }}>{t('naamjap.selectMantra')}</p>
                 <span className="text-[9px] font-black uppercase px-2.5 py-0.5 rounded-full" style={{ color: '#F59E0B', background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.2)' }}>
                   Active
                 </span>
@@ -631,7 +631,7 @@ export default function NaamJapCounter() {
 
               <div className="border-t pt-4 mb-3" style={{ borderColor: th.dividerColor }}>
                 <p className="text-[9px] font-black uppercase tracking-[0.3em] mb-3 text-center" style={{ color: th.sectionLabel }}>
-                  Session Target
+                  {t('naamjap.sessionTarget')}
                 </p>
                 <div className="grid grid-cols-6 gap-1.5 mb-2">
                   {TARGET_OPTIONS.map(val => (
@@ -664,9 +664,9 @@ export default function NaamJapCounter() {
             {/* Stats row */}
             <div className="flex gap-3 mb-7 w-full max-w-sm">
               {[
-                { value: todayTotal, label: 'Today', glow: isCelebrating },
-                { value: `${streak}d`, label: 'Streak', icon: true },
-                { value: lifetimeTotal || todayTotal, label: 'Total' },
+                { value: todayTotal, label: t('naamjap.today'), glow: isCelebrating },
+                { value: `${streak}d`, label: t('naamjap.streak'), icon: true },
+                { value: lifetimeTotal || todayTotal, label: t('naamjap.total') },
               ].map(({ value, label, glow, icon }) => (
                 <div
                   key={label}
@@ -834,7 +834,7 @@ export default function NaamJapCounter() {
                 </AnimatePresence>
               </div>
 
-              <span className="font-black tracking-widest text-2xl text-white drop-shadow-sm">JAP</span>
+              <span className="font-black tracking-widest text-2xl text-white drop-shadow-sm">{t('naamjap.jap')}</span>
               <span className="text-[11px] tracking-[0.3em] mt-0.5 font-bold" style={{ color: th.sessionLabel, fontFamily: 'serif' }}>जाप</span>
               <div
                 className="h-px w-8 mt-2 rounded-full transition-all"
@@ -866,7 +866,7 @@ export default function NaamJapCounter() {
           onMouseLeave={e => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.07)')}
         >
           <Undo2 size={13} className="-translate-y-px" />
-          Undo
+          {t('naamjap.undo')}
         </button>
         <button
           onClick={handleReset}
@@ -876,7 +876,7 @@ export default function NaamJapCounter() {
           onMouseLeave={e => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.07)')}
         >
           <RotateCcw size={13} className="-translate-y-px" />
-          Reset
+          {t('naamjap.reset')}
         </button>
       </div>
     </div>

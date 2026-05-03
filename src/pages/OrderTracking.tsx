@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Package, Truck, CheckCircle, Clock, ChevronLeft, MapPin, Calendar, CreditCard, ShieldCheck } from 'lucide-react';
@@ -6,6 +7,7 @@ import { formatIndianRupees } from '../lib/utils';
 import { Order } from '../types';
 
 export default function OrderTracking() {
+  const { t } = useTranslation();
   const { orderId } = useParams<{ orderId: string }>();
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
@@ -47,7 +49,7 @@ export default function OrderTracking() {
       <div className="min-h-screen bg-stone-50 dark:bg-stone-950 flex flex-col items-center justify-center p-4">
         <div className="bg-white dark:bg-stone-900 p-8 rounded-[2.5rem] shadow-sm border border-stone-200 dark:border-stone-800 text-center max-w-md">
           <Package className="w-16 h-16 text-stone-200 dark:text-stone-800 mx-auto mb-4" />
-          <h2 className="text-2xl font-serif font-bold text-stone-900 dark:text-white mb-2">Order Not Found</h2>
+          <h2 className="text-2xl font-serif font-bold text-stone-900 dark:text-white mb-2">{t('orderTracking.notFound')}</h2>
           <p className="text-stone-500 dark:text-stone-400 mb-6">We couldn't find the order details you're looking for.</p>
           <Link to="/profile" className="inline-flex items-center px-6 py-3 bg-orange-600 text-white rounded-2xl font-bold hover:bg-orange-700 transition-colors">
             <ChevronLeft className="w-4 h-4 mr-2" />
@@ -104,8 +106,8 @@ export default function OrderTracking() {
             >
               <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 pb-8 border-b border-stone-100 dark:border-stone-800 gap-4">
                 <div>
-                  <h1 className="text-2xl font-serif font-bold text-stone-900 dark:text-white mb-1">Track Order</h1>
-                  <p className="text-stone-500 dark:text-stone-400 text-sm">Order ID: <span className="font-mono font-bold text-stone-900 dark:text-white">{orderId?.toUpperCase()}</span></p>
+                  <h1 className="text-2xl font-serif font-bold text-stone-900 dark:text-white mb-1">{t('orderTracking.trackOrder')}</h1>
+                  <p className="text-stone-500 dark:text-stone-400 text-sm">{t('orderTracking.orderId')} <span className="font-mono font-bold text-stone-900 dark:text-white">{orderId?.toUpperCase()}</span></p>
                 </div>
                 <div className={`px-4 py-2 rounded-2xl flex items-center space-x-2 ${getStatusColor(order.status)}`}>
                   {getStatusIcon(order.status)}
@@ -155,7 +157,7 @@ export default function OrderTracking() {
               transition={{ delay: 0.2 }}
               className="bg-white dark:bg-stone-900 rounded-[2.5rem] border border-stone-200 dark:border-stone-800 p-8 shadow-sm"
             >
-              <h2 className="text-xl font-serif font-bold text-stone-900 dark:text-white mb-6">Order Items</h2>
+              <h2 className="text-xl font-serif font-bold text-stone-900 dark:text-white mb-6">{t('orderTracking.orderItems')}</h2>
               <div className="space-y-4">
                 {order.items.map((item, index) => (
                   <div key={index} className="flex items-center justify-between p-4 rounded-2xl bg-stone-50 dark:bg-stone-800/50 border border-stone-100 dark:border-stone-800">
@@ -178,7 +180,7 @@ export default function OrderTracking() {
                 ))}
               </div>
               <div className="mt-8 pt-8 border-t border-stone-100 dark:border-stone-800 flex justify-between items-center">
-                <span className="text-stone-500 dark:text-stone-400 font-bold uppercase text-xs tracking-widest">Total Amount Paid</span>
+                <span className="text-stone-500 dark:text-stone-400 font-bold uppercase text-xs tracking-widest">{t('orderTracking.totalPaid')}</span>
                 <span className="text-2xl font-serif font-bold text-orange-600">₹{order.totalAmount}</span>
               </div>
             </motion.div>
@@ -191,12 +193,12 @@ export default function OrderTracking() {
               animate={{ opacity: 1, x: 0 }}
               className="bg-white dark:bg-stone-900 rounded-[2.5rem] border border-stone-200 dark:border-stone-800 p-8 shadow-sm"
             >
-              <h3 className="text-sm font-bold text-stone-400 dark:text-stone-500 uppercase tracking-widest mb-6">Shipping Details</h3>
+              <h3 className="text-sm font-bold text-stone-400 dark:text-stone-500 uppercase tracking-widest mb-6">{t('orderTracking.shippingDetails')}</h3>
               <div className="space-y-6">
                 <div className="flex items-start space-x-3">
                   <MapPin className="w-5 h-5 text-orange-600 mt-0.5" />
                   <div>
-                    <p className="text-xs font-bold text-stone-400 dark:text-stone-500 uppercase mb-1">Delivery Address</p>
+                    <p className="text-xs font-bold text-stone-400 dark:text-stone-500 uppercase mb-1">{t('orderTracking.deliveryAddress')}</p>
                     <p className="text-sm text-stone-900 dark:text-white font-medium leading-relaxed">
                       {order.shippingAddress}
                     </p>
@@ -205,7 +207,7 @@ export default function OrderTracking() {
                 <div className="flex items-start space-x-3">
                   <Calendar className="w-5 h-5 text-orange-600 mt-0.5" />
                   <div>
-                    <p className="text-xs font-bold text-stone-400 dark:text-stone-500 uppercase mb-1">Order Date</p>
+                    <p className="text-xs font-bold text-stone-400 dark:text-stone-500 uppercase mb-1">{t('orderTracking.orderDate')}</p>
                     <p className="text-sm text-stone-900 dark:text-white font-medium">
                       {new Date(order.createdAt).toLocaleDateString([], { dateStyle: 'long' })}
                     </p>
@@ -214,7 +216,7 @@ export default function OrderTracking() {
                 <div className="flex items-start space-x-3">
                   <CreditCard className="w-5 h-5 text-orange-600 mt-0.5" />
                   <div>
-                    <p className="text-xs font-bold text-stone-400 dark:text-stone-500 uppercase mb-1">Payment Method</p>
+                    <p className="text-xs font-bold text-stone-400 dark:text-stone-500 uppercase mb-1">{t('orderTracking.paymentMethod')}</p>
                     <p className="text-sm text-stone-900 dark:text-white font-medium capitalize">
                       {order.paymentMethod || 'Online Payment'}
                     </p>
@@ -230,7 +232,7 @@ export default function OrderTracking() {
               className="bg-orange-600 rounded-[2.5rem] p-8 text-white shadow-lg shadow-orange-600/20"
             >
               <ShieldCheck className="w-10 h-10 mb-4 opacity-80" />
-              <h3 className="text-xl font-serif font-bold mb-2">Divine Guarantee</h3>
+              <h3 className="text-xl font-serif font-bold mb-2">{t('orderTracking.divineGuarantee')}</h3>
               <p className="text-orange-100 text-sm leading-relaxed">
                 Your spiritual items are handled with utmost care and purity. We ensure timely delivery of all your puja essentials.
               </p>
@@ -239,7 +241,7 @@ export default function OrderTracking() {
             <div className="text-center p-4">
               <p className="text-xs text-stone-400 dark:text-stone-600">
                 Need help with your order? <br/>
-                <Link to="/contact" className="text-orange-600 font-bold hover:underline">Contact Support</Link>
+                <Link to="/contact" className="text-orange-600 font-bold hover:underline">{t('orderTracking.contactSupport')}</Link>
               </p>
             </div>
           </div>

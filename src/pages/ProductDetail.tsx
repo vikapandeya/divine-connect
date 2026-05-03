@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Product } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -10,6 +11,7 @@ import { auth } from '../firebase';
 import { VendorProfile } from '../types';
 
 export default function ProductDetail() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [product, setProduct] = useState<Product | null>(null);
@@ -174,13 +176,13 @@ export default function ProductDetail() {
   if (!product) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-stone-50 dark:bg-stone-950 px-4">
-        <h2 className="text-3xl font-serif font-bold text-stone-900 dark:text-white mb-4">Product Not Found</h2>
+        <h2 className="text-3xl font-serif font-bold text-stone-900 dark:text-white mb-4">{t('productDetail.notFound')}</h2>
         <button 
           onClick={() => navigate('/shop')}
           className="flex items-center space-x-2 text-orange-600 font-bold hover:text-orange-700 transition-colors"
         >
           <ArrowLeft className="w-5 h-5" />
-          <span>Back to Shop</span>
+          <span>{t('productDetail.backToShop')}</span>
         </button>
       </div>
     );
@@ -337,7 +339,7 @@ export default function ProductDetail() {
             {/* Options */}
             {product.weightOptions && product.weightOptions.length > 0 && (
               <div className="mb-8">
-                <h3 className="text-sm font-bold text-stone-900 dark:text-white mb-4 uppercase tracking-widest">Select Variant</h3>
+                <h3 className="text-sm font-bold text-stone-900 dark:text-white mb-4 uppercase tracking-widest">{t('productDetail.selectVariant')}</h3>
                 <div className="flex flex-wrap gap-3">
                   {product.weightOptions.map((opt: any) => (
                     <button
@@ -389,7 +391,7 @@ export default function ProductDetail() {
                 className="flex-grow bg-orange-500 text-white py-5 rounded-[2rem] font-bold hover:bg-orange-600 disabled:bg-stone-300 disabled:cursor-not-allowed transition-all flex items-center justify-center space-x-3 shadow-xl shadow-orange-500/20 active:scale-95"
               >
                 <ShoppingCart className="w-6 h-6" />
-                <span>Add to Cart</span>
+                <span>{t('productDetail.addToCart')}</span>
               </button>
               
               <button
@@ -397,7 +399,7 @@ export default function ProductDetail() {
                 className="px-8 bg-white dark:bg-stone-900 text-stone-900 dark:text-white py-5 rounded-[2rem] font-bold border border-stone-200 dark:border-stone-800 hover:border-orange-500 dark:hover:border-orange-500 transition-all flex items-center justify-center space-x-3 shadow-lg active:scale-95"
               >
                 <Star className="w-6 h-6 text-yellow-500" />
-                <span>Rate & Review</span>
+                <span>{t('productDetail.rateReview')}</span>
               </button>
             </div>
 
@@ -436,7 +438,7 @@ export default function ProductDetail() {
                   </div>
                 </div>
                 <div className="mt-4 pt-4 border-t border-stone-50 dark:border-stone-800 flex items-center justify-between text-xs font-bold text-orange-600">
-                  <span>View Full Profile</span>
+                  <span>{t('productDetail.viewFullProfile')}</span>
                   <ArrowLeft className="w-4 h-4 rotate-180" />
                 </div>
               </div>
@@ -448,21 +450,21 @@ export default function ProductDetail() {
                 <div className="w-12 h-12 bg-stone-100 dark:bg-stone-900 rounded-2xl flex items-center justify-center mb-3">
                   <ShieldCheck className="w-6 h-6 text-stone-900 dark:text-stone-100" />
                 </div>
-                <span className="text-xs font-bold text-stone-900 dark:text-white mb-1">Authentic</span>
+                <span className="text-xs font-bold text-stone-900 dark:text-white mb-1">{t('productDetail.authentic')}</span>
                 <span className="text-[10px] text-stone-500 dark:text-stone-400">100% Pure & Sacred</span>
               </div>
               <div className="flex flex-col items-center text-center">
                 <div className="w-12 h-12 bg-stone-100 dark:bg-stone-900 rounded-2xl flex items-center justify-center mb-3">
                   <Truck className="w-6 h-6 text-stone-900 dark:text-stone-100" />
                 </div>
-                <span className="text-xs font-bold text-stone-900 dark:text-white mb-1">Fast Shipping</span>
-                <span className="text-[10px] text-stone-500 dark:text-stone-400">Delivered in 3-5 Days</span>
+                <span className="text-xs font-bold text-stone-900 dark:text-white mb-1">{t('productDetail.fastShipping')}</span>
+                <span className="text-[10px] text-stone-500 dark:text-stone-400">{t('productDetail.deliveredIn')}</span>
               </div>
               <div className="flex flex-col items-center text-center">
                 <div className="w-12 h-12 bg-stone-100 dark:bg-stone-900 rounded-2xl flex items-center justify-center mb-3">
                   <RotateCcw className="w-6 h-6 text-stone-900 dark:text-stone-100" />
                 </div>
-                <span className="text-xs font-bold text-stone-900 dark:text-white mb-1">Easy Return</span>
+                <span className="text-xs font-bold text-stone-900 dark:text-white mb-1">{t('productDetail.easyReturn')}</span>
                 <span className="text-[10px] text-stone-500 dark:text-stone-400">7-Day Return Policy</span>
               </div>
             </div>
@@ -472,7 +474,7 @@ export default function ProductDetail() {
         {/* Spiritual Significance Section */}
         <div className="mt-24 p-8 md:p-12 bg-stone-100 dark:bg-stone-900 rounded-[3rem] border border-stone-200 dark:border-stone-800">
           <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-3xl font-serif font-bold text-stone-900 dark:text-white mb-6">Spiritual Significance & Origin</h2>
+            <h2 className="text-3xl font-serif font-bold text-stone-900 dark:text-white mb-6">{t('productDetail.spiritualSignificance')}</h2>
             <div className="w-16 h-1 bg-orange-500 mx-auto mb-8 rounded-full" />
             {product.spiritualSignificance ? (
               <p className="text-stone-600 dark:text-stone-400 leading-relaxed text-lg mb-6">
@@ -495,7 +497,7 @@ export default function ProductDetail() {
         <div className="mt-24">
           <div className="flex flex-col md:flex-row md:items-center justify-between mb-12 gap-6">
             <div>
-              <h2 className="text-3xl font-serif font-bold text-stone-900 dark:text-white mb-2">Customer Reviews</h2>
+              <h2 className="text-3xl font-serif font-bold text-stone-900 dark:text-white mb-2">{t('productDetail.customerReviews')}</h2>
               <div className="flex items-center space-x-4">
                 <div className="flex items-center text-yellow-500">
                   <Star className="w-5 h-5 fill-current" />
@@ -594,7 +596,7 @@ export default function ProductDetail() {
                   <div className="w-20 h-20 bg-orange-100 dark:bg-orange-900/30 rounded-[2rem] flex items-center justify-center mx-auto mb-6">
                     <Star className="w-10 h-10 text-orange-600 fill-current" />
                   </div>
-                  <h3 className="text-3xl font-serif font-bold text-stone-900 dark:text-white mb-2">Share Your Experience</h3>
+                  <h3 className="text-3xl font-serif font-bold text-stone-900 dark:text-white mb-2">{t('productDetail.shareExperience')}</h3>
                   <p className="text-stone-500 dark:text-stone-400">How was the {product.name}?</p>
                 </div>
 

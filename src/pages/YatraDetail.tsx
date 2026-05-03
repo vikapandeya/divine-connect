@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Yatra, VendorProfile } from '../types';
 import { motion } from 'framer-motion';
@@ -6,6 +7,7 @@ import { Clock, IndianRupee, MapPin, Calendar, CheckCircle2, ArrowLeft, Star, Ph
 import YatraBookingModal from '../components/YatraBookingModal';
 
 export default function YatraDetail() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [yatra, setYatra] = useState<Yatra | null>(null);
@@ -96,8 +98,8 @@ export default function YatraDetail() {
     window.scrollTo(0, 0);
   }, [id]);
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
-  if (!yatra) return <div className="min-h-screen flex items-center justify-center">Yatra package not found.</div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center">{t('yatraDetail.loading')}</div>;
+  if (!yatra) return <div className="min-h-screen flex items-center justify-center">{t('yatraDetail.notFound')}</div>;
 
   return (
     <div className="bg-stone-50 min-h-screen">
@@ -141,28 +143,28 @@ export default function YatraDetail() {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                 <div className="bg-stone-50 p-4 rounded-2xl border border-stone-100">
                   <Clock className="w-5 h-5 text-orange-500 mb-2" />
-                  <p className="text-[10px] text-stone-400 font-bold uppercase">Duration</p>
+                  <p className="text-[10px] text-stone-400 font-bold uppercase">{t('yatraDetail.duration')}</p>
                   <p className="text-sm font-bold text-stone-900">{yatra.duration}</p>
                 </div>
                 <div className="bg-stone-50 p-4 rounded-2xl border border-stone-100">
                   <MapPin className="w-5 h-5 text-blue-500 mb-2" />
-                  <p className="text-[10px] text-stone-400 font-bold uppercase">Start City</p>
+                  <p className="text-[10px] text-stone-400 font-bold uppercase">{t('yatraDetail.startCity')}</p>
                   <p className="text-sm font-bold text-stone-900">{yatra.location}</p>
                 </div>
                 <div className="bg-stone-50 p-4 rounded-2xl border border-stone-100">
                   <ShieldCheck className="w-5 h-5 text-emerald-500 mb-2" />
-                  <p className="text-[10px] text-stone-400 font-bold uppercase">Safe Travel</p>
-                  <p className="text-sm font-bold text-stone-900">Verified</p>
+                  <p className="text-[10px] text-stone-400 font-bold uppercase">{t('yatraDetail.safeTravel')}</p>
+                  <p className="text-sm font-bold text-stone-900">{t('yatraDetail.verified')}</p>
                 </div>
                 <div className="bg-stone-50 p-4 rounded-2xl border border-stone-100">
                   <CheckCircle2 className="w-5 h-5 text-orange-500 mb-2" />
-                  <p className="text-[10px] text-stone-400 font-bold uppercase">Assistance</p>
+                  <p className="text-[10px] text-stone-400 font-bold uppercase">{t('yatraDetail.assistance')}</p>
                   <p className="text-sm font-bold text-stone-900">24/7 Support</p>
                 </div>
               </div>
 
               <div className="prose prose-stone max-w-none">
-                <h3 className="text-xl font-bold mb-4">About the Journey</h3>
+                <h3 className="text-xl font-bold mb-4">{t('yatraDetail.aboutJourney')}</h3>
                 <p className="text-stone-600 leading-relaxed">
                   {yatra.description}
                 </p>
@@ -170,7 +172,7 @@ export default function YatraDetail() {
 
               {yatra.itinerary && yatra.itinerary.length > 0 && (
                 <div className="mt-10">
-                  <h3 className="text-xl font-bold mb-6">Itinerary Highlights</h3>
+                  <h3 className="text-xl font-bold mb-6">{t('yatraDetail.itinerary')}</h3>
                   <div className="space-y-6">
                     {yatra.itinerary.map((item, idx) => (
                       <div key={idx} className="flex gap-6">
@@ -203,22 +205,22 @@ export default function YatraDetail() {
             <div className="bg-white p-8 md:p-10 rounded-[2.5rem] border border-stone-200 shadow-xl sticky top-24">
               <div className="flex items-center justify-between mb-8">
                 <div className="flex flex-col">
-                  <span className="text-stone-400 text-xs font-bold uppercase tracking-wider">Starts from</span>
+                  <span className="text-stone-400 text-xs font-bold uppercase tracking-wider">{t('yatraDetail.startsFrom')}</span>
                   <div className="flex items-center text-3xl font-serif font-bold text-orange-600">
                     <IndianRupee className="w-6 h-6" />
                     <span>{yatra.price}</span>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-[10px] text-stone-400 font-bold">PER PERSON</p>
-                  <p className="text-xs text-stone-500">Includes all taxes</p>
+                  <p className="text-[10px] text-stone-400 font-bold">{t('yatraDetail.perPerson')}</p>
+                  <p className="text-xs text-stone-500">{t('yatraDetail.includesTax')}</p>
                 </div>
               </div>
 
               <div className="space-y-6 mb-8 pt-6 border-t border-stone-100">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div>
-                    <h4 className="text-xs font-bold text-stone-400 uppercase tracking-widest mb-4">Inclusions</h4>
+                    <h4 className="text-xs font-bold text-stone-400 uppercase tracking-widest mb-4">{t('yatraDetail.inclusions')}</h4>
                     <ul className="space-y-3">
                       {(yatra.included || ['Accommodation', 'Satvik Meals', 'Local Transport']).map(item => (
                         <li key={item} className="flex items-center text-sm text-stone-600">
@@ -229,7 +231,7 @@ export default function YatraDetail() {
                     </ul>
                   </div>
                   <div>
-                    <h4 className="text-xs font-bold text-stone-400 uppercase tracking-widest mb-4">Exclusions</h4>
+                    <h4 className="text-xs font-bold text-stone-400 uppercase tracking-widest mb-4">{t('yatraDetail.exclusions')}</h4>
                     <ul className="space-y-3">
                       {(yatra.excluded || ['Personal expenses', 'Airfare']).map(item => (
                         <li key={item} className="flex items-center text-sm text-stone-600/60">
@@ -257,7 +259,7 @@ export default function YatraDetail() {
 
               {vendor && (
                 <div className="mt-10 pt-10 border-t border-stone-100">
-                  <p className="text-[10px] font-bold text-stone-400 uppercase mb-4">Organized By</p>
+                  <p className="text-[10px] font-bold text-stone-400 uppercase mb-4">{t('yatraDetail.organizedBy')}</p>
                   <div className="flex items-center gap-4 p-4 bg-stone-50 rounded-2xl">
                     <img 
                       src={vendor.photoURL || `https://picsum.photos/seed/${vendor.uid}/100/100`} 

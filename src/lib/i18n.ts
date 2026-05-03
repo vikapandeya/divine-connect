@@ -210,6 +210,71 @@ const resources = {
         "invalidUpi": "Please provide a valid UPI ID.",
         "provideAddress": "Please provide a shipping address."
       },
+      "naamjap": {
+        "sacredPractice": "Sacred Practice",
+        "title": "Naam Jap",
+        "selectMantra": "Select Mantra",
+        "sessionTarget": "Session Target",
+        "today": "Today", "streak": "Streak", "total": "Total",
+        "jap": "JAP",
+        "undo": "Undo", "reset": "Reset",
+        "noHistory": "No history found for today",
+        "bell": "Bell", "upload": "Upload", "custom": "Custom",
+        "active": "Active"
+      },
+      "templeKnowledge": {
+        "pageTitle": "Sacred Temples & Tirthplaces",
+        "searchPlaceholder": "Search temples, cities, significance...",
+        "all": "All", "temples": "Temples", "tirths": "Tirths",
+        "ancientTemples": "Ancient Temples",
+        "ancientSubtitle": "Click any temple to read the full in-depth article",
+        "deity": "Deity:",
+        "didYouKnow": "Did You Know?",
+        "sacredTirths": "Sacred Tirthplaces",
+        "tirthSubtitle": "Holy pilgrimage sites for spiritual awakening",
+        "tirth": "Tirth",
+        "noResults": "No results found",
+        "noResultsSubtitle": "Try a different search term or category.",
+        "readFullArticle": "Read Full Article"
+      },
+      "productDetail": {
+        "notFound": "Product Not Found", "backToShop": "Back to Shop", "back": "Back",
+        "selectVariant": "Select Variant", "quantity": "Quantity",
+        "addToCart": "Add to Cart", "rateReview": "Rate & Review",
+        "viewFullProfile": "View Full Profile",
+        "authentic": "Authentic", "fastShipping": "Fast Shipping",
+        "deliveredIn": "Delivered in 3-5 Days", "easyReturn": "Easy Return",
+        "spiritualSignificance": "Spiritual Significance & Origin",
+        "customerReviews": "Customer Reviews", "shareExperience": "Share Your Experience"
+      },
+      "yatraDetail": {
+        "loading": "Loading...", "notFound": "Yatra package not found.",
+        "duration": "Duration", "startCity": "Start City",
+        "safeTravel": "Safe Travel", "verified": "Verified", "assistance": "Assistance",
+        "aboutJourney": "About the Journey", "itinerary": "Itinerary Highlights",
+        "startsFrom": "Starts from", "perPerson": "PER PERSON",
+        "includesTax": "Includes all taxes", "inclusions": "Inclusions",
+        "exclusions": "Exclusions", "organizedBy": "Organized By"
+      },
+      "vendorProfile": {
+        "loading": "Loading sacred profile...", "notFound": "Vendor Not Found",
+        "startingFrom": "Starting from", "avgRating": "Average Rating",
+        "serviceReview": "Service Review", "noReviews": "No reviews yet for this vendor.",
+        "noOfferings": "This vendor hasn't listed any offerings yet."
+      },
+      "orderTracking": {
+        "notFound": "Order Not Found", "trackOrder": "Track Order",
+        "orderId": "Order ID:", "orderItems": "Order Items",
+        "totalPaid": "Total Amount Paid", "shippingDetails": "Shipping Details",
+        "deliveryAddress": "Delivery Address", "orderDate": "Order Date",
+        "paymentMethod": "Payment Method", "divineGuarantee": "Divine Guarantee",
+        "contactSupport": "Contact Support"
+      },
+      "searchResults": {
+        "consulting": "Consulting the divine archives...",
+        "noLocal": "No local results found",
+        "products": "Spiritual Products", "pujas": "Puja Services", "yatras": "Divine Yatras"
+      },
       "services": {
         "pageTitle": "Our Spiritual Services",
         "pageSubtitle": "Explore a world of divine connection through our traditional pujas and soul-stirring pilgrimage yatras.",
@@ -528,6 +593,71 @@ const resources = {
         "invalidUpi": "कृपया एक वैध यूपीआई आईडी प्रदान करें।",
         "provideAddress": "कृपया शिपिंग पता प्रदान करें।"
       },
+      "naamjap": {
+        "sacredPractice": "पवित्र साधना",
+        "title": "नाम जप",
+        "selectMantra": "मंत्र चुनें",
+        "sessionTarget": "सत्र लक्ष्य",
+        "today": "आज", "streak": "धारा", "total": "कुल",
+        "jap": "जाप",
+        "undo": "वापस करें", "reset": "रीसेट करें",
+        "noHistory": "आज का कोई इतिहास नहीं मिला",
+        "bell": "घंटी", "upload": "अपलोड", "custom": "कस्टम",
+        "active": "सक्रिय"
+      },
+      "templeKnowledge": {
+        "pageTitle": "पवित्र मंदिर एवं तीर्थस्थल",
+        "searchPlaceholder": "मंदिर, शहर, महत्व खोजें...",
+        "all": "सभी", "temples": "मंदिर", "tirths": "तीर्थ",
+        "ancientTemples": "प्राचीन मंदिर",
+        "ancientSubtitle": "पूर्ण विस्तृत लेख पढ़ने के लिए किसी भी मंदिर पर क्लिक करें",
+        "deity": "देवता:",
+        "didYouKnow": "क्या आप जानते हैं?",
+        "sacredTirths": "पवित्र तीर्थस्थल",
+        "tirthSubtitle": "आध्यात्मिक जागृति के लिए पवित्र तीर्थ स्थान",
+        "tirth": "तीर्थ",
+        "noResults": "कोई परिणाम नहीं मिला",
+        "noResultsSubtitle": "कोई अलग खोज शब्द या श्रेणी आज़माएं।",
+        "readFullArticle": "पूरा लेख पढ़ें"
+      },
+      "productDetail": {
+        "notFound": "उत्पाद नहीं मिला", "backToShop": "दुकान पर वापस जाएं", "back": "वापस",
+        "selectVariant": "विकल्प चुनें", "quantity": "मात्रा",
+        "addToCart": "कार्ट में जोड़ें", "rateReview": "रेटिंग और समीक्षा",
+        "viewFullProfile": "पूरी प्रोफ़ाइल देखें",
+        "authentic": "प्रामाणिक", "fastShipping": "तेज़ डिलीवरी",
+        "deliveredIn": "3-5 दिनों में वितरित", "easyReturn": "आसान वापसी",
+        "spiritualSignificance": "आध्यात्मिक महत्व और उत्पत्ति",
+        "customerReviews": "ग्राहक समीक्षाएं", "shareExperience": "अपना अनुभव साझा करें"
+      },
+      "yatraDetail": {
+        "loading": "लोड हो रहा है...", "notFound": "यात्रा पैकेज नहीं मिला।",
+        "duration": "अवधि", "startCity": "प्रारंभ नगर",
+        "safeTravel": "सुरक्षित यात्रा", "verified": "सत्यापित", "assistance": "सहायता",
+        "aboutJourney": "यात्रा के बारे में", "itinerary": "यात्रा कार्यक्रम",
+        "startsFrom": "से शुरू", "perPerson": "प्रति व्यक्ति",
+        "includesTax": "सभी कर सहित", "inclusions": "सम्मिलित",
+        "exclusions": "असम्मिलित", "organizedBy": "आयोजक"
+      },
+      "vendorProfile": {
+        "loading": "पवित्र प्रोफ़ाइल लोड हो रही है...", "notFound": "विक्रेता नहीं मिला",
+        "startingFrom": "से शुरू", "avgRating": "औसत रेटिंग",
+        "serviceReview": "सेवा समीक्षा", "noReviews": "इस विक्रेता की अभी तक कोई समीक्षा नहीं।",
+        "noOfferings": "इस विक्रेता ने अभी तक कोई सेवा सूचीबद्ध नहीं की है।"
+      },
+      "orderTracking": {
+        "notFound": "ऑर्डर नहीं मिला", "trackOrder": "ऑर्डर ट्रैक करें",
+        "orderId": "ऑर्डर आईडी:", "orderItems": "ऑर्डर आइटम",
+        "totalPaid": "कुल भुगतान राशि", "shippingDetails": "शिपिंग विवरण",
+        "deliveryAddress": "डिलीवरी पता", "orderDate": "ऑर्डर तिथि",
+        "paymentMethod": "भुगतान विधि", "divineGuarantee": "दिव्य गारंटी",
+        "contactSupport": "सहायता से संपर्क करें"
+      },
+      "searchResults": {
+        "consulting": "दिव्य अभिलेखागार से परामर्श हो रहा है...",
+        "noLocal": "कोई स्थानीय परिणाम नहीं मिला",
+        "products": "आध्यात्मिक उत्पाद", "pujas": "पूजा सेवाएं", "yatras": "दिव्य यात्राएं"
+      },
       "services": {
         "pageTitle": "हमारी आध्यात्मिक सेवाएं",
         "pageSubtitle": "पारंपरिक पूजाओं और आत्मस्पर्शी तीर्थ यात्राओं के माध्यम से दिव्य संपर्क की दुनिया का अन्वेषण करें।",
@@ -845,6 +975,71 @@ const resources = {
         "invalidCard": "कृपया वैधं कार्डविवरणं ददातु।",
         "invalidUpi": "कृपया वैधं यूपीआई आईडी ददातु।",
         "provideAddress": "कृपया शिपिंग् पता ददातु।"
+      },
+      "naamjap": {
+        "sacredPractice": "पवित्रसाधना",
+        "title": "नामजपः",
+        "selectMantra": "मन्त्रं चिन्वन्तु",
+        "sessionTarget": "सत्रलक्ष्यम्",
+        "today": "अद्य", "streak": "धारा", "total": "कुलम्",
+        "jap": "जपः",
+        "undo": "पूर्ववत् कुर्वन्तु", "reset": "पुनःस्थापयन्तु",
+        "noHistory": "अद्यत्वे कोऽपि इतिहासः न प्राप्तः",
+        "bell": "घण्टा", "upload": "अपलोड्", "custom": "विशिष्टम्",
+        "active": "सक्रियम्"
+      },
+      "templeKnowledge": {
+        "pageTitle": "पवित्रमन्दिराणि तीर्थस्थानानि च",
+        "searchPlaceholder": "मन्दिरम्, नगरम्, महत्त्वं वा अन्वेषयन्तु...",
+        "all": "सर्वम्", "temples": "मन्दिराणि", "tirths": "तीर्थानि",
+        "ancientTemples": "प्राचीनमन्दिराणि",
+        "ancientSubtitle": "पूर्णविस्तृतलेखं पठितुं कस्यापि मन्दिरस्य उपरि क्लिक् कुर्वन्तु",
+        "deity": "देवता:",
+        "didYouKnow": "किम् भवान् जानाति?",
+        "sacredTirths": "पवित्रतीर्थस्थानानि",
+        "tirthSubtitle": "आध्यात्मिकजागृत्यै पवित्रतीर्थस्थानानि",
+        "tirth": "तीर्थम्",
+        "noResults": "कोऽपि परिणामः न प्राप्तः",
+        "noResultsSubtitle": "अन्यं अन्वेषणशब्दं श्रेणीं वा प्रयतस्व।",
+        "readFullArticle": "पूर्णलेखं पठन्तु"
+      },
+      "productDetail": {
+        "notFound": "उत्पादनं न प्राप्तम्", "backToShop": "आपणं प्रति प्रतिगच्छन्तु", "back": "प्रतिगमनम्",
+        "selectVariant": "विकल्पं चिन्वन्तु", "quantity": "परिमाणम्",
+        "addToCart": "शकटे संयोजयन्तु", "rateReview": "मूल्याङ्कनं समीक्षा च",
+        "viewFullProfile": "पूर्णप्रोफ़ाइलं पश्यन्तु",
+        "authentic": "प्रामाणिकम्", "fastShipping": "शीघ्रवितरणम्",
+        "deliveredIn": "३-५ दिनेषु वितरितम्", "easyReturn": "सुलभप्रत्यागमनम्",
+        "spiritualSignificance": "आध्यात्मिकमहत्त्वं उत्पत्तिः च",
+        "customerReviews": "क्रेतृसमीक्षाः", "shareExperience": "भवतः अनुभवं साझां कुर्वन्तु"
+      },
+      "yatraDetail": {
+        "loading": "लोड भवति...", "notFound": "यात्रापैकेजः न प्राप्तः।",
+        "duration": "अवधिः", "startCity": "आरम्भनगरम्",
+        "safeTravel": "सुरक्षितयात्रा", "verified": "सत्यापितम्", "assistance": "सहायता",
+        "aboutJourney": "यात्रायाः विषये", "itinerary": "यात्राकार्यक्रमः",
+        "startsFrom": "आरभ्य", "perPerson": "प्रतिव्यक्तिम्",
+        "includesTax": "सर्वेषां कराणां सहितम्", "inclusions": "सम्मिलितम्",
+        "exclusions": "असम्मिलितम्", "organizedBy": "आयोजकः"
+      },
+      "vendorProfile": {
+        "loading": "पवित्रप्रोफ़ाइलं लोड भवति...", "notFound": "विक्रेता न प्राप्तः",
+        "startingFrom": "आरभ्य", "avgRating": "सरासरीमूल्याङ्कनम्",
+        "serviceReview": "सेवासमीक्षा", "noReviews": "अस्य विक्रेतुः अद्यावधि कापि समीक्षा नास्ति।",
+        "noOfferings": "अस्य विक्रेतुः अद्यावधि काऽपि सेवा सूचीबद्धा नास्ति।"
+      },
+      "orderTracking": {
+        "notFound": "आदेशः न प्राप्तः", "trackOrder": "आदेशस्य अनुगमनं कुर्वन्तु",
+        "orderId": "आदेश-आईडी:", "orderItems": "आदेशवस्तूनि",
+        "totalPaid": "कुलभुगतानराशिः", "shippingDetails": "शिपिंग-विवरणम्",
+        "deliveryAddress": "वितरणपतम्", "orderDate": "आदेशतिथिः",
+        "paymentMethod": "भुगतानविधिः", "divineGuarantee": "दिव्यगारण्टी",
+        "contactSupport": "सहायतां सम्पर्कयन्तु"
+      },
+      "searchResults": {
+        "consulting": "दिव्याभिलेखागारं परामर्शयन्तु...",
+        "noLocal": "कोऽपि स्थानीयपरिणामः न प्राप्तः",
+        "products": "आध्यात्मिकउत्पादनानि", "pujas": "पूजासेवाः", "yatras": "दिव्ययात्राः"
       },
       "services": {
         "pageTitle": "अस्माकं आध्यात्मिकसेवाः",
