@@ -34,10 +34,20 @@ export default function ProtectedRoute({ children, requiredRole }: ProtectedRout
   }
 
   // 3. Authenticated but missing required role
-  if (requiredRole && (user as any).role !== requiredRole) {
-    return (
-      <div className="min-h-[70vh] flex flex-col items-center justify-center gap-6 text-center px-4">
-        <div className="w-20 h-20 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center">
+  if (requiredRole) {
+    const userRole = (user as any).role;
+    let hasAccess = false;
+
+    if (requiredRole === 'vendor') {
+      hasAccess = userRole === 'vendor' || userRole === 'devotee';
+    } else {
+      hasAccess = userRole === requiredRole;
+    }
+
+    if (!hasAccess) {
+      return (
+        <div className="min-h-[70vh] flex flex-col items-center justify-center gap-6 text-center px-4">
+          <div className="w-20 h-20 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center">
           <ShieldAlert className="w-10 h-10 text-red-500" />
         </div>
         <div>
@@ -58,6 +68,7 @@ export default function ProtectedRoute({ children, requiredRole }: ProtectedRout
         </a>
       </div>
     );
+  }
   }
 
   return <>{children}</>;

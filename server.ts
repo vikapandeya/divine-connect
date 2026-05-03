@@ -518,18 +518,24 @@ async function startServer() {
       try {
         console.log("Checking database state...");
         
-        // Ensure Admin User exists
+        // Ensure Admin User exists — always refresh the password hash so the
+        // seeded credentials (admin123) are guaranteed to work after restarts.
         const adminUser = await adapter.getUserByEmail("pg2331427@gmail.com");
+        const adminHash = await bcrypt.hash("admin123", 10);
         if (!adminUser) {
           console.log("Seeding admin user...");
           await adapter.createUser("admin_1", {
             uid: "admin_1",
             email: "pg2331427@gmail.com",
-            password: await bcrypt.hash("admin123", 10),
+            password: adminHash,
             displayName: "Admin User",
             role: "admin",
             createdAt: new Date()
           });
+        } else {
+          // Refresh password hash so the known credentials always work in dev
+          await adapter.updateUser(adminUser.uid, { password: adminHash, role: "admin" });
+          console.log("[DB] Admin password hash refreshed.");
         }
 
         // Seed Stats
@@ -713,40 +719,44 @@ async function startServer() {
 
     app.post("/api/auth/register", async (req, res) => {
       const { email, password, displayName, role } = req.body;
-      if (!email || !password || !displayName) {
-        return res.status(400).json({ error: "email, password, and displayName are required" });
+      // ── Input validation ────────────────────────────────────────────────────
+      if (!email || typeof email !== 'string' || !email.includes('@')) {
+        return res.status(400).json({ success: false, error: "A valid email is required" });
       }
+      if (!password || typeof password !== 'string' || password.length < 6) {
+        return res.status(400).json({ success: false, error: "Password must be at least 6 characters" });
+      }
+
       try {
-      const existingUser = await adapter.getUserByEmail(email);
-      if (existingUser) {
-        return res.status(400).json({ success: false, error: "Email already exists" });
-      }
+        const existingUser = await adapter.getUserByEmail(email);
+        if (existingUser) {
+          return res.status(400).json({ success: false, error: "Email already exists" });
+        }
 
-      const hashedPassword = await bcrypt.hash(password, 10);
-      const uid = `custom_${Date.now()}`;
-      
-      let userRole = role || 'devotee';
-      if (email === 'pg2331427@gmail.com') {
-        userRole = 'admin';
-      }
-      
-      const userData = {
-        uid,
-        email,
-        password: hashedPassword,
-        displayName,
-        role: userRole,
-        createdAt: new Date()
-      };
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const uid = `custom_${Date.now()}`;
 
-      await adapter.createUser(uid, userData);
-      
-      res.json({ success: true, uid });
-    } catch (error) {
-      console.error("[API] POST /api/auth/register error:", error);
-      res.status(500).json({ error: (error as Error).message });
-    }
-  });
+        let userRole = (role === 'vendor' || role === 'admin') ? role : 'devotee';
+        if (email === 'pg2331427@gmail.com') {
+          userRole = 'admin';
+        }
+
+        const userData = {
+          uid,
+          email,
+          password: hashedPassword,
+          displayName: displayName || email.split('@')[0],
+          role: userRole,
+          createdAt: new Date()
+        };
+
+        await adapter.createUser(uid, userData);
+        res.json({ success: true, uid });
+      } catch (error) {
+        console.error("[API] POST /api/auth/register error:", error);
+        res.status(500).json({ error: (error as Error).message });
+      }
+    });
 
     app.post("/api/auth/login", async (req, res) => {
     const { email, password } = req.body;
@@ -1185,18 +1195,23 @@ async function startServer() {
 
   app.post("/api/products", async (req, res) => {
     const { name, description, price, category, stock, rating, image, vendorId, templeName, weightOptions } = req.body;
+    if (!name || !price) {
+      return res.status(400).json({ error: "name and price are required" });
+    }
     try {
+      // 'system' is not a real user — use null to satisfy FK constraint
+      const resolvedVendorId = (!vendorId || vendorId === 'system') ? null : vendorId;
       await adapter.addProduct({
         name,
-        description,
+        description: description || '',
         price: Number(price),
-        category,
-        stock: Number(stock),
-        rating: Number(rating),
-        image,
-        vendorId: vendorId || 'system',
-        templeName,
-        weightOptions,
+        category: category || 'Other',
+        stock: Number(stock) || 0,
+        rating: Number(rating) || 4.0,
+        image: image || '',
+        vendorId: resolvedVendorId,
+        templeName: templeName || null,
+        weightOptions: weightOptions || null,
         createdAt: new Date()
       });
       res.json({ success: true });
@@ -1233,6 +1248,122 @@ async function startServer() {
       res.json({ success: true });
     } catch (error) {
       console.error("[API] DELETE /api/products/:id error:", error);
+      res.status(500).json({ error: (error as Error).message });
+    }
+  });
+
+  // ── Vendor-scoped product endpoints ──────────────────────────────────────────
+
+  // GET vendor's own product listings
+  app.get("/api/vendor/products/:vendorId", async (req, res) => {
+    try {
+      const products = await adapter.getProducts({ vendorId: req.params.vendorId });
+      res.json(products);
+    } catch (error) {
+      console.error("[API] GET /api/vendor/products/:vendorId error:", error);
+      res.status(500).json({ error: (error as Error).message });
+    }
+  });
+
+  // POST add product as vendor (attaches vendorId automatically)
+  app.post("/api/vendor/products", async (req, res) => {
+    const { vendorId, name, description, price, category, stock, rating, image, templeName, weightOptions } = req.body;
+    if (!vendorId || !name || !price) {
+      return res.status(400).json({ error: "vendorId, name, and price are required" });
+    }
+    try {
+      await adapter.addProduct({
+        name,
+        description: description || '',
+        price: Number(price),
+        category: category || 'Other',
+        stock: Number(stock) || 0,
+        rating: Number(rating) || 4.0,
+        image: image || '',
+        vendorId,
+        templeName: templeName || null,
+        weightOptions: weightOptions || null,
+        createdAt: new Date(),
+      });
+      res.json({ success: true });
+    } catch (error) {
+      console.error("[API] POST /api/vendor/products error:", error);
+      res.status(500).json({ error: (error as Error).message });
+    }
+  });
+
+  // PUT update vendor's own product
+  app.put("/api/vendor/products/:id", async (req, res) => {
+    const { name, description, price, category, stock, rating, image } = req.body;
+    try {
+      await adapter.updateProduct(req.params.id, {
+        name, description,
+        price: Number(price),
+        category,
+        stock: Number(stock),
+        rating: Number(rating),
+        image,
+      });
+      res.json({ success: true });
+    } catch (error) {
+      console.error("[API] PUT /api/vendor/products/:id error:", error);
+      res.status(500).json({ error: (error as Error).message });
+    }
+  });
+
+  // DELETE vendor's own product
+  app.delete("/api/vendor/products/:id", async (req, res) => {
+    try {
+      await adapter.deleteProduct(req.params.id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("[API] DELETE /api/vendor/products/:id error:", error);
+      res.status(500).json({ error: (error as Error).message });
+    }
+  });
+
+  // GET top-selling products for a vendor (based on order_items join)
+  app.get("/api/vendor/top-products/:vendorId", async (req, res) => {
+    try {
+      const vendorId = req.params.vendorId;
+      // Try MySQL-specific query first, fall back to adapter
+      if ((adapter as any).pool) {
+        const [rows] = await (adapter as any).pool.execute(
+          `SELECT p.id, p.name, p.image, p.price, p.category,
+                  COALESCE(SUM(oi.quantity), 0) AS totalSold,
+                  COALESCE(SUM(oi.quantity * oi.price), 0) AS totalRevenue
+           FROM products p
+           LEFT JOIN order_items oi ON oi.productId = p.id
+           LEFT JOIN orders o ON o.id = oi.orderId AND o.status != 'cancelled'
+           WHERE p.vendorId = ?
+           GROUP BY p.id
+           ORDER BY totalSold DESC
+           LIMIT 10`,
+          [vendorId]
+        );
+        return res.json(rows);
+      }
+      // Firestore fallback — just return products sorted by rating
+      const products = await adapter.getProducts({ vendorId });
+      const sorted = products.sort((a: any, b: any) => (b.rating || 0) - (a.rating || 0)).slice(0, 10);
+      res.json(sorted.map((p: any) => ({ ...p, totalSold: 0, totalRevenue: 0 })));
+    } catch (error) {
+      console.error("[API] GET /api/vendor/top-products/:vendorId error:", error);
+      res.status(500).json({ error: (error as Error).message });
+    }
+  });
+
+  // GET all registered vendors with full details (admin use)
+  app.get("/api/admin/all-vendors", async (req, res) => {
+    try {
+      const vendors = await adapter.getUsersByRole('vendor');
+      const enriched = await Promise.all(vendors.map(async (v: any) => {
+        const vendorProfile = await adapter.getVendor(v.uid).catch(() => null);
+        return { ...v, vendorProfile };
+      }));
+      res.json(enriched);
+    } catch (error) {
+      console.error("[API] GET /api/admin/all-vendors error:", error);
       res.status(500).json({ error: (error as Error).message });
     }
   });
@@ -1963,10 +2094,24 @@ async function startServer() {
       return res.json({ prediction: (app as any)._horoscopeCache[cacheKey] });
     }
 
-    const fallback = "The stars illuminate your path with grace and divine purpose today. Embrace tranquility and let your inner wisdom be your guide.";
+    const fallbacks = [
+      "The stars illuminate your path with grace and divine purpose today. Embrace tranquility.",
+      "Cosmic energies align to bring clarity to your decisions today. Trust your inner wisdom.",
+      "A day of spiritual growth awaits. Focus on gratitude and watch obstacles fade away.",
+      "The divine light shines upon your endeavors today. Act with compassion and confidence.",
+      "Planetary alignments suggest a period of inner peace. Take time to meditate and reflect.",
+      "Your spiritual aura is strong today. Use this energy to uplift those around you.",
+      "Divine blessings flow towards you. Stay open to unexpected opportunities and joy."
+    ];
+    
+    // Deterministic selection based on date and sign so it changes daily but is consistent for the day
+    const dayOfYear = Math.floor((new Date().getTime() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000);
+    const hash = sign.length + sign.charCodeAt(0) + dayOfYear;
+    const fallback = fallbacks[hash % fallbacks.length];
 
     const langLabel = lang === 'hi' ? 'Hindi' : lang === 'sa' ? 'Sanskrit' : 'English';
     const horoscopePrompt = `As a spiritual Vedic Astrologer, write a 2-3 sentence daily horoscope for ${sign} for ${today}. Tone: spiritual, encouraging, divine. Language: ${langLabel}. Return only the prediction text, no labels or intros.`;
+
 
     try {
       let prediction = fallback;

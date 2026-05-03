@@ -101,8 +101,8 @@ export default function DailyPanchang() {
   );
 
   return (
-    <div className="bg-white dark:bg-stone-900 rounded-[2.5rem] border border-stone-200 dark:border-stone-800 overflow-hidden shadow-xl shadow-stone-200/50 dark:shadow-none">
-      <div className="bg-orange-500 p-6 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="bg-white dark:bg-stone-900 rounded-3xl md:rounded-[2.5rem] border border-stone-200 dark:border-stone-800 overflow-hidden shadow-xl shadow-stone-200/50 dark:shadow-none h-full flex flex-col">
+      <div className="bg-orange-500 p-4 md:p-6 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center space-x-3">
           <Calendar className="w-6 h-6" />
           <div>
@@ -132,7 +132,7 @@ export default function DailyPanchang() {
         </div>
       </div>
 
-      <div className="p-8 relative">
+      <div className="p-4 md:p-8 relative">
         {isLoading && (
           <div className="absolute inset-0 bg-white/50 dark:bg-stone-900/50 backdrop-blur-sm z-10 flex items-center justify-center">
             <Loader2 className="w-8 h-8 text-orange-500 animate-spin" />
@@ -196,7 +196,7 @@ export default function DailyPanchang() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 flex-grow mb-6 md:mb-8">
           <div className="bg-stone-50 dark:bg-stone-800 p-4 rounded-2xl border border-stone-100 dark:border-stone-700">
             <p className="text-[10px] font-bold text-stone-400 mb-1">{t('panchang.sunrise')}</p>
             <p className="text-sm font-bold text-stone-900 dark:text-white">{data.sunrise}</p>

@@ -294,7 +294,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                                 </div>
                                 <ChevronRight className="w-4 h-4 text-stone-400" />
                               </Link>
-                              {profile?.role === 'vendor' && (
+                              {(profile?.role === 'vendor' || profile?.role === 'devotee') && (
                                 <Link to="/vendor" onClick={() => setIsProfileOpen(false)} className="flex items-center justify-between px-4 py-2 text-sm text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800">
                                   <div className="flex items-center gap-3 text-orange-600">
                                     <Monitor className="w-4 h-4" />

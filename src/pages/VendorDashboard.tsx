@@ -141,7 +141,7 @@ export default function VendorDashboard() {
     );
   }
 
-  if (!currentUser || currentUser.role !== 'vendor') {
+  if (!currentUser || (currentUser.role !== 'vendor' && currentUser.role !== 'devotee')) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-stone-50 dark:bg-stone-950">
         <p className="text-stone-500">Access denied. Vendor privileges required.</p>
