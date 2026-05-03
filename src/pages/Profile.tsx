@@ -7,6 +7,8 @@ import { User, Package, Calendar, Settings, Phone, Mail, Download, Printer, X, F
 import { formatIndianRupees } from '../lib/utils';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
+
 
 interface ReceiptData {
   receiptId: string;
@@ -26,7 +28,9 @@ interface ReceiptData {
 
 export default function Profile() {
   const { user: currentUser, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
+
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
@@ -220,21 +224,23 @@ export default function Profile() {
               </button>
               { (profile?.role === 'vendor' || profile?.role === 'devotee') && (
                 <button 
-                  onClick={() => window.location.href = '/vendor'}
+                  onClick={() => navigate('/vendor')}
                   className="w-full flex items-center px-6 py-4 text-sm font-bold text-stone-600 dark:text-stone-400 hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors"
                 >
                   <Settings className="w-5 h-5 mr-3" />
                   Vendor Dashboard
                 </button>
+
               )}
               {profile?.role === 'admin' && (
                 <button 
-                  onClick={() => window.location.href = '/admin'}
+                  onClick={() => navigate('/admin')}
                   className="w-full flex items-center px-6 py-4 text-sm font-bold text-stone-600 dark:text-stone-400 hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors"
                 >
                   <Settings className="w-5 h-5 mr-3" />
                   Admin Dashboard
                 </button>
+
               )}
             </nav>
           </div>
@@ -329,26 +335,43 @@ export default function Profile() {
                     </div>
 
                     <div className="pt-8 border-t border-stone-100 dark:border-stone-800">
-                      <h4 className="text-sm font-bold text-stone-900 dark:text-white mb-4">Vendor Account</h4>
-                      {profile?.vendorStatus && profile.vendorStatus !== 'none' ? (
+                      <h4 className="text-sm font-bold text-stone-900 dark:text-white mb-4">
+                        {profile?.role === 'admin' ? 'Admin Account' : 'Vendor Account'}
+                      </h4>
+                      {profile?.role === 'admin' ? (
+                        <div className="p-4 bg-purple-50 dark:bg-purple-900/20 border border-purple-100 dark:border-purple-900/30 rounded-2xl flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <div className="p-2 bg-white dark:bg-stone-800 rounded-xl shadow-sm">
+                              <Store className="w-5 h-5 text-purple-600" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-bold text-stone-900 dark:text-white">You are an Admin</p>
+                              <p className="text-xs text-stone-500 dark:text-stone-400">Manage the platform</p>
+                            </div>
+                          </div>
+                          <Link to="/admin" className="px-4 py-2 bg-purple-600 text-white text-xs font-bold rounded-xl hover:bg-purple-700 transition-colors">
+                            Go to Dashboard
+                          </Link>
+                        </div>
+                      ) : profile?.role === 'vendor' || (profile?.vendorStatus && profile.vendorStatus !== 'none') ? (
                         <div className={`p-4 border rounded-2xl flex items-center justify-between ${
-                          profile.vendorStatus === 'pending' 
+                          profile.vendorStatus === 'pending' && profile.role !== 'vendor'
                             ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-900/30' 
-                            : profile.vendorStatus === 'rejected'
+                            : profile.vendorStatus === 'rejected' && profile.role !== 'vendor'
                             ? 'bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-900/30'
                             : 'bg-green-50 dark:bg-green-900/20 border-green-100 dark:border-green-900/30'
                         }`}>
                           <div className="flex items-center space-x-3">
                             <div className="p-2 bg-white dark:bg-stone-800 rounded-xl shadow-sm">
                               <Store className={`w-5 h-5 ${
-                                profile.vendorStatus === 'pending' ? 'text-amber-600' : 
-                                profile.vendorStatus === 'rejected' ? 'text-red-600' : 'text-green-600'
+                                profile.vendorStatus === 'pending' && profile.role !== 'vendor' ? 'text-amber-600' : 
+                                profile.vendorStatus === 'rejected' && profile.role !== 'vendor' ? 'text-red-600' : 'text-green-600'
                               }`} />
                             </div>
                             <div>
                               <p className="text-sm font-bold text-stone-900 dark:text-white">
-                                {profile.vendorStatus === 'pending' ? 'Registration Pending' : 
-                                 profile.vendorStatus === 'rejected' ? 'Registration Rejected' : 'You are a Vendor'}
+                                {profile.vendorStatus === 'pending' && profile.role !== 'vendor' ? 'Registration Pending' : 
+                                 profile.vendorStatus === 'rejected' && profile.role !== 'vendor' ? 'Registration Rejected' : 'You are a Vendor'}
                                 {profile.vendorDetails?.businessName && (
                                   <span className="ml-2 py-0.5 px-2 bg-white/50 dark:bg-stone-800/50 rounded-lg text-[10px] font-medium border border-current opacity-60">
                                     {profile.vendorDetails.businessName}
@@ -356,15 +379,15 @@ export default function Profile() {
                                 )}
                               </p>
                               <p className="text-xs text-stone-500 dark:text-stone-400">
-                                {profile.vendorStatus === 'pending' 
+                                {profile.vendorStatus === 'pending' && profile.role !== 'vendor'
                                   ? 'Your application is being reviewed by our team' 
-                                  : profile.vendorStatus === 'rejected'
+                                  : profile.vendorStatus === 'rejected' && profile.role !== 'vendor'
                                   ? 'Your application was rejected. You can try re-applying.'
                                   : 'Access your dashboard to manage products and services'}
                               </p>
                             </div>
                           </div>
-                          {profile.vendorStatus === 'approved' && (
+                          {(profile.role === 'vendor' || profile.vendorStatus === 'approved') && (
                             <Link 
                               to="/vendor"
                               className="px-4 py-2 bg-green-600 text-white text-xs font-bold rounded-xl hover:bg-green-700 transition-colors"
@@ -372,7 +395,7 @@ export default function Profile() {
                               Go to Dashboard
                             </Link>
                           )}
-                          {profile.vendorStatus === 'rejected' && (
+                          {profile.vendorStatus === 'rejected' && profile.role !== 'vendor' && (
                             <Link 
                               to="/vendor-registration"
                               className="px-4 py-2 bg-stone-900 text-white text-xs font-bold rounded-xl hover:bg-stone-800 transition-colors"

@@ -146,6 +146,10 @@ const signInWithSocial = async (provider: GoogleAuthProvider | FacebookAuthProvi
     const syncData = await response.json();
     if (!syncData.success) throw new Error(syncData.error || 'Sync failed');
 
+    if (syncData.token) {
+      localStorage.setItem('jwt_token', syncData.token);
+    }
+
     const user: User = {
       uid: firebaseUser.uid,
       email: firebaseUser.email || '',
@@ -176,6 +180,10 @@ export const registerWithEmail = async (email: string, pass: string, name: strin
   const data = await response.json();
   if (!data.success) throw new Error(data.error || 'Registration failed');
   
+  if (data.token) {
+    localStorage.setItem('jwt_token', data.token);
+  }
+
   const user: User = { uid: data.uid, email, displayName: name, role: role as any };
   localStorage.setItem('user', JSON.stringify(user));
   notifyListeners(user);
@@ -192,6 +200,10 @@ export const loginWithEmail = async (email: string, pass: string) => {
   const data = await response.json();
   if (!data.success) throw new Error(data.message || 'Login failed');
   
+  if (data.token) {
+    localStorage.setItem('jwt_token', data.token);
+  }
+
   const user = data.user;
   localStorage.setItem('user', JSON.stringify(user));
   notifyListeners(user);
@@ -201,6 +213,11 @@ export const loginWithEmail = async (email: string, pass: string) => {
 export const logout = async () => {
   await firebaseAuth.signOut();
   localStorage.removeItem('user');
+  localStorage.removeItem('jwt_token');
+  // Optional: call backend logout to clear cookie
+  try {
+    await fetch('/api/auth/logout', { method: 'POST' });
+  } catch (e) {}
   notifyListeners(null);
   window.location.href = '/';
 };

@@ -19,15 +19,29 @@ import {
   Settings
 } from 'lucide-react';
 import { formatIndianRupees } from '../lib/utils';
+import { useNavigate } from 'react-router-dom';
+
 
 export default function VendorDashboard() {
   const { user: currentUser, loading: authLoading } = useAuth();
-  const [activeTab, setActiveTab] = useState<'overview' | 'bookings' | 'transactions' | 'payouts'>('overview');
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState<'overview' | 'bookings' | 'products' | 'transactions' | 'payouts'>('overview');
   const [wallet, setWallet] = useState<any>(null);
   const [transactions, setTransactions] = useState<any[]>([]);
   const [payouts, setPayouts] = useState<any[]>([]);
   const [bookings, setBookings] = useState<any[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isProductModalOpen, setIsProductModalOpen] = useState(false);
+  const [newProduct, setNewProduct] = useState({
+    name: '',
+    description: '',
+    price: '',
+    category: 'Puja Samagri',
+    stock: '50',
+    image: ''
+  });
+
   const [isPayoutModalOpen, setIsPayoutModalOpen] = useState(false);
   const [payoutAmount, setPayoutAmount] = useState('');
   const [bankDetails, setBankDetails] = useState({
@@ -40,12 +54,14 @@ export default function VendorDashboard() {
   const fetchData = async () => {
     if (!currentUser) return;
     try {
-      const [walletRes, bookingsRes, waBookingsRes, payoutsRes] = await Promise.all([
+      const [walletRes, bookingsRes, waBookingsRes, payoutsRes, productsRes] = await Promise.all([
         fetch(`/api/vendor/wallet/${currentUser.uid}`),
         fetch(`/api/vendor/bookings/${currentUser.uid}`),
         fetch(`/api/vendor/whatsapp-bookings/${currentUser.uid}`),
-        fetch(`/api/vendor/payouts/${currentUser.uid}`)
+        fetch(`/api/vendor/payouts/${currentUser.uid}`),
+        fetch(`/api/vendor/products/${currentUser.uid}`)
       ]);
+
 
       if (walletRes.ok) {
         const data = await walletRes.json();
@@ -67,6 +83,10 @@ export default function VendorDashboard() {
       if (payoutsRes.ok) {
         setPayouts(await payoutsRes.json());
       }
+      if (productsRes.ok) {
+        setProducts(await productsRes.json());
+      }
+
     } catch (error) {
       console.error('Error fetching vendor data:', error);
     } finally {
@@ -133,6 +153,65 @@ export default function VendorDashboard() {
     }
   };
 
+  const handleAddProduct = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!currentUser) return;
+    
+    setIsSubmitting(true);
+    try {
+      const response = await fetch('/api/vendor/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...newProduct,
+          vendorId: currentUser.uid,
+          price: Number(newProduct.price),
+          stock: Number(newProduct.stock)
+        })
+      });
+
+      if (response.ok) {
+        alert('Product added successfully!');
+        setIsProductModalOpen(false);
+        setNewProduct({
+          name: '',
+          description: '',
+          price: '',
+          category: 'Puja Samagri',
+          stock: '50',
+          image: ''
+        });
+        fetchData();
+      }
+    } catch (error) {
+      console.error('Error adding product:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('image', file);
+
+    try {
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      });
+      const data = await res.json();
+      if (data.success) {
+        setNewProduct(prev => ({ ...prev, image: data.url }));
+      }
+    } catch (err) {
+      console.error('Upload error:', err);
+    }
+  };
+
+
   if (authLoading || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-stone-50 dark:bg-stone-950">
@@ -159,12 +238,13 @@ export default function VendorDashboard() {
           </div>
           <div className="flex gap-3">
             <button 
-              onClick={() => window.location.href = '/profile'}
+              onClick={() => navigate('/profile')}
               className="px-6 py-3 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 text-stone-700 dark:text-stone-300 rounded-2xl font-bold hover:bg-stone-50 dark:hover:bg-stone-800 transition-all flex items-center gap-2"
             >
               <Settings className="w-4 h-4" />
               Settings
             </button>
+
             <button 
               onClick={() => setIsPayoutModalOpen(true)}
               className="px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-2xl font-bold transition-all shadow-lg shadow-orange-500/20 flex items-center gap-2"
@@ -195,11 +275,18 @@ export default function VendorDashboard() {
             )}
           </button>
           <button 
+            onClick={() => setActiveTab('products')}
+            className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === 'products' ? 'bg-white dark:bg-stone-800 text-stone-900 dark:text-white shadow-sm' : 'text-stone-500 hover:text-stone-700 dark:hover:text-stone-300'}`}
+          >
+            My Products
+          </button>
+          <button 
             onClick={() => setActiveTab('transactions')}
             className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === 'transactions' ? 'bg-white dark:bg-stone-800 text-stone-900 dark:text-white shadow-sm' : 'text-stone-500 hover:text-stone-700 dark:hover:text-stone-300'}`}
           >
             Transactions
           </button>
+
           <button 
             onClick={() => setActiveTab('payouts')}
             className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === 'payouts' ? 'bg-white dark:bg-stone-800 text-stone-900 dark:text-white shadow-sm' : 'text-stone-500 hover:text-stone-700 dark:hover:text-stone-300'}`}
@@ -421,6 +508,57 @@ export default function VendorDashboard() {
           </div>
         )}
 
+        {activeTab === 'products' && (
+          <div className="space-y-6">
+            <div className="bg-white dark:bg-stone-900 p-8 rounded-[2.5rem] border border-stone-200 dark:border-stone-800 shadow-sm flex justify-between items-center">
+              <div>
+                <h3 className="text-2xl font-serif font-bold text-stone-900 dark:text-white mb-1">Product Listings</h3>
+                <p className="text-stone-500 dark:text-stone-400 text-sm">Manage your inventory and product details.</p>
+              </div>
+              <button 
+                onClick={() => setIsProductModalOpen(true)}
+                className="px-6 py-3 bg-stone-900 dark:bg-white text-white dark:text-stone-900 rounded-xl font-bold hover:bg-orange-500 dark:hover:bg-orange-500 transition-all flex items-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                Add New Product
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {products.length === 0 ? (
+                <div className="col-span-full bg-white dark:bg-stone-900 p-12 rounded-[2.5rem] border border-stone-200 dark:border-stone-800 text-center shadow-sm">
+                  <Package className="w-12 h-12 text-stone-200 dark:text-stone-800 mx-auto mb-4" />
+                  <p className="text-stone-500 dark:text-stone-400">You haven't added any products yet.</p>
+                </div>
+              ) : (
+                products.map((product) => (
+                  <div key={product.id} className="bg-white dark:bg-stone-900 rounded-[2rem] border border-stone-200 dark:border-stone-800 shadow-sm overflow-hidden group">
+                    <div className="h-48 bg-stone-100 dark:bg-stone-800 relative overflow-hidden">
+                      <img 
+                        src={product.image || 'https://via.placeholder.com/300?text=Product'} 
+                        alt={product.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                      />
+                    </div>
+                    <div className="p-6">
+                      <div className="flex justify-between items-start mb-2">
+                        <h4 className="font-bold text-stone-900 dark:text-white line-clamp-1">{product.name}</h4>
+                        <span className="text-orange-600 font-bold">₹{product.price}</span>
+                      </div>
+                      <p className="text-xs text-stone-500 mb-4 line-clamp-2">{product.description}</p>
+                      <div className="flex justify-between items-center">
+                        <span className="text-[10px] px-2 py-1 bg-stone-100 dark:bg-stone-800 rounded-lg text-stone-500 font-bold uppercase">{product.category}</span>
+                        <span className={`text-[10px] font-bold ${product.stock > 10 ? 'text-emerald-600' : 'text-red-600'}`}>
+                          {product.stock} in stock
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        )}
         {activeTab === 'transactions' && (
           <div className="space-y-6">
             <div className="bg-white dark:bg-stone-900 rounded-[2.5rem] border border-stone-200 dark:border-stone-800 overflow-hidden shadow-sm">
@@ -590,6 +728,123 @@ export default function VendorDashboard() {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Add Product Modal */}
+      <AnimatePresence>
+        {isProductModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-white dark:bg-stone-900 rounded-[2.5rem] shadow-2xl w-full max-w-2xl overflow-hidden border border-stone-200 dark:border-stone-800"
+            >
+              <div className="p-8 border-b border-stone-100 dark:border-stone-800 flex justify-between items-center">
+                <h2 className="text-2xl font-serif font-bold text-stone-900 dark:text-white">Add New Product</h2>
+                <button onClick={() => setIsProductModalOpen(false)} className="p-2 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-full transition-colors">
+                  <XCircle className="w-6 h-6 text-stone-400" />
+                </button>
+              </div>
+
+              <form onSubmit={handleAddProduct} className="p-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="md:col-span-2 space-y-2">
+                  <label className="text-xs font-bold text-stone-400 uppercase tracking-wider">Product Name</label>
+                  <input
+                    required
+                    type="text"
+                    className="w-full px-4 py-3 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none transition-all dark:text-white"
+                    placeholder="e.g., Premium Sandalwood Incense"
+                    value={newProduct.name}
+                    onChange={e => setNewProduct({...newProduct, name: e.target.value})}
+                  />
+                </div>
+
+                <div className="md:col-span-2 space-y-2">
+                  <label className="text-xs font-bold text-stone-400 uppercase tracking-wider">Description</label>
+                  <textarea
+                    required
+                    className="w-full px-4 py-3 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none transition-all dark:text-white h-24 resize-none"
+                    placeholder="Describe your product..."
+                    value={newProduct.description}
+                    onChange={e => setNewProduct({...newProduct, description: e.target.value})}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-stone-400 uppercase tracking-wider">Price (₹)</label>
+                  <input
+                    required
+                    type="number"
+                    className="w-full px-4 py-3 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none transition-all dark:text-white"
+                    placeholder="299"
+                    value={newProduct.price}
+                    onChange={e => setNewProduct({...newProduct, price: e.target.value})}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-stone-400 uppercase tracking-wider">Stock Quantity</label>
+                  <input
+                    required
+                    type="number"
+                    className="w-full px-4 py-3 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none transition-all dark:text-white"
+                    placeholder="50"
+                    value={newProduct.stock}
+                    onChange={e => setNewProduct({...newProduct, stock: e.target.value})}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-stone-400 uppercase tracking-wider">Category</label>
+                  <select
+                    className="w-full px-4 py-3 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none transition-all dark:text-white"
+                    value={newProduct.category}
+                    onChange={e => setNewProduct({...newProduct, category: e.target.value})}
+                  >
+                    <option>Puja Samagri</option>
+                    <option>Idols & Statues</option>
+                    <option>Rudraksha</option>
+                    <option>Gems & Stones</option>
+                    <option>Books & Texts</option>
+                    <option>Other</option>
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-stone-400 uppercase tracking-wider">Product Image</label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileUpload}
+                    className="w-full text-xs text-stone-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100"
+                  />
+                  {newProduct.image && (
+                    <p className="text-[10px] text-emerald-600 font-bold mt-1">Image uploaded successfully!</p>
+                  )}
+                </div>
+
+                <div className="md:col-span-2 pt-4">
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="w-full py-4 bg-orange-500 hover:bg-orange-600 text-white rounded-2xl font-bold transition-all shadow-lg shadow-orange-500/20 disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    {isSubmitting ? (
+                      <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    ) : (
+                      <>
+                        <Package className="w-5 h-5" />
+                        Add Product Listing
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
     </div>
   );
 }
