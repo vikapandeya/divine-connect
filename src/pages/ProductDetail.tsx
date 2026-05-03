@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Product } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingCart, Star, IndianRupee, ArrowLeft, ArrowRight, ShieldCheck, Truck, RotateCcw, Share2, Facebook, Twitter, MessageCircle, Send, User, Store, MessageSquare } from 'lucide-react';
+import { ShoppingCart, Star, IndianRupee, ArrowLeft, ArrowRight, ShieldCheck, Truck, RotateCcw, Share2, Facebook, Twitter, MessageCircle, Send, User, Store, MessageSquare, X } from 'lucide-react';
 import { Feedback } from '../types';
 import { addToCart } from '../lib/cart';
 import { formatIndianRupees } from '../lib/utils';
@@ -676,7 +676,6 @@ export default function ProductDetail() {
             </div>
           )}
         </AnimatePresence>
-        </div>
 
         {/* Recommended Products */}
         {recommendedProducts.length > 0 && (

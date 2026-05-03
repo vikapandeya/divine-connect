@@ -20,7 +20,6 @@ import { calculatePanchang } from "./src/lib/panchangCalc.ts";
 import { GoogleGenAI, Type } from "@google/genai";
 import { DatabaseAdapter, FirestoreAdapter, MySQLAdapter } from "./src/lib/db.ts";
 import nodemailer from "nodemailer";
-import multer from "multer";
 
 
 dotenv.config();
