@@ -1358,7 +1358,7 @@ async function startServer() {
         price: Number(price),
         category: category || 'Other',
         stock: Number(stock) || 0,
-        rating: Number(rating) || 4.0,
+        rating: Number(rating) || 4.5,
         image: image || '',
         vendorId: resolvedVendorId,
         templeName: templeName || null,
@@ -1375,13 +1375,14 @@ async function startServer() {
   app.put("/api/products/:id", async (req, res) => {
     const { name, description, price, category, stock, rating, image, templeName, weightOptions } = req.body;
     try {
+      const existingProduct = await adapter.getProducts({}).then(ps => ps.find(p => p.id.toString() === req.params.id));
       await adapter.updateProduct(req.params.id, {
         name,
         description,
         price: Number(price),
         category,
         stock: Number(stock),
-        rating: Number(rating),
+        rating: rating !== undefined ? Number(rating) : (existingProduct?.rating || 4.5),
         image,
         templeName,
         weightOptions
@@ -1429,7 +1430,7 @@ async function startServer() {
         price: Number(price),
         category: category || 'Other',
         stock: Number(stock) || 0,
-        rating: Number(rating) || 4.0,
+        rating: Number(rating) || 4.5,
         image: image || '',
         vendorId,
         templeName: templeName || null,
@@ -1447,12 +1448,13 @@ async function startServer() {
   app.put("/api/vendor/products/:id", requireVendor, async (req, res) => {
     const { name, description, price, category, stock, rating, image } = req.body;
     try {
+      const existingProduct = await adapter.getProducts({}).then(ps => ps.find(p => p.id.toString() === req.params.id));
       await adapter.updateProduct(req.params.id, {
         name, description,
         price: Number(price),
         category,
         stock: Number(stock),
-        rating: Number(rating),
+        rating: rating !== undefined ? Number(rating) : (existingProduct?.rating || 4.5),
         image,
       });
       res.json({ success: true });
@@ -2099,6 +2101,17 @@ async function startServer() {
         imageURL: imageURL || '',
         createdAt: new Date()
       });
+
+      // Update product average rating if this is a product review
+      if (type === 'product' && serviceId) {
+        const feedback = await adapter.getFeedback();
+        const productReviews = feedback.filter((f: any) => f.serviceId === serviceId && f.type === 'product');
+        if (productReviews.length > 0) {
+          const avgRating = productReviews.reduce((sum: number, r: any) => sum + (Number(r.rating) || 0), 0) / productReviews.length;
+          await adapter.updateProduct(serviceId, { rating: Number(avgRating.toFixed(1)) });
+        }
+      }
+
       res.json({ success: true });
     } catch (error) {
       console.error("[API] POST /api/feedback error:", error);

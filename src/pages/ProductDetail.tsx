@@ -23,6 +23,7 @@ export default function ProductDetail() {
   const [newReview, setNewReview] = useState({ rating: 5, comment: '', city: '' });
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
   const [showShareTooltip, setShowShareTooltip] = useState(false);
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -149,6 +150,7 @@ export default function ProductDetail() {
         const updatedReviews = await fetch(`/api/feedback?serviceId=${id}&type=product`).then(r => r.json());
         setReviews(updatedReviews);
         setNewReview({ rating: 5, comment: '', city: '' });
+        setIsReviewModalOpen(false);
         alert("Thank you for your review!");
       } else {
         const data = await res.json();
@@ -393,6 +395,14 @@ export default function ProductDetail() {
                 <ShoppingCart className="w-6 h-6" />
                 <span>Add to Cart</span>
               </button>
+              
+              <button
+                onClick={() => setIsReviewModalOpen(true)}
+                className="px-8 bg-white dark:bg-stone-900 text-stone-900 dark:text-white py-5 rounded-[2rem] font-bold border border-stone-200 dark:border-stone-800 hover:border-orange-500 dark:hover:border-orange-500 transition-all flex items-center justify-center space-x-3 shadow-lg active:scale-95"
+              >
+                <Star className="w-6 h-6 text-yellow-500" />
+                <span>Rate & Review</span>
+              </button>
             </div>
 
             {/* Vendor Card */}
@@ -502,7 +512,7 @@ export default function ProductDetail() {
             
             {auth.currentUser && (
               <button 
-                onClick={() => document.getElementById('review-form')?.scrollIntoView({ behavior: 'smooth' })}
+                onClick={() => setIsReviewModalOpen(true)}
                 className="bg-stone-900 dark:bg-white text-white dark:text-stone-900 px-6 py-3 rounded-2xl font-bold hover:bg-stone-800 dark:hover:bg-stone-100 transition-colors"
               >
                 Write a Review
@@ -510,116 +520,166 @@ export default function ProductDetail() {
             )}
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-            {/* Reviews List */}
-            <div className="lg:col-span-2 space-y-8">
-              {reviews.length > 0 ? (
-                reviews.map((review) => (
-                  <div key={review.id} className="bg-white dark:bg-stone-900 p-6 rounded-[2rem] border border-stone-200 dark:border-stone-800 shadow-sm">
-                    <div className="flex justify-between items-start mb-4">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-stone-100 dark:bg-stone-800 rounded-full flex items-center justify-center">
-                          <User className="w-6 h-6 text-stone-400" />
-                        </div>
-                        <div>
-                          <h4 className="font-bold text-stone-900 dark:text-white">{review.userName}</h4>
-                          <span className="text-xs text-stone-400">
-                            {review.createdAt ? new Date(review.createdAt).toLocaleDateString() : 'Just now'}
-                          </span>
-                        </div>
+          <div className="space-y-8 max-w-4xl">
+            {reviews.length > 0 ? (
+              reviews.map((review) => (
+                <div key={review.id} className="bg-white dark:bg-stone-900 p-8 rounded-[2rem] border border-stone-200 dark:border-stone-800 shadow-sm">
+                  <div className="flex justify-between items-start mb-6">
+                    <div className="flex items-center space-x-4">
+                      <div className="w-12 h-12 bg-stone-100 dark:bg-stone-800 rounded-full flex items-center justify-center border border-stone-200 dark:border-stone-700">
+                        <User className="w-6 h-6 text-stone-400" />
                       </div>
-                      <div className="flex items-center space-x-1">
-                        {[1, 2, 3, 4, 5].map((s) => (
-                          <Star key={s} className={`w-4 h-4 ${s <= review.rating ? 'text-yellow-500 fill-current' : 'text-stone-200 dark:text-stone-800'}`} />
-                        ))}
+                      <div>
+                        <h4 className="font-bold text-stone-900 dark:text-white text-lg">{review.userName}</h4>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-stone-400">
+                            {review.createdAt ? new Date(review.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Recently added'}
+                          </span>
+                          {review.city && (
+                            <>
+                              <span className="text-stone-300">•</span>
+                              <span className="text-xs font-medium text-orange-600">{review.city}</span>
+                            </>
+                          )}
+                        </div>
                       </div>
                     </div>
-                    <p className="text-stone-600 dark:text-stone-400 leading-relaxed">
-                      {review.message}
-                    </p>
+                    <div className="flex items-center space-x-1 bg-stone-50 dark:bg-stone-800/50 px-3 py-1.5 rounded-xl">
+                      {[1, 2, 3, 4, 5].map((s) => (
+                        <Star key={s} className={`w-4 h-4 ${s <= review.rating ? 'text-yellow-500 fill-current' : 'text-stone-200 dark:text-stone-800'}`} />
+                      ))}
+                    </div>
                   </div>
-                ))
-              ) : (
-                <div className="text-center py-12 bg-white dark:bg-stone-900 rounded-[2rem] border border-dashed border-stone-200 dark:border-stone-800">
-                  <p className="text-stone-500 dark:text-stone-400">No reviews yet. Be the first to share your experience!</p>
+                  <p className="text-stone-600 dark:text-stone-400 leading-relaxed text-lg italic">
+                    "{review.message}"
+                  </p>
                 </div>
-              )}
-            </div>
+              ))
+            ) : (
+              <div className="text-center py-20 bg-white dark:bg-stone-900 rounded-[3rem] border border-dashed border-stone-200 dark:border-stone-800">
+                <MessageSquare className="w-16 h-16 text-stone-200 mx-auto mb-4" />
+                <p className="text-stone-500 dark:text-stone-400 text-lg">No reviews yet. Be the first to share your spiritual experience!</p>
+                <button 
+                  onClick={() => setIsReviewModalOpen(true)}
+                  className="mt-6 text-orange-600 font-bold hover:underline"
+                >
+                  Write the first review
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
 
-            {/* Review Form */}
-            <div id="review-form" className="lg:col-span-1">
-              {auth.currentUser ? (
-                <div className="bg-white dark:bg-stone-900 p-8 rounded-[2rem] border border-stone-200 dark:border-stone-800 shadow-xl sticky top-24">
-                  <h3 className="text-xl font-serif font-bold text-stone-900 dark:text-white mb-6">Share Your Experience</h3>
-                  <form onSubmit={handleSubmitReview} className="space-y-6">
-                    <div>
-                      <label className="block text-sm font-bold text-stone-900 dark:text-white mb-3 uppercase tracking-widest">Rating</label>
-                      <div className="flex items-center space-x-2">
+        {/* Review Modal */}
+        <AnimatePresence>
+          {isReviewModalOpen && (
+            <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setIsReviewModalOpen(false)}
+                className="absolute inset-0 bg-stone-950/80 backdrop-blur-md"
+              />
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                className="relative w-full max-w-xl bg-white dark:bg-stone-900 rounded-[3rem] p-8 md:p-12 shadow-2xl border border-stone-200 dark:border-stone-800"
+              >
+                <button 
+                  onClick={() => setIsReviewModalOpen(false)}
+                  className="absolute top-8 right-8 text-stone-400 hover:text-stone-900 dark:hover:text-white transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+
+                <div className="text-center mb-10">
+                  <div className="w-20 h-20 bg-orange-100 dark:bg-orange-900/30 rounded-[2rem] flex items-center justify-center mx-auto mb-6">
+                    <Star className="w-10 h-10 text-orange-600 fill-current" />
+                  </div>
+                  <h3 className="text-3xl font-serif font-bold text-stone-900 dark:text-white mb-2">Share Your Experience</h3>
+                  <p className="text-stone-500 dark:text-stone-400">How was the {product.name}?</p>
+                </div>
+
+                {auth.currentUser ? (
+                  <form onSubmit={handleSubmitReview} className="space-y-8">
+                    <div className="flex flex-col items-center">
+                      <label className="text-xs font-bold text-stone-400 uppercase tracking-widest mb-4">Your Rating</label>
+                      <div className="flex items-center space-x-3">
                         {[1, 2, 3, 4, 5].map((s) => (
                           <button
                             key={s}
                             type="button"
                             onClick={() => setNewReview({ ...newReview, rating: s })}
-                            className="p-1 transition-transform hover:scale-110"
+                            className="p-1 transition-all hover:scale-125"
                           >
-                            <Star className={`w-8 h-8 ${s <= newReview.rating ? 'text-yellow-500 fill-current' : 'text-stone-200 dark:text-stone-800'}`} />
+                            <Star className={`w-10 h-10 ${s <= newReview.rating ? 'text-yellow-500 fill-yellow-500' : 'text-stone-200 dark:text-stone-800'}`} />
                           </button>
                         ))}
                       </div>
                     </div>
-                    <div>
-                      <label className="block text-sm font-bold text-stone-900 dark:text-white mb-3 uppercase tracking-widest">Your City</label>
-                      <input
-                        type="text"
-                        value={newReview.city}
-                        onChange={(e) => setNewReview({ ...newReview, city: e.target.value })}
-                        placeholder="e.g. Varanasi"
-                        className="w-full bg-stone-50 dark:bg-stone-800 border-none rounded-2xl p-4 text-stone-900 dark:text-white focus:ring-2 focus:ring-orange-500 outline-none transition-all mb-4"
-                      />
-                      <label className="block text-sm font-bold text-stone-900 dark:text-white mb-3 uppercase tracking-widest">Your Review</label>
-                      <textarea
-                        required
-                        value={newReview.comment}
-                        onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
-                        placeholder="How was the product? Did it meet your spiritual needs?"
-                        rows={4}
-                        className="w-full bg-stone-50 dark:bg-stone-800 border-none rounded-2xl p-4 text-stone-900 dark:text-white focus:ring-2 focus:ring-orange-500 outline-none resize-none transition-all"
-                      />
+
+                    <div className="grid grid-cols-1 gap-6">
+                      <div>
+                        <label className="block text-xs font-bold text-stone-400 uppercase tracking-widest mb-3">Your City</label>
+                        <input
+                          type="text"
+                          value={newReview.city}
+                          onChange={(e) => setNewReview({ ...newReview, city: e.target.value })}
+                          placeholder="e.g. Varanasi"
+                          className="w-full bg-stone-50 dark:bg-stone-800 border-none rounded-2xl p-4 text-stone-900 dark:text-white focus:ring-2 focus:ring-orange-500 outline-none transition-all"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-stone-400 uppercase tracking-widest mb-3">Detailed Feedback</label>
+                        <textarea
+                          required
+                          value={newReview.comment}
+                          onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
+                          placeholder="Tell us about the quality, packaging and your overall spiritual feeling..."
+                          rows={4}
+                          className="w-full bg-stone-50 dark:bg-stone-800 border-none rounded-2xl p-4 text-stone-900 dark:text-white focus:ring-2 focus:ring-orange-500 outline-none resize-none transition-all"
+                        />
+                      </div>
                     </div>
+
                     <button
                       type="submit"
                       disabled={isSubmittingReview}
-                      className="w-full bg-orange-500 text-white py-4 rounded-2xl font-bold hover:bg-orange-600 transition-all flex items-center justify-center space-x-2 disabled:bg-stone-300"
+                      className="w-full bg-orange-500 text-white py-5 rounded-[2rem] font-bold hover:bg-orange-600 transition-all flex items-center justify-center space-x-3 shadow-xl shadow-orange-500/20 active:scale-95 disabled:bg-stone-300"
                     >
                       {isSubmittingReview ? (
-                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <div className="w-6 h-6 border-3 border-white border-t-transparent rounded-full animate-spin" />
                       ) : (
                         <>
                           <Send className="w-5 h-5" />
-                          <span>Submit Review</span>
+                          <span>Submit Blessed Review</span>
                         </>
                       )}
                     </button>
-                    <p className="text-[10px] text-stone-400 text-center">
-                      Only verified purchasers can submit reviews. Your review will be public.
+                    
+                    <p className="text-[10px] text-stone-400 text-center uppercase tracking-widest">
+                      Your feedback helps other spiritual seekers
                     </p>
                   </form>
-                </div>
-              ) : (
-                <div className="bg-stone-100 dark:bg-stone-900 p-8 rounded-[2rem] border border-stone-200 dark:border-stone-800 text-center">
-                  <User className="w-12 h-12 text-stone-300 mx-auto mb-4" />
-                  <h3 className="text-lg font-bold text-stone-900 dark:text-white mb-2">Want to leave a review?</h3>
-                  <p className="text-sm text-stone-500 dark:text-stone-400 mb-6">Please sign in to share your spiritual experience with others.</p>
-                  <button 
-                    onClick={() => navigate('/profile')}
-                    className="bg-orange-500 text-white px-6 py-2 rounded-full text-sm font-bold hover:bg-orange-600 transition-colors"
-                  >
-                    Sign In
-                  </button>
-                </div>
-              )}
+                ) : (
+                  <div className="text-center py-8">
+                    <User className="w-16 h-16 text-stone-200 mx-auto mb-6" />
+                    <h4 className="text-xl font-bold text-stone-900 dark:text-white mb-4">Login Required</h4>
+                    <p className="text-stone-500 dark:text-stone-400 mb-8">Please sign in to your account to share your experience.</p>
+                    <button 
+                      onClick={() => navigate('/profile')}
+                      className="bg-orange-500 text-white px-10 py-4 rounded-2xl font-bold hover:bg-orange-600 transition-all shadow-lg"
+                    >
+                      Sign In Now
+                    </button>
+                  </div>
+                )}
+              </motion.div>
             </div>
-          </div>
+          )}
+        </AnimatePresence>
         </div>
 
         {/* Recommended Products */}

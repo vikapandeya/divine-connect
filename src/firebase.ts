@@ -82,9 +82,26 @@ firebaseOnAuthStateChanged(firebaseAuth, async (firebaseUser) => {
       notifyListeners(user);
     }
   } else {
-    auth.currentUser = null;
-    localStorage.removeItem('user');
-    notifyListeners(null);
+    // Check if we have a custom JWT session before clearing
+    const customToken = localStorage.getItem('jwt_token');
+    const savedUser = localStorage.getItem('user');
+    if (customToken && savedUser) {
+      try {
+        const user = JSON.parse(savedUser) as User;
+        auth.currentUser = user;
+        notifyListeners(user);
+      } catch (e) {
+        auth.currentUser = null;
+        localStorage.removeItem('user');
+        localStorage.removeItem('jwt_token');
+        notifyListeners(null);
+      }
+    } else {
+      auth.currentUser = null;
+      localStorage.removeItem('user');
+      localStorage.removeItem('jwt_token');
+      notifyListeners(null);
+    }
   }
 });
 

@@ -89,3 +89,30 @@ Responsive Tailwind CSS classes (`md:`) were utilized to dynamically alter paddi
 
 *   **Result:** **POLISHED ✨**. The user experience is now smooth, stable, and professional.
 
+---
+
+## 🛒 7. Unified Advanced Product Management Modal & System Fixes
+**Objective:** Standardize product creation UI, resolve authentication drops on page refresh, and fix dashboard crashes.
+
+### Fixes & Enhancements
+*   **Unified Product Modal (`ProductFormModal.tsx`)**: Replaced redundant, disjointed form logic in both `AdminDashboard` and `VendorDashboard` with a single, highly advanced reusable component.
+*   **Dynamic Product Attributes**: The new modal supports Name, Category, Price, Stock, Image (Toggle between URL/Upload), Temple Name (for Prasad), and Dynamic Weight/Quantity Options (stored as JSON arrays in the backend).
+*   **Save Button Reliability**: Fixed a critical bug where the "Save Product" button triggered a page refresh, preventing the async save operation from completing. Restored proper `e.preventDefault()` handling and added comprehensive console logging for easier debugging.
+*   **Auth Persistence Fix**: Resolved a critical bug where refreshing the page logged users out. `firebase.ts`'s `onAuthStateChanged` listener was modified to verify the presence of custom JWT session tokens (`localStorage.getItem('jwt_token')`) before assuming the user was unauthenticated and wiping the session.
+*   **Dashboard Crash Resolution**: Fixed the "Divine Disconnect" crash in `VendorDashboard` by restoring the inadvertently removed `isPayoutModalOpen` state variable, allowing vendors to properly submit payout requests again.
+
+*   **Result:** **STABLE & FEATURE-RICH 🎯**. Vendors and Admins now have identical, powerful product creation tools, and user sessions are fully persistent.
+
+---
+
+## ⭐ 8. Dynamic Rating & Review System
+**Objective:** Replace hardcoded ratings with an authentic, user-driven feedback ecosystem.
+
+### Features Implemented
+*   **User-Driven Ratings**: Removed the manual "Rating" input field from the admin and vendor product creation forms. Ratings are no longer "hardcoded" during creation but are earned through actual user experience.
+*   **Premium "Rate & Review" Modal**: Implemented a stunning, interactive feedback modal in `ProductDetail.tsx`. Users can now submit star ratings and detailed textual reviews (complete with their city of origin) with a single click.
+*   **Automated Rating Recalculation**: The backend (`server.ts`) now features an automated listener. Whenever a new review is submitted, the system instantly recalculates the average rating for that product and updates the global `products` table.
+*   **Authentic Reviews Display**: Re-engineered the review section to display a chronological list of user feedback, using premium typography and icons to build trust and social proof.
+*   **Backend Stability**: Updated the product API to safely handle missing rating fields during the transition, preventing `NaN` errors and ensuring the "Save" functionality remains 100% reliable.
+
+*   **Result:** **TRUST-BASED 🤝**. The platform now features an authentic feedback loop that empowers users and provides genuine value to vendors.

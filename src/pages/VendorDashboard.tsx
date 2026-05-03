@@ -20,6 +20,8 @@ import {
 } from 'lucide-react';
 import { formatIndianRupees } from '../lib/utils';
 import { useNavigate } from 'react-router-dom';
+import ProductFormModal from '../components/ProductFormModal';
+
 
 
 export default function VendorDashboard() {
@@ -33,16 +35,8 @@ export default function VendorDashboard() {
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
-  const [newProduct, setNewProduct] = useState({
-    name: '',
-    description: '',
-    price: '',
-    category: 'Puja Samagri',
-    stock: '50',
-    image: ''
-  });
-
   const [isPayoutModalOpen, setIsPayoutModalOpen] = useState(false);
+
   const [payoutAmount, setPayoutAmount] = useState('');
   const [bankDetails, setBankDetails] = useState({
     accountNumber: '',
@@ -153,8 +147,7 @@ export default function VendorDashboard() {
     }
   };
 
-  const handleAddProduct = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleAddProduct = async (productData: any) => {
     if (!currentUser) return;
     
     setIsSubmitting(true);
@@ -163,25 +156,17 @@ export default function VendorDashboard() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...newProduct,
-          vendorId: currentUser.uid,
-          price: Number(newProduct.price),
-          stock: Number(newProduct.stock)
+          ...productData,
+          vendorId: currentUser.uid
         })
       });
 
       if (response.ok) {
         alert('Product added successfully!');
         setIsProductModalOpen(false);
-        setNewProduct({
-          name: '',
-          description: '',
-          price: '',
-          category: 'Puja Samagri',
-          stock: '50',
-          image: ''
-        });
         fetchData();
+      } else {
+        alert('Failed to add product');
       }
     } catch (error) {
       console.error('Error adding product:', error);
@@ -190,26 +175,8 @@ export default function VendorDashboard() {
     }
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
 
-    const formData = new FormData();
-    formData.append('image', file);
 
-    try {
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData
-      });
-      const data = await res.json();
-      if (data.success) {
-        setNewProduct(prev => ({ ...prev, image: data.url }));
-      }
-    } catch (err) {
-      console.error('Upload error:', err);
-    }
-  };
 
 
   if (authLoading || loading) {
@@ -730,120 +697,13 @@ export default function VendorDashboard() {
       </AnimatePresence>
 
       {/* Add Product Modal */}
-      <AnimatePresence>
-        {isProductModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="bg-white dark:bg-stone-900 rounded-[2.5rem] shadow-2xl w-full max-w-2xl overflow-hidden border border-stone-200 dark:border-stone-800"
-            >
-              <div className="p-8 border-b border-stone-100 dark:border-stone-800 flex justify-between items-center">
-                <h2 className="text-2xl font-serif font-bold text-stone-900 dark:text-white">Add New Product</h2>
-                <button onClick={() => setIsProductModalOpen(false)} className="p-2 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-full transition-colors">
-                  <XCircle className="w-6 h-6 text-stone-400" />
-                </button>
-              </div>
+      <ProductFormModal
+        isOpen={isProductModalOpen}
+        onClose={() => setIsProductModalOpen(false)}
+        onSubmit={handleAddProduct}
+        isSubmitting={isSubmitting}
+      />
 
-              <form onSubmit={handleAddProduct} className="p-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="md:col-span-2 space-y-2">
-                  <label className="text-xs font-bold text-stone-400 uppercase tracking-wider">Product Name</label>
-                  <input
-                    required
-                    type="text"
-                    className="w-full px-4 py-3 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none transition-all dark:text-white"
-                    placeholder="e.g., Premium Sandalwood Incense"
-                    value={newProduct.name}
-                    onChange={e => setNewProduct({...newProduct, name: e.target.value})}
-                  />
-                </div>
-
-                <div className="md:col-span-2 space-y-2">
-                  <label className="text-xs font-bold text-stone-400 uppercase tracking-wider">Description</label>
-                  <textarea
-                    required
-                    className="w-full px-4 py-3 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none transition-all dark:text-white h-24 resize-none"
-                    placeholder="Describe your product..."
-                    value={newProduct.description}
-                    onChange={e => setNewProduct({...newProduct, description: e.target.value})}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-stone-400 uppercase tracking-wider">Price (₹)</label>
-                  <input
-                    required
-                    type="number"
-                    className="w-full px-4 py-3 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none transition-all dark:text-white"
-                    placeholder="299"
-                    value={newProduct.price}
-                    onChange={e => setNewProduct({...newProduct, price: e.target.value})}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-stone-400 uppercase tracking-wider">Stock Quantity</label>
-                  <input
-                    required
-                    type="number"
-                    className="w-full px-4 py-3 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none transition-all dark:text-white"
-                    placeholder="50"
-                    value={newProduct.stock}
-                    onChange={e => setNewProduct({...newProduct, stock: e.target.value})}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-stone-400 uppercase tracking-wider">Category</label>
-                  <select
-                    className="w-full px-4 py-3 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none transition-all dark:text-white"
-                    value={newProduct.category}
-                    onChange={e => setNewProduct({...newProduct, category: e.target.value})}
-                  >
-                    <option>Puja Samagri</option>
-                    <option>Idols & Statues</option>
-                    <option>Rudraksha</option>
-                    <option>Gems & Stones</option>
-                    <option>Books & Texts</option>
-                    <option>Other</option>
-                  </select>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-stone-400 uppercase tracking-wider">Product Image</label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileUpload}
-                    className="w-full text-xs text-stone-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100"
-                  />
-                  {newProduct.image && (
-                    <p className="text-[10px] text-emerald-600 font-bold mt-1">Image uploaded successfully!</p>
-                  )}
-                </div>
-
-                <div className="md:col-span-2 pt-4">
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="w-full py-4 bg-orange-500 hover:bg-orange-600 text-white rounded-2xl font-bold transition-all shadow-lg shadow-orange-500/20 disabled:opacity-50 flex items-center justify-center gap-2"
-                  >
-                    {isSubmitting ? (
-                      <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    ) : (
-                      <>
-                        <Package className="w-5 h-5" />
-                        Add Product Listing
-                      </>
-                    )}
-                  </button>
-                </div>
-              </form>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
 
     </div>
   );
