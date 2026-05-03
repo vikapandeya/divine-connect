@@ -19,6 +19,9 @@ import { buildOpenRouterPrompt, generateKundliReading, type AstrologyMode } from
 import { calculatePanchang } from "./src/lib/panchangCalc.ts";
 import { GoogleGenAI, Type } from "@google/genai";
 import { DatabaseAdapter, FirestoreAdapter, MySQLAdapter } from "./src/lib/db.ts";
+import nodemailer from "nodemailer";
+import multer from "multer";
+
 
 dotenv.config();
 
@@ -146,6 +149,59 @@ async function createOpenRouterReading(mode: Exclude<AstrologyMode, 'kundli'>, p
 
   throw new Error("AI astrology is not configured yet. Add GEMINI_API_KEY (free at aistudio.google.com) or OPENROUTER_API_KEY to enable this feature.");
 }
+
+// ── Email Transporter Setup ──────────────────────────────────────────────────
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST || 'smtp.gmail.com',
+  port: parseInt(process.env.SMTP_PORT || '587'),
+  secure: process.env.SMTP_PORT === '465',
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+  },
+});
+
+async function sendEmail(to: string, subject: string, html: string) {
+  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+    console.warn(`[Email] Skipping send to ${to} (SMTP credentials missing)`);
+    return;
+  }
+  try {
+    await transporter.sendMail({
+      from: process.env.SMTP_FROM || '"DivineConnect" <support@punyaseva.in>',
+      to,
+      subject,
+      html,
+    });
+    console.log(`[Email] Sent to ${to}: ${subject}`);
+  } catch (error) {
+    console.error(`[Email] Failed to send to ${to}:`, error);
+  }
+}
+
+// ── Multer File Upload Setup ─────────────────────────────────────────────────
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'public/uploads/');
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+  },
+});
+
+const upload = multer({ 
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed!'));
+    }
+  }
+});
+
 
 async function openRouterChat(systemPrompt: string, userPrompt: string): Promise<string> {
   return openRouterChatMessages(systemPrompt, [{ role: "user", content: userPrompt }]);
@@ -404,12 +460,17 @@ async function startServer() {
       return res.status(401).json({ error: "Invalid or expired session" });
     }
   };
-  const requireAdmin = (req: any, res: any, next: any) => {
+
+  const requireRole = (role: 'devotee' | 'vendor' | 'admin') => (req: any, res: any, next: any) => {
     requireAuth(req, res, () => {
-      if (req.user?.role !== "admin") return res.status(403).json({ error: "Admin access required" });
+      if (req.user?.role === "admin") return next(); // Admin can do everything
+      if (req.user?.role !== role) return res.status(403).json({ error: `${role} access required` });
       next();
     });
   };
+
+  const requireAdmin = requireRole('admin');
+  const requireVendor = requireRole('vendor');
 
   // ── File upload (multer) ──────────────────────────────────────────────────
   const uploadsDir = path.join(__dirname, "public", "uploads");
@@ -479,6 +540,13 @@ async function startServer() {
       adapterReady: !!adapter,
       dbIdFromConfig: firebaseConfig.firestoreDatabaseId
     });
+  });
+
+  // File Upload Endpoint
+  app.post("/api/upload", requireAuth, upload.single('image'), (req, res) => {
+    if (!req.file) return res.status(400).json({ error: "No file uploaded" });
+    const fileUrl = `/uploads/${req.file.filename}`;
+    res.json({ success: true, url: fileUrl });
   });
 
   const astrologyLimiter = rateLimit({
@@ -859,9 +927,64 @@ async function startServer() {
         };
 
         await adapter.createUser(uid, userData);
-        res.json({ success: true, uid });
+        
+        const token = jwt.sign(
+          { uid: userData.uid, email: userData.email, role: userData.role },
+          JWT_SECRET,
+          { expiresIn: "7d" }
+        );
+        res.cookie("authToken", token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "lax",
+          maxAge: 7 * 24 * 60 * 60 * 1000,
+        });
+
+        res.json({ success: true, uid, token, user: { uid, email, displayName: userData.displayName, role: userRole } });
       } catch (error) {
         console.error("[API] POST /api/auth/register error:", error);
+        res.status(500).json({ error: (error as Error).message });
+      }
+    });
+
+    app.post("/api/auth/social-sync", async (req, res) => {
+      const { uid, email, displayName, photoURL, role } = req.body;
+      if (!uid || !email) return res.status(400).json({ error: "UID and email are required" });
+
+      try {
+        const existingUser = await adapter.getUser(uid);
+        let userRole = role || 'devotee';
+
+        if (!existingUser) {
+          if (email === 'pg2331427@gmail.com') userRole = 'admin';
+          await adapter.createUser(uid, {
+            uid,
+            email,
+            displayName,
+            photoURL,
+            role: userRole,
+            createdAt: new Date()
+          });
+        } else {
+          userRole = existingUser.role;
+          await adapter.updateUser(uid, { displayName, photoURL });
+        }
+
+        const token = jwt.sign(
+          { uid, email, role: userRole },
+          JWT_SECRET,
+          { expiresIn: "7d" }
+        );
+        res.cookie("authToken", token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "lax",
+          maxAge: 7 * 24 * 60 * 60 * 1000,
+        });
+
+        res.json({ success: true, role: userRole, token });
+      } catch (error) {
+        console.error("[API] POST /api/auth/social-sync error:", error);
         res.status(500).json({ error: (error as Error).message });
       }
     });
@@ -893,7 +1016,7 @@ async function startServer() {
         sameSite: "lax",
         maxAge: 7 * 24 * 60 * 60 * 1000,
       });
-      res.json({ success: true, user: { uid: user.uid, email: user.email, displayName: user.displayName, role: user.role } });
+      res.json({ success: true, token, user: { uid: user.uid, email: user.email, displayName: user.displayName, role: user.role } });
     } catch (error) {
       console.error("[API] POST /api/auth/login error:", error);
       res.status(500).json({ error: (error as Error).message });
@@ -1280,6 +1403,19 @@ async function startServer() {
         role: 'vendor'
       });
       await createNotification(vendorId, "Vendor Approved", "Congratulations! Your vendor registration has been approved. You can now start adding products and pujas.", "system");
+      
+      const user = await adapter.getUser(vendorId);
+      if (user?.email) {
+        await sendEmail(
+          user.email,
+          "Congratulations! Your DivineConnect Vendor Account is Approved",
+          `<h1>Welcome to DivineConnect!</h1>
+           <p>Dear ${user.displayName || 'Vendor'},</p>
+           <p>Your application to become a vendor has been approved. You can now access your vendor dashboard to list products and services.</p>
+           <p><a href="${process.env.VITE_APP_URL}/vendor">Go to Vendor Dashboard</a></p>`
+        );
+      }
+      
       res.json({ success: true });
     } catch (error) {
       console.error("[API] POST /api/admin/approve-vendor error:", error);
@@ -1295,6 +1431,20 @@ async function startServer() {
         role: 'devotee'
       });
       await createNotification(vendorId, "Vendor Registration Rejected", `Your vendor registration request was rejected. Reason: ${reason || 'Not specified'}`, "system");
+      
+      const user = await adapter.getUser(vendorId);
+      if (user?.email) {
+        await sendEmail(
+          user.email,
+          "Update on your DivineConnect Vendor Application",
+          `<h1>Vendor Application Update</h1>
+           <p>Dear ${user.displayName || 'Vendor'},</p>
+           <p>We regret to inform you that your application was not approved at this time.</p>
+           <p><strong>Reason:</strong> ${reason || 'Not specified'}</p>
+           <p>You can still use your account as a Devotee and apply again in the future.</p>`
+        );
+      }
+
       res.json({ success: true });
     } catch (error) {
       console.error("[API] POST /api/admin/reject-vendor error:", error);
@@ -1399,13 +1549,14 @@ async function startServer() {
     if (isNaN(parsedPrice) || parsedPrice <= 0) return res.status(400).json({ error: "Price must be a positive number" });
     if (isNaN(parsedStock) || parsedStock < 0) return res.status(400).json({ error: "Stock must be 0 or more" });
     try {
+      const existingProduct = await adapter.getProducts({}).then(ps => ps.find(p => p.id.toString() === req.params.id));
       await adapter.updateProduct(req.params.id, {
         name: name.trim(),
         description: description?.trim() || '',
         price: parsedPrice,
         category: category.trim(),
         stock: parsedStock,
-        rating: Number(rating) || 4.5,
+        rating: rating !== undefined ? Number(rating) : (existingProduct?.rating || 4.5),
         image: image.trim(),
         templeName: templeName?.trim() || null,
         weightOptions: weightOptions || null
@@ -1441,7 +1592,7 @@ async function startServer() {
   });
 
   // POST add product as vendor (attaches vendorId automatically)
-  app.post("/api/vendor/products", async (req, res) => {
+  app.post("/api/vendor/products", requireVendor, async (req, res) => {
     const { vendorId, name, description, price, category, stock, rating, image, templeName, weightOptions } = req.body;
     if (!vendorId || !name || !price) {
       return res.status(400).json({ error: "vendorId, name, and price are required" });
@@ -1453,7 +1604,7 @@ async function startServer() {
         price: Number(price),
         category: category || 'Other',
         stock: Number(stock) || 0,
-        rating: Number(rating) || 4.0,
+        rating: Number(rating) || 4.5,
         image: image || '',
         vendorId,
         templeName: templeName || null,
@@ -1468,15 +1619,16 @@ async function startServer() {
   });
 
   // PUT update vendor's own product
-  app.put("/api/vendor/products/:id", async (req, res) => {
+  app.put("/api/vendor/products/:id", requireVendor, async (req, res) => {
     const { name, description, price, category, stock, rating, image } = req.body;
     try {
+      const existingProduct = await adapter.getProducts({}).then(ps => ps.find(p => p.id.toString() === req.params.id));
       await adapter.updateProduct(req.params.id, {
         name, description,
         price: Number(price),
         category,
         stock: Number(stock),
-        rating: Number(rating),
+        rating: rating !== undefined ? Number(rating) : (existingProduct?.rating || 4.5),
         image,
       });
       res.json({ success: true });
@@ -1487,7 +1639,7 @@ async function startServer() {
   });
 
   // DELETE vendor's own product
-  app.delete("/api/vendor/products/:id", async (req, res) => {
+  app.delete("/api/vendor/products/:id", requireVendor, async (req, res) => {
     try {
       await adapter.deleteProduct(req.params.id);
       res.json({ success: true });
@@ -2148,6 +2300,17 @@ async function startServer() {
         imageURL: imageURL || '',
         createdAt: new Date()
       });
+
+      // Update product average rating if this is a product review
+      if (type === 'product' && serviceId) {
+        const feedback = await adapter.getFeedback();
+        const productReviews = feedback.filter((f: any) => f.serviceId === serviceId && f.type === 'product');
+        if (productReviews.length > 0) {
+          const avgRating = productReviews.reduce((sum: number, r: any) => sum + (Number(r.rating) || 0), 0) / productReviews.length;
+          await adapter.updateProduct(serviceId, { rating: Number(avgRating.toFixed(1)) });
+        }
+      }
+
       res.json({ success: true });
     } catch (error) {
       console.error("[API] POST /api/feedback error:", error);
