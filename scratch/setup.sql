@@ -40,10 +40,10 @@ CREATE TABLE products (
 INSERT INTO roles (role_name) VALUES ('user'), ('vendor'), ('admin');
 
 INSERT INTO users (name, email, password) VALUES 
-('Devotee User', 'devotee@test.com', '123456'),
-('Normal User', 'user@test.com', '123456'),
-('Vendor User', 'vendor@test.com', '123456'),
-('Admin User', 'admin@test.com', '123456');
+('Devotee User', 'devotee@test.com', '$2b$10$0daU9bdHa8UVI8ExGANbd.OBZlDnHcdo3OLFoDk0.5SLGbpoOiTmq'),
+('Normal User', 'user@test.com', '$2b$10$0daU9bdHa8UVI8ExGANbd.OBZlDnHcdo3OLFoDk0.5SLGbpoOiTmq'),
+('Vendor User', 'vendor@test.com', '$2b$10$0daU9bdHa8UVI8ExGANbd.OBZlDnHcdo3OLFoDk0.5SLGbpoOiTmq'),
+('Admin User', 'admin@test.com', '$2b$10$0daU9bdHa8UVI8ExGANbd.OBZlDnHcdo3OLFoDk0.5SLGbpoOiTmq');
 
 INSERT INTO user_roles (user_id, role_id)
 SELECT u.id, r.id FROM users u, roles r 

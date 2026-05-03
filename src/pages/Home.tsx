@@ -399,10 +399,10 @@ export default function Home() {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
               viewport={{ once: true }}
-              className="group bg-white dark:bg-stone-900 p-8 rounded-3xl border border-stone-100 dark:border-stone-800 hover:border-orange-200 dark:hover:border-orange-900/50 hover:shadow-xl hover:shadow-orange-500/5 transition-all w-full sm:w-[calc(50%-1.5rem)] lg:w-[calc(33.33%-1.5rem)] xl:w-[calc(20%-1.5rem)] min-w-[280px] max-w-sm"
+              className="group bg-white dark:bg-stone-900 p-5 md:p-8 rounded-[2rem] md:rounded-3xl border border-stone-100 dark:border-stone-800 hover:border-orange-200 dark:hover:border-orange-900/50 hover:shadow-xl hover:shadow-orange-500/5 transition-all w-full sm:w-[calc(50%-1.5rem)] lg:w-[calc(33.33%-1.5rem)] xl:w-[calc(20%-1.5rem)] min-w-[240px] max-w-sm"
             >
               <div
-                className={`${service.color} dark:bg-stone-800 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}
+                className={`${service.color} dark:bg-stone-800 w-12 h-12 md:w-16 md:h-16 rounded-2xl flex items-center justify-center mb-4 md:mb-6 group-hover:scale-110 transition-transform`}
               >
                 {service.icon}
               </div>
@@ -584,26 +584,26 @@ export default function Home() {
                 initial={{ opacity: 0, scale: 0.95 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 transition={{ delay: idx * 0.1 }}
-                className="bg-white dark:bg-stone-900 rounded-[2rem] border border-stone-200 dark:border-stone-800 p-6 shadow-sm"
+                className="bg-white dark:bg-stone-900 rounded-2xl md:rounded-[2rem] border border-stone-200 dark:border-stone-800 p-4 md:p-6 shadow-sm"
               >
-                <Quote className="w-8 h-8 text-orange-200 dark:text-orange-900/30 mb-5" />
-                <div className="flex items-center gap-1 mb-4">
+                <Quote className="w-6 h-6 md:w-8 md:h-8 text-orange-200 dark:text-orange-900/30 mb-3 md:mb-5" />
+                <div className="flex items-center gap-1 mb-3 md:mb-4">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <Star
                       key={star}
-                      className={`w-4 h-4 ${
+                      className={`w-3 h-3 md:w-4 md:h-4 ${
                         star <= Math.round(item.rating)
                           ? 'text-orange-500 fill-orange-500'
                           : 'text-stone-200 dark:text-stone-800'
                       }`}
                     />
                   ))}
-                  <span className="ml-2 text-sm font-bold text-stone-700 dark:text-stone-300">
+                  <span className="ml-2 text-xs md:text-sm font-bold text-stone-700 dark:text-stone-300">
                     {item.rating}
                   </span>
                 </div>
                 {item.imageURL && (
-                  <div className="mb-4 rounded-xl overflow-hidden aspect-video">
+                  <div className="mb-3 md:mb-4 rounded-xl overflow-hidden aspect-video">
                     <img src={item.imageURL} alt="Review" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                   </div>
                 )}
@@ -635,7 +635,7 @@ export default function Home() {
             {featuredProducts.map((product) => (
               <div
                 key={product.id}
-                className="bg-white dark:bg-stone-800 rounded-3xl overflow-hidden border border-stone-200 dark:border-stone-700 group shadow-sm"
+                className="bg-white dark:bg-stone-800 rounded-2xl md:rounded-3xl overflow-hidden border border-stone-200 dark:border-stone-700 group shadow-sm"
               >
                 <Link to={`/product/${product.id}`}>
                   <div className="aspect-square overflow-hidden relative">
@@ -645,29 +645,29 @@ export default function Home() {
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                       referrerPolicy="no-referrer"
                     />
-                    <div className="absolute top-4 right-4 bg-white/90 dark:bg-stone-900/90 backdrop-blur-sm px-2 py-1 rounded-lg flex items-center space-x-1 shadow-sm">
+                    <div className="absolute top-3 right-3 md:top-4 md:right-4 bg-white/90 dark:bg-stone-900/90 backdrop-blur-sm px-2 py-1 rounded-lg flex items-center space-x-1 shadow-sm">
                       <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
-                      <span className="text-xs font-bold text-stone-900 dark:text-white">
+                      <span className="text-[10px] md:text-xs font-bold text-stone-900 dark:text-white">
                         {product.rating}
                       </span>
                     </div>
                   </div>
                 </Link>
-                <div className="p-6">
+                <div className="p-4 md:p-6">
                   <Link to={`/product/${product.id}`}>
-                    <h3 className="font-bold text-stone-900 dark:text-white mb-1 hover:text-orange-500 transition-colors">{product.name}</h3>
+                    <h3 className="text-sm md:text-base font-bold text-stone-900 dark:text-white mb-1 hover:text-orange-500 transition-colors">{product.name}</h3>
                   </Link>
-                  <div className="flex justify-between items-center gap-3">
-                    <div className="flex items-center text-lg font-serif font-bold text-orange-600 dark:text-orange-400">
-                      <IndianRupee className="w-4 h-4" />
+                  <div className="flex justify-between items-center gap-2 md:gap-3 mt-2 md:mt-0">
+                    <div className="flex items-center text-base md:text-lg font-serif font-bold text-orange-600 dark:text-orange-400">
+                      <IndianRupee className="w-3.5 h-3.5 md:w-4 md:h-4" />
                       <span>{formatIndianRupees(product.price)}</span>
                     </div>
                     <button
                       type="button"
                       onClick={() => addToCart(product)}
-                      className="bg-stone-900 dark:bg-stone-700 text-white p-2 rounded-xl hover:bg-orange-500 transition-colors"
+                      className="bg-stone-900 dark:bg-stone-700 text-white p-1.5 md:p-2 rounded-lg md:rounded-xl hover:bg-orange-500 transition-colors"
                     >
-                      <ShoppingCart className="w-4 h-4" />
+                      <ShoppingCart className="w-3.5 h-3.5 md:w-4 md:h-4" />
                     </button>
                   </div>
                 </div>

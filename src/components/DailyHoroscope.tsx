@@ -61,8 +61,8 @@ export default function DailyHoroscope() {
   );
 
   return (
-    <div className="bg-white dark:bg-stone-900 rounded-[2.5rem] border border-stone-200 dark:border-stone-800 overflow-hidden shadow-xl shadow-stone-200/50 dark:shadow-none h-full flex flex-col">
-      <div className="bg-amber-500 p-6 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="bg-white dark:bg-stone-900 rounded-3xl md:rounded-[2.5rem] border border-stone-200 dark:border-stone-800 overflow-hidden shadow-xl shadow-stone-200/50 dark:shadow-none h-full flex flex-col">
+      <div className="bg-amber-500 p-4 md:p-6 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center space-x-3">
           <Sparkles className="w-6 h-6" />
           <h2 className="text-xl font-serif font-bold">{t('horoscope.title')}</h2>
@@ -77,7 +77,7 @@ export default function DailyHoroscope() {
         </div>
       </div>
 
-      <div className="p-8 flex-grow flex flex-col">
+      <div className="p-4 md:p-8 flex-grow flex flex-col">
         <div className="flex items-center justify-center mb-4">
           <div className="bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 px-4 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest flex items-center gap-2">
             <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse" />
@@ -111,7 +111,7 @@ export default function DailyHoroscope() {
           </button>
         </div>
 
-        <div className="relative p-6 bg-amber-50 dark:bg-amber-900/10 rounded-3xl border border-amber-100 dark:border-amber-900/20 flex-grow flex items-center justify-center">
+        <div className="relative p-4 md:p-6 bg-amber-50 dark:bg-amber-900/10 rounded-2xl md:rounded-3xl border border-amber-100 dark:border-amber-900/20 flex-grow flex items-center justify-center">
           {isLoading ? (
             <div className="flex flex-col items-center justify-center text-amber-500">
               <Loader2 className="w-8 h-8 animate-spin mb-2" />
