@@ -28,12 +28,37 @@ export default function AdminDashboard() {
   const [formError, setFormError] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [activeTab, setActiveTab] = useState<'inventory' | 'vendors' | 'approvals' | 'whatsapp' | 'payouts'>('inventory');
+  const [activeTab, setActiveTab] = useState<'inventory' | 'services' | 'vendors' | 'approvals' | 'whatsapp' | 'payouts'>('inventory');
   const [vendorsPerformance, setVendorsPerformance] = useState<any[]>([]);
   const [pendingVendors, setPendingVendors] = useState<any[]>([]);
   const [whatsappBookings, setWhatsappBookings] = useState<any[]>([]);
   const [payouts, setPayouts] = useState<any[]>([]);
   const [vendorFilter, setVendorFilter] = useState<'all' | 'high' | 'low'>('all');
+  const [categoryFilter, setCategoryFilter] = useState<string>('All');
+  const [pujas, setPujas] = useState<any[]>([]);
+  const [yatras, setYatras] = useState<any[]>([]);
+  const [serviceSubTab, setServiceSubTab] = useState<'pujas' | 'yatras'>('pujas');
+
+  // Puja modal state
+  const [isPujaModalOpen, setIsPujaModalOpen] = useState(false);
+  const [editingPuja, setEditingPuja] = useState<any | null>(null);
+  const [pujaFormData, setPujaFormData] = useState({
+    title: '', description: '', onlinePrice: '', offlinePrice: '',
+    duration: '', category: 'Daily', templeName: '', samagriList: '',
+    isOnline: true, samagriIncluded: false, rating: '4.5'
+  });
+  const [pujaFormError, setPujaFormError] = useState('');
+  const [isPujaSubmitting, setIsPujaSubmitting] = useState(false);
+
+  // Yatra modal state
+  const [isYatraModalOpen, setIsYatraModalOpen] = useState(false);
+  const [editingYatra, setEditingYatra] = useState<any | null>(null);
+  const [yatraFormData, setYatraFormData] = useState({
+    title: '', description: '', price: '', duration: '',
+    location: '', category: 'Pilgrimage', rating: '4.5', imageUrl: ''
+  });
+  const [yatraFormError, setYatraFormError] = useState('');
+  const [isYatraSubmitting, setIsYatraSubmitting] = useState(false);
   const [stats, setStats] = useState({
     totalUsers: 0,
     totalVendors: 0,
@@ -111,6 +136,137 @@ export default function AdminDashboard() {
     }
   };
 
+  const fetchPujas = async () => {
+    try {
+      const response = await fetch('/api/pujas');
+      if (response.ok) setPujas(await response.json());
+    } catch (error) {
+      console.error('Error fetching pujas:', error);
+    }
+  };
+
+  const fetchYatras = async () => {
+    try {
+      const response = await fetch('/api/yatras');
+      if (response.ok) setYatras(await response.json());
+    } catch (error) {
+      console.error('Error fetching yatras:', error);
+    }
+  };
+
+  const handleDeletePuja = async (id: string) => {
+    if (!window.confirm('Delete this puja service?')) return;
+    try {
+      const res = await fetch(`/api/pujas/${id}`, { method: 'DELETE', credentials: 'include' });
+      if (res.ok) fetchPujas();
+      else alert('Failed to delete puja.');
+    } catch { alert('Network error.'); }
+  };
+
+  const handleDeleteYatra = async (id: string) => {
+    if (!window.confirm('Delete this yatra?')) return;
+    try {
+      const res = await fetch(`/api/yatras/${id}`, { method: 'DELETE', credentials: 'include' });
+      if (res.ok) fetchYatras();
+      else alert('Failed to delete yatra.');
+    } catch { alert('Network error.'); }
+  };
+
+  const openPujaModal = (puja?: any) => {
+    setPujaFormError('');
+    if (puja) {
+      setEditingPuja(puja);
+      setPujaFormData({
+        title: puja.title, description: puja.description,
+        onlinePrice: String(puja.onlinePrice), offlinePrice: String(puja.offlinePrice || ''),
+        duration: puja.duration, category: puja.category || 'Daily',
+        templeName: puja.templeName || '', samagriList: puja.samagriList || '',
+        isOnline: puja.isOnline ?? true, samagriIncluded: puja.samagriIncluded ?? false,
+        rating: String(puja.rating || 4.5)
+      });
+    } else {
+      setEditingPuja(null);
+      setPujaFormData({ title: '', description: '', onlinePrice: '', offlinePrice: '', duration: '', category: 'Daily', templeName: '', samagriList: '', isOnline: true, samagriIncluded: false, rating: '4.5' });
+    }
+    setIsPujaModalOpen(true);
+  };
+
+  const handlePujaSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPujaFormError('');
+    if (!pujaFormData.title.trim()) { setPujaFormError('Title is required.'); return; }
+    if (!pujaFormData.onlinePrice || isNaN(Number(pujaFormData.onlinePrice))) { setPujaFormError('Valid online price required.'); return; }
+    setIsPujaSubmitting(true);
+    try {
+      const url = editingPuja ? `/api/pujas/${editingPuja.id}` : '/api/pujas';
+      const method = editingPuja ? 'PUT' : 'POST';
+      const res = await fetch(url, {
+        method, credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: pujaFormData.title, description: pujaFormData.description,
+          onlinePrice: Number(pujaFormData.onlinePrice),
+          offlinePrice: pujaFormData.offlinePrice ? Number(pujaFormData.offlinePrice) : 0,
+          duration: pujaFormData.duration, category: pujaFormData.category,
+          templeName: pujaFormData.templeName, samagriList: pujaFormData.samagriList,
+          isOnline: pujaFormData.isOnline, samagriIncluded: pujaFormData.samagriIncluded,
+          rating: Number(pujaFormData.rating)
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) { setPujaFormError(data.error || 'Failed to save.'); return; }
+      setIsPujaModalOpen(false);
+      fetchPujas();
+    } catch { setPujaFormError('Network error.'); }
+    finally { setIsPujaSubmitting(false); }
+  };
+
+  const openYatraModal = (yatra?: any) => {
+    setYatraFormError('');
+    if (yatra) {
+      setEditingYatra(yatra);
+      setYatraFormData({
+        title: yatra.title, description: yatra.description,
+        price: String(yatra.price), duration: yatra.duration,
+        location: yatra.location, category: yatra.category || 'Pilgrimage',
+        rating: String(yatra.rating || 4.5),
+        imageUrl: (yatra.images && yatra.images[0]) || ''
+      });
+    } else {
+      setEditingYatra(null);
+      setYatraFormData({ title: '', description: '', price: '', duration: '', location: '', category: 'Pilgrimage', rating: '4.5', imageUrl: '' });
+    }
+    setIsYatraModalOpen(true);
+  };
+
+  const handleYatraSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setYatraFormError('');
+    if (!yatraFormData.title.trim()) { setYatraFormError('Title is required.'); return; }
+    if (!yatraFormData.price || isNaN(Number(yatraFormData.price))) { setYatraFormError('Valid price required.'); return; }
+    setIsYatraSubmitting(true);
+    try {
+      const url = editingYatra ? `/api/yatras/${editingYatra.id}` : '/api/yatras';
+      const method = editingYatra ? 'PUT' : 'POST';
+      const res = await fetch(url, {
+        method, credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: yatraFormData.title, description: yatraFormData.description,
+          price: Number(yatraFormData.price), duration: yatraFormData.duration,
+          location: yatraFormData.location, category: yatraFormData.category,
+          rating: Number(yatraFormData.rating),
+          images: yatraFormData.imageUrl ? [yatraFormData.imageUrl] : []
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) { setYatraFormError(data.error || 'Failed to save.'); return; }
+      setIsYatraModalOpen(false);
+      fetchYatras();
+    } catch { setYatraFormError('Network error.'); }
+    finally { setIsYatraSubmitting(false); }
+  };
+
   useEffect(() => {
     if (currentUser && currentUser.role === 'admin') {
       fetchProducts();
@@ -119,8 +275,14 @@ export default function AdminDashboard() {
       fetchPendingVendors();
       fetchWhatsAppBookings();
       fetchPayouts();
+      fetchPujas();
+      fetchYatras();
     }
   }, [currentUser]);
+
+  const filteredProducts = categoryFilter === 'All'
+    ? products
+    : products.filter(p => p.category === categoryFilter);
 
   const filteredVendors = vendorsPerformance.filter(v => {
     if (vendorFilter === 'all') return true;
@@ -347,22 +509,31 @@ export default function AdminDashboard() {
           <p className="text-stone-600">Manage your spiritual marketplace inventory.</p>
         </div>
         <div className="flex items-center space-x-4">
-          <div className="flex bg-stone-100 p-1 rounded-2xl mr-4">
-            <button 
+          <div className="flex bg-stone-100 p-1 rounded-2xl mr-4 flex-wrap gap-0.5">
+            <button
               onClick={() => setActiveTab('inventory')}
-              className={`px-6 py-2 rounded-xl text-sm font-bold transition-all ${activeTab === 'inventory' ? 'bg-white text-stone-900 shadow-sm' : 'text-stone-500 hover:text-stone-700'}`}
+              className={`px-5 py-2 rounded-xl text-sm font-bold transition-all ${activeTab === 'inventory' ? 'bg-white text-stone-900 shadow-sm' : 'text-stone-500 hover:text-stone-700'}`}
             >
               Inventory
             </button>
-            <button 
+            <button
+              onClick={() => setActiveTab('services')}
+              className={`px-5 py-2 rounded-xl text-sm font-bold transition-all ${activeTab === 'services' ? 'bg-white text-stone-900 shadow-sm' : 'text-stone-500 hover:text-stone-700'}`}
+            >
+              Services
+              <span className="ml-1.5 px-2 py-0.5 bg-orange-100 text-orange-600 text-[10px] rounded-full font-black">
+                {pujas.length + yatras.length}
+              </span>
+            </button>
+            <button
               onClick={() => setActiveTab('vendors')}
-              className={`px-6 py-2 rounded-xl text-sm font-bold transition-all ${activeTab === 'vendors' ? 'bg-white text-stone-900 shadow-sm' : 'text-stone-500 hover:text-stone-700'}`}
+              className={`px-5 py-2 rounded-xl text-sm font-bold transition-all ${activeTab === 'vendors' ? 'bg-white text-stone-900 shadow-sm' : 'text-stone-500 hover:text-stone-700'}`}
             >
               Vendors
             </button>
-            <button 
+            <button
               onClick={() => setActiveTab('approvals')}
-              className={`px-6 py-2 rounded-xl text-sm font-bold transition-all ${activeTab === 'approvals' ? 'bg-white text-stone-900 shadow-sm' : 'text-stone-500 hover:text-stone-700'}`}
+              className={`px-5 py-2 rounded-xl text-sm font-bold transition-all ${activeTab === 'approvals' ? 'bg-white text-stone-900 shadow-sm' : 'text-stone-500 hover:text-stone-700'}`}
             >
               Approvals
               {pendingVendors.length > 0 && (
@@ -371,9 +542,9 @@ export default function AdminDashboard() {
                 </span>
               )}
             </button>
-            <button 
+            <button
               onClick={() => setActiveTab('whatsapp')}
-              className={`px-6 py-2 rounded-xl text-sm font-bold transition-all ${activeTab === 'whatsapp' ? 'bg-white text-stone-900 shadow-sm' : 'text-stone-500 hover:text-stone-700'}`}
+              className={`px-5 py-2 rounded-xl text-sm font-bold transition-all ${activeTab === 'whatsapp' ? 'bg-white text-stone-900 shadow-sm' : 'text-stone-500 hover:text-stone-700'}`}
             >
               WhatsApp
               {whatsappBookings.filter(b => b.status === 'pending').length > 0 && (
@@ -382,9 +553,9 @@ export default function AdminDashboard() {
                 </span>
               )}
             </button>
-            <button 
+            <button
               onClick={() => setActiveTab('payouts')}
-              className={`px-6 py-2 rounded-xl text-sm font-bold transition-all ${activeTab === 'payouts' ? 'bg-white text-stone-900 shadow-sm' : 'text-stone-500 hover:text-stone-700'}`}
+              className={`px-5 py-2 rounded-xl text-sm font-bold transition-all ${activeTab === 'payouts' ? 'bg-white text-stone-900 shadow-sm' : 'text-stone-500 hover:text-stone-700'}`}
             >
               Payouts
               {payouts.filter(p => p.status === 'pending').length > 0 && (
@@ -458,6 +629,30 @@ export default function AdminDashboard() {
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"></div>
             </div>
           ) : activeTab === 'inventory' ? (
+            <div className="space-y-4">
+              {/* Category filter pills */}
+              <div className="flex flex-wrap gap-2">
+                {['All', ...PRODUCT_CATEGORIES].map(cat => (
+                  <button
+                    key={cat}
+                    onClick={() => setCategoryFilter(cat)}
+                    className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all border ${
+                      categoryFilter === cat
+                        ? 'bg-orange-500 text-white border-orange-500 shadow-sm'
+                        : 'bg-white text-stone-500 border-stone-200 hover:border-orange-300 hover:text-orange-500'
+                    }`}
+                  >
+                    {cat}
+                    {cat !== 'All' && (
+                      <span className="ml-1.5 opacity-70">
+                        ({products.filter(p => p.category === cat).length})
+                      </span>
+                    )}
+                    {cat === 'All' && <span className="ml-1.5 opacity-70">({products.length})</span>}
+                  </button>
+                ))}
+              </div>
+
             <div className="bg-white rounded-3xl border border-stone-200 overflow-hidden shadow-sm">
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
@@ -472,7 +667,7 @@ export default function AdminDashboard() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-stone-100">
-                    {products.map((product) => (
+                    {filteredProducts.map((product) => (
                       <tr key={product.id} className="hover:bg-stone-50 transition-colors">
                         <td className="px-6 py-4">
                           <div className="flex items-center space-x-4">
@@ -517,6 +712,154 @@ export default function AdminDashboard() {
                   </tbody>
                 </table>
               </div>
+            </div>
+            </div>
+          ) : activeTab === 'services' ? (
+            <div className="space-y-6">
+              {/* Sub-tab bar + Add button */}
+              <div className="flex items-center justify-between">
+                <div className="flex bg-stone-100 p-1 rounded-2xl">
+                  <button
+                    onClick={() => setServiceSubTab('pujas')}
+                    className={`px-6 py-2 rounded-xl text-sm font-bold transition-all ${serviceSubTab === 'pujas' ? 'bg-white text-stone-900 shadow-sm' : 'text-stone-500 hover:text-stone-700'}`}
+                  >
+                    Pujas
+                    <span className="ml-2 px-2 py-0.5 bg-orange-100 text-orange-600 text-[10px] rounded-full font-black">{pujas.length}</span>
+                  </button>
+                  <button
+                    onClick={() => setServiceSubTab('yatras')}
+                    className={`px-6 py-2 rounded-xl text-sm font-bold transition-all ${serviceSubTab === 'yatras' ? 'bg-white text-stone-900 shadow-sm' : 'text-stone-500 hover:text-stone-700'}`}
+                  >
+                    Yatras
+                    <span className="ml-2 px-2 py-0.5 bg-blue-100 text-blue-600 text-[10px] rounded-full font-black">{yatras.length}</span>
+                  </button>
+                </div>
+                <button
+                  onClick={() => serviceSubTab === 'pujas' ? openPujaModal() : openYatraModal()}
+                  className="flex items-center gap-2 bg-orange-500 text-white px-5 py-2.5 rounded-2xl hover:bg-orange-600 transition-colors shadow-lg shadow-orange-500/20 font-bold text-sm"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add {serviceSubTab === 'pujas' ? 'Puja' : 'Yatra'}
+                </button>
+              </div>
+
+              {serviceSubTab === 'pujas' ? (
+                pujas.length === 0 ? (
+                  <div className="bg-white p-12 rounded-3xl border border-stone-200 text-center shadow-sm">
+                    <Package className="w-12 h-12 text-stone-200 mx-auto mb-4" />
+                    <p className="text-stone-500">No puja services found.</p>
+                  </div>
+                ) : (
+                  <div className="bg-white rounded-3xl border border-stone-200 overflow-hidden shadow-sm">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="bg-stone-50">
+                            <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase tracking-wider">Title</th>
+                            <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase tracking-wider">Category</th>
+                            <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase tracking-wider">Online Price</th>
+                            <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase tracking-wider">Offline Price</th>
+                            <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase tracking-wider">Duration</th>
+                            <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase tracking-wider">Mode</th>
+                            <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase tracking-wider text-right">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-stone-100">
+                          {pujas.map((puja) => (
+                            <tr key={puja.id} className="hover:bg-stone-50 transition-colors">
+                              <td className="px-6 py-4 font-bold text-stone-900">{puja.title}</td>
+                              <td className="px-6 py-4">
+                                <span className="px-3 py-1 bg-orange-50 text-orange-600 rounded-full text-xs font-bold">
+                                  {puja.category || 'Puja'}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4">
+                                <div className="flex items-center font-bold text-orange-600">
+                                  <IndianRupee className="w-3 h-3 mr-1" />{puja.onlinePrice}
+                                </div>
+                              </td>
+                              <td className="px-6 py-4">
+                                <div className="flex items-center font-bold text-stone-700">
+                                  <IndianRupee className="w-3 h-3 mr-1" />{puja.offlinePrice}
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 text-stone-600 text-sm">{puja.duration}</td>
+                              <td className="px-6 py-4">
+                                <span className={`px-3 py-1 rounded-full text-xs font-bold ${puja.isOnline ? 'bg-blue-50 text-blue-600' : 'bg-emerald-50 text-emerald-600'}`}>
+                                  {puja.isOnline ? 'Online' : 'Offline'}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 text-right">
+                                <div className="flex justify-end gap-1">
+                                  <button onClick={() => openPujaModal(puja)} className="p-2 text-stone-400 hover:text-orange-500 hover:bg-orange-50 rounded-lg transition-all">
+                                    <Edit2 className="w-4 h-4" />
+                                  </button>
+                                  <button onClick={() => handleDeletePuja(puja.id)} className="p-2 text-stone-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all">
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )
+              ) : (
+                yatras.length === 0 ? (
+                  <div className="bg-white p-12 rounded-3xl border border-stone-200 text-center shadow-sm">
+                    <Package className="w-12 h-12 text-stone-200 mx-auto mb-4" />
+                    <p className="text-stone-500">No yatra packages found.</p>
+                  </div>
+                ) : (
+                  <div className="bg-white rounded-3xl border border-stone-200 overflow-hidden shadow-sm">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="bg-stone-50">
+                            <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase tracking-wider">Title</th>
+                            <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase tracking-wider">Category</th>
+                            <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase tracking-wider">Price</th>
+                            <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase tracking-wider">Duration</th>
+                            <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase tracking-wider">Location</th>
+                            <th className="px-6 py-4 text-xs font-bold text-stone-400 uppercase tracking-wider text-right">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-stone-100">
+                          {yatras.map((yatra) => (
+                            <tr key={yatra.id} className="hover:bg-stone-50 transition-colors">
+                              <td className="px-6 py-4 font-bold text-stone-900">{yatra.title}</td>
+                              <td className="px-6 py-4">
+                                <span className="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-xs font-bold">
+                                  {yatra.category || 'Pilgrimage'}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4">
+                                <div className="flex items-center font-bold text-orange-600">
+                                  <IndianRupee className="w-3 h-3 mr-1" />{yatra.price}
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 text-stone-600 text-sm">{yatra.duration}</td>
+                              <td className="px-6 py-4 text-stone-600 text-sm">{yatra.location}</td>
+                              <td className="px-6 py-4 text-right">
+                                <div className="flex justify-end gap-1">
+                                  <button onClick={() => openYatraModal(yatra)} className="p-2 text-stone-400 hover:text-orange-500 hover:bg-orange-50 rounded-lg transition-all">
+                                    <Edit2 className="w-4 h-4" />
+                                  </button>
+                                  <button onClick={() => handleDeleteYatra(yatra.id)} className="p-2 text-stone-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all">
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )
+              )}
             </div>
           ) : activeTab === 'vendors' ? (
             <div className="space-y-6">
@@ -800,6 +1143,142 @@ export default function AdminDashboard() {
               )}
             </div>
           ) : null}
+
+      {/* Puja Modal */}
+      <AnimatePresence>
+        {isPujaModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsPujaModalOpen(false)} className="absolute inset-0 bg-stone-900/60 backdrop-blur-sm" />
+            <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="relative bg-white rounded-[2rem] shadow-2xl w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden">
+              <div className="p-6 border-b border-stone-100 flex justify-between items-center flex-shrink-0">
+                <h2 className="text-xl font-serif font-bold text-stone-900">{editingPuja ? 'Edit Puja' : 'Add New Puja'}</h2>
+                <button onClick={() => setIsPujaModalOpen(false)} className="p-2 hover:bg-stone-100 rounded-full transition-colors"><X className="w-5 h-5 text-stone-400" /></button>
+              </div>
+              <form onSubmit={handlePujaSubmit} className="p-6 space-y-4 overflow-y-auto flex-1">
+                {pujaFormError && <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700"><AlertCircle className="w-4 h-4 flex-shrink-0" />{pujaFormError}</div>}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="col-span-2 space-y-1.5">
+                    <label className="text-xs font-bold text-stone-400 uppercase tracking-wider">Title *</label>
+                    <input required type="text" value={pujaFormData.title} onChange={e => setPujaFormData(p => ({ ...p, title: e.target.value }))} className="w-full px-4 py-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-sm" placeholder="e.g. Ganesh Puja" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-stone-400 uppercase tracking-wider">Online Price (₹) *</label>
+                    <input required type="number" min="0" value={pujaFormData.onlinePrice} onChange={e => setPujaFormData(p => ({ ...p, onlinePrice: e.target.value }))} className="w-full px-4 py-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-sm" placeholder="2100" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-stone-400 uppercase tracking-wider">Offline Price (₹)</label>
+                    <input type="number" min="0" value={pujaFormData.offlinePrice} onChange={e => setPujaFormData(p => ({ ...p, offlinePrice: e.target.value }))} className="w-full px-4 py-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-sm" placeholder="3100" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-stone-400 uppercase tracking-wider">Duration</label>
+                    <input type="text" value={pujaFormData.duration} onChange={e => setPujaFormData(p => ({ ...p, duration: e.target.value }))} className="w-full px-4 py-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-sm" placeholder="e.g. 1.5 Hours" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-stone-400 uppercase tracking-wider">Category</label>
+                    <select value={pujaFormData.category} onChange={e => setPujaFormData(p => ({ ...p, category: e.target.value }))} className="w-full px-4 py-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-sm">
+                      {['Daily', 'Special', 'Festive', 'Havan', 'Katha'].map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-stone-400 uppercase tracking-wider">Temple Name</label>
+                    <input type="text" value={pujaFormData.templeName} onChange={e => setPujaFormData(p => ({ ...p, templeName: e.target.value }))} className="w-full px-4 py-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-sm" placeholder="e.g. Siddhivinayak Temple" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-stone-400 uppercase tracking-wider">Rating</label>
+                    <input type="number" min="1" max="5" step="0.1" value={pujaFormData.rating} onChange={e => setPujaFormData(p => ({ ...p, rating: e.target.value }))} className="w-full px-4 py-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-sm" />
+                  </div>
+                  <div className="col-span-2 space-y-1.5">
+                    <label className="text-xs font-bold text-stone-400 uppercase tracking-wider">Samagri List</label>
+                    <input type="text" value={pujaFormData.samagriList} onChange={e => setPujaFormData(p => ({ ...p, samagriList: e.target.value }))} className="w-full px-4 py-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-sm" placeholder="e.g. Flowers, Sweets, Incense" />
+                  </div>
+                  <div className="col-span-2 space-y-1.5">
+                    <label className="text-xs font-bold text-stone-400 uppercase tracking-wider">Description *</label>
+                    <textarea required rows={3} value={pujaFormData.description} onChange={e => setPujaFormData(p => ({ ...p, description: e.target.value }))} className="w-full px-4 py-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-sm resize-none" placeholder="Describe this puja..." />
+                  </div>
+                  <div className="col-span-2 flex gap-6">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input type="checkbox" checked={pujaFormData.isOnline} onChange={e => setPujaFormData(p => ({ ...p, isOnline: e.target.checked }))} className="w-4 h-4 accent-orange-500" />
+                      <span className="text-sm font-semibold text-stone-700">Available Online</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input type="checkbox" checked={pujaFormData.samagriIncluded} onChange={e => setPujaFormData(p => ({ ...p, samagriIncluded: e.target.checked }))} className="w-4 h-4 accent-orange-500" />
+                      <span className="text-sm font-semibold text-stone-700">Samagri Included</span>
+                    </label>
+                  </div>
+                </div>
+                <div className="flex gap-3 pt-2">
+                  <button type="button" onClick={() => setIsPujaModalOpen(false)} className="flex-1 px-4 py-3 border border-stone-200 text-stone-600 font-bold rounded-2xl hover:bg-stone-50 transition-colors text-sm">Cancel</button>
+                  <button type="submit" disabled={isPujaSubmitting} className="flex-1 px-4 py-3 bg-stone-900 text-white font-bold rounded-2xl hover:bg-orange-500 transition-colors flex items-center justify-center gap-2 text-sm disabled:opacity-60">
+                    {isPujaSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                    {isPujaSubmitting ? 'Saving...' : editingPuja ? 'Update Puja' : 'Save Puja'}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Yatra Modal */}
+      <AnimatePresence>
+        {isYatraModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsYatraModalOpen(false)} className="absolute inset-0 bg-stone-900/60 backdrop-blur-sm" />
+            <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="relative bg-white rounded-[2rem] shadow-2xl w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden">
+              <div className="p-6 border-b border-stone-100 flex justify-between items-center flex-shrink-0">
+                <h2 className="text-xl font-serif font-bold text-stone-900">{editingYatra ? 'Edit Yatra' : 'Add New Yatra'}</h2>
+                <button onClick={() => setIsYatraModalOpen(false)} className="p-2 hover:bg-stone-100 rounded-full transition-colors"><X className="w-5 h-5 text-stone-400" /></button>
+              </div>
+              <form onSubmit={handleYatraSubmit} className="p-6 space-y-4 overflow-y-auto flex-1">
+                {yatraFormError && <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700"><AlertCircle className="w-4 h-4 flex-shrink-0" />{yatraFormError}</div>}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="col-span-2 space-y-1.5">
+                    <label className="text-xs font-bold text-stone-400 uppercase tracking-wider">Title *</label>
+                    <input required type="text" value={yatraFormData.title} onChange={e => setYatraFormData(y => ({ ...y, title: e.target.value }))} className="w-full px-4 py-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-sm" placeholder="e.g. Chardham Yatra 2026" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-stone-400 uppercase tracking-wider">Price (₹) *</label>
+                    <input required type="number" min="0" value={yatraFormData.price} onChange={e => setYatraFormData(y => ({ ...y, price: e.target.value }))} className="w-full px-4 py-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-sm" placeholder="45000" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-stone-400 uppercase tracking-wider">Duration</label>
+                    <input type="text" value={yatraFormData.duration} onChange={e => setYatraFormData(y => ({ ...y, duration: e.target.value }))} className="w-full px-4 py-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-sm" placeholder="e.g. 12 Days / 11 Nights" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-stone-400 uppercase tracking-wider">Location</label>
+                    <input type="text" value={yatraFormData.location} onChange={e => setYatraFormData(y => ({ ...y, location: e.target.value }))} className="w-full px-4 py-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-sm" placeholder="e.g. Uttarakhand" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-stone-400 uppercase tracking-wider">Category</label>
+                    <select value={yatraFormData.category} onChange={e => setYatraFormData(y => ({ ...y, category: e.target.value }))} className="w-full px-4 py-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-sm">
+                      {['Pilgrimage', 'Spiritual', 'Darshan', 'Adventure'].map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-stone-400 uppercase tracking-wider">Rating</label>
+                    <input type="number" min="1" max="5" step="0.1" value={yatraFormData.rating} onChange={e => setYatraFormData(y => ({ ...y, rating: e.target.value }))} className="w-full px-4 py-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-sm" />
+                  </div>
+                  <div className="col-span-2 space-y-1.5">
+                    <label className="text-xs font-bold text-stone-400 uppercase tracking-wider">Image URL <span className="normal-case font-normal">(optional)</span></label>
+                    <input type="text" value={yatraFormData.imageUrl} onChange={e => setYatraFormData(y => ({ ...y, imageUrl: e.target.value }))} className="w-full px-4 py-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-sm font-mono" placeholder="https://example.com/yatra.jpg" />
+                  </div>
+                  <div className="col-span-2 space-y-1.5">
+                    <label className="text-xs font-bold text-stone-400 uppercase tracking-wider">Description *</label>
+                    <textarea required rows={3} value={yatraFormData.description} onChange={e => setYatraFormData(y => ({ ...y, description: e.target.value }))} className="w-full px-4 py-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-sm resize-none" placeholder="Describe this yatra..." />
+                  </div>
+                </div>
+                <div className="flex gap-3 pt-2">
+                  <button type="button" onClick={() => setIsYatraModalOpen(false)} className="flex-1 px-4 py-3 border border-stone-200 text-stone-600 font-bold rounded-2xl hover:bg-stone-50 transition-colors text-sm">Cancel</button>
+                  <button type="submit" disabled={isYatraSubmitting} className="flex-1 px-4 py-3 bg-stone-900 text-white font-bold rounded-2xl hover:bg-orange-500 transition-colors flex items-center justify-center gap-2 text-sm disabled:opacity-60">
+                    {isYatraSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                    {isYatraSubmitting ? 'Saving...' : editingYatra ? 'Update Yatra' : 'Save Yatra'}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* Product Modal */}
       <AnimatePresence>

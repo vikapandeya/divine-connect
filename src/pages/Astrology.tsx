@@ -37,7 +37,7 @@ function KundliReport({ data }: { data: any }) {
             <Heart className="w-5 h-5 text-rose-400 mr-2" />
             <span className="text-stone-400 text-sm font-medium uppercase tracking-widest">Guna Milan Score</span>
           </div>
-          <div className="text-6xl font-bold text-white mb-1">
+          <div className="text-6xl font-bold text-stone-900 dark:text-white mb-1">
             {total}<span className="text-2xl text-stone-400 font-normal"> / 36</span>
           </div>
           <div className={`text-xl font-serif font-bold mb-4 ${verdictColor(verdict)}`}>{verdict}</div>
@@ -47,14 +47,14 @@ function KundliReport({ data }: { data: any }) {
               style={{ width: `${totalPct}%` }}
             />
           </div>
-          <p className="text-stone-400 text-xs mt-2">{totalPct}% compatibility</p>
+          <p className="text-stone-500 dark:text-stone-400 text-xs mt-2">{totalPct}% compatibility</p>
         </div>
       </div>
 
       {/* People Cards */}
       <div className="grid grid-cols-2 gap-3">
         {[{ label: 'Groom', p: groom }, { label: 'Bride', p: bride }].map(({ label, p }) => (
-          <div key={label} className="rounded-xl border border-white/10 bg-white/5 p-4 space-y-2">
+          <div key={label} className="rounded-xl border border-stone-200 dark:border-white/10 bg-stone-50 dark:bg-white/5 p-4 space-y-2">
             <div className="flex items-center space-x-2 mb-3">
               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${label === 'Groom' ? 'bg-blue-500/20 text-blue-300' : 'bg-rose-500/20 text-rose-300'}`}>
                 {p?.name?.[0]?.toUpperCase() || '?'}
@@ -74,7 +74,7 @@ function KundliReport({ data }: { data: any }) {
               ].map(([k, v]) => (
                 <div key={k} className="flex justify-between">
                   <span className="text-stone-500">{k}</span>
-                  <span className="text-stone-200">{v}</span>
+                  <span className="text-stone-600 dark:text-stone-200">{v}</span>
                 </div>
               ))}
             </div>
@@ -83,8 +83,8 @@ function KundliReport({ data }: { data: any }) {
       </div>
 
       {/* Ashta Koota Scores */}
-      <div className="rounded-xl border border-white/10 bg-white/5 overflow-hidden">
-        <div className="px-4 py-3 border-b border-white/10">
+      <div className="rounded-xl border border-stone-200 dark:border-white/10 bg-stone-50 dark:bg-white/5 overflow-hidden">
+        <div className="px-4 py-3 border-b border-stone-200 dark:border-white/10">
           <p className="text-white font-semibold text-sm">Ashta Koota Breakdown</p>
         </div>
         <div className="divide-y divide-white/5">
@@ -93,7 +93,7 @@ function KundliReport({ data }: { data: any }) {
             return (
               <div key={s.name} className="px-4 py-3">
                 <div className="flex justify-between items-center mb-1">
-                  <span className="text-stone-300 text-sm font-medium">{s.name}</span>
+                  <span className="text-stone-600 dark:text-stone-300 text-sm font-medium">{s.name}</span>
                   <span className="text-white text-sm font-bold tabular-nums">{s.score}<span className="text-stone-500 font-normal">/{s.max}</span></span>
                 </div>
                 <div className="w-full bg-white/10 rounded-full h-1.5 mb-1.5">
@@ -255,7 +255,7 @@ export default function Astrology() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0502] text-stone-200 py-20 px-4 relative overflow-hidden">
+    <div className="min-h-screen bg-stone-50 dark:bg-[#0a0502] text-stone-900 dark:text-stone-200 py-20 px-4 relative overflow-hidden">
       <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
       {/* Immersive Background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -271,7 +271,7 @@ export default function Astrology() {
           <img 
             src="/logo/icon-only.svg" 
             alt="PunyaSeva" 
-            className="h-12 w-auto brightness-0 invert" 
+            className="h-12 w-auto dark:brightness-0 dark:invert" 
             referrerPolicy="no-referrer"
           />
         </div>
@@ -288,7 +288,7 @@ export default function Astrology() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="text-3xl sm:text-5xl md:text-7xl font-serif font-bold text-white mb-6"
+            className="text-3xl sm:text-5xl md:text-7xl font-serif font-bold text-stone-900 dark:text-white mb-6"
           >
             AI Astrology <span className="text-orange-500 italic">&</span> Insights
           </motion.h1>
@@ -296,7 +296,7 @@ export default function Astrology() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="text-stone-400 text-lg max-w-2xl mx-auto mb-10"
+            className="text-stone-600 dark:text-stone-400 text-lg max-w-2xl mx-auto mb-10"
           >
             Unlock the secrets of your destiny with our AI-powered Vedic Astrologer. Explore birth charts, daily horoscopes, and compatibility.
           </motion.p>
@@ -319,7 +319,7 @@ export default function Astrology() {
                 className={`flex items-center justify-center space-x-2 px-4 sm:px-6 py-3 rounded-2xl font-bold transition-all text-sm sm:text-base ${
                   activeTab === tab.id
                     ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/20'
-                    : 'bg-white/5 text-stone-400 hover:bg-white/10'
+                    : 'bg-stone-100 dark:bg-white/5 text-stone-500 dark:text-stone-400 hover:bg-stone-200 dark:hover:bg-white/10'
                 }`}
               >
                 <tab.icon className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
@@ -335,14 +335,14 @@ export default function Astrology() {
             animate={{ opacity: 1, y: 0 }}
             className="max-w-2xl mx-auto"
           >
-            <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-[2.5rem] p-8 md:p-10 text-center">
+            <div className="bg-white dark:bg-white/5 backdrop-blur-xl border border-stone-200 dark:border-white/10 rounded-[2.5rem] p-8 md:p-10 text-center">
               <div className="w-16 h-16 mx-auto rounded-2xl bg-orange-500/15 text-orange-400 flex items-center justify-center mb-6">
                 <Lock className="w-8 h-8" />
               </div>
-              <h2 className="text-3xl font-serif font-bold text-white mb-4">
+              <h2 className="text-3xl font-serif font-bold text-stone-900 dark:text-white mb-4">
                 Sign in to unlock AI Astrology
               </h2>
-              <p className="text-stone-400 leading-relaxed mb-8">
+              <p className="text-stone-600 dark:text-stone-400 leading-relaxed mb-8">
                 Personalized astrological guidance is available only for signed-in users. Please sign in to continue to your reading dashboard.
               </p>
               <div className="flex flex-col sm:flex-row justify-center gap-4">
@@ -356,7 +356,7 @@ export default function Astrology() {
                 </button>
                 <Link
                   to="/contact"
-                  className="border border-white/15 text-white px-6 py-3 rounded-2xl font-bold hover:bg-white/10 transition-all"
+                  className="border border-stone-300 dark:border-white/15 text-stone-700 dark:text-white px-6 py-3 rounded-2xl font-bold hover:bg-stone-100 dark:hover:bg-white/10 transition-all"
                 >
                   Contact Us
                 </Link>
@@ -372,7 +372,7 @@ export default function Astrology() {
             transition={{ delay: 0.3 }}
             className="lg:col-span-5"
           >
-            <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-[2.5rem] p-8">
+            <div className="bg-white dark:bg-white/5 backdrop-blur-xl border border-stone-200 dark:border-white/10 rounded-[2.5rem] p-8">
               <form onSubmit={generateReading} className="space-y-6">
                 {activeTab === 'birth-chart' && (
                   <>
@@ -383,7 +383,7 @@ export default function Astrology() {
                         type="text"
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white focus:ring-2 focus:ring-orange-500/50 outline-none transition-all"
+                        className="w-full bg-stone-100 dark:bg-white/5 border border-stone-200 dark:border-white/10 rounded-2xl px-4 py-3 text-stone-900 dark:text-white focus:ring-2 focus:ring-orange-500/50 outline-none transition-all"
                         placeholder="Enter your name"
                       />
                     </div>
@@ -396,7 +396,7 @@ export default function Astrology() {
                           type="date"
                           value={formData.dob}
                           onChange={(e) => setFormData({ ...formData, dob: e.target.value })}
-                          className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white focus:ring-2 focus:ring-orange-500/50 outline-none transition-all"
+                          className="w-full bg-stone-100 dark:bg-white/5 border border-stone-200 dark:border-white/10 rounded-2xl px-4 py-3 text-stone-900 dark:text-white focus:ring-2 focus:ring-orange-500/50 outline-none transition-all"
                         />
                       </div>
                       <div className="space-y-2">
@@ -406,7 +406,7 @@ export default function Astrology() {
                           type="time"
                           value={formData.tob}
                           onChange={(e) => setFormData({ ...formData, tob: e.target.value })}
-                          className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white focus:ring-2 focus:ring-orange-500/50 outline-none transition-all"
+                          className="w-full bg-stone-100 dark:bg-white/5 border border-stone-200 dark:border-white/10 rounded-2xl px-4 py-3 text-stone-900 dark:text-white focus:ring-2 focus:ring-orange-500/50 outline-none transition-all"
                         />
                       </div>
                     </div>
@@ -420,7 +420,7 @@ export default function Astrology() {
                           type="text"
                           value={formData.pob}
                           onChange={(e) => setFormData({ ...formData, pob: e.target.value })}
-                          className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-4 py-3 text-white focus:ring-2 focus:ring-orange-500/50 outline-none transition-all"
+                          className="w-full bg-stone-100 dark:bg-white/5 border border-stone-200 dark:border-white/10 rounded-2xl pl-12 pr-4 py-3 text-stone-900 dark:text-white focus:ring-2 focus:ring-orange-500/50 outline-none transition-all"
                           placeholder="City, Country"
                         />
                       </div>
@@ -432,7 +432,7 @@ export default function Astrology() {
                         rows={3}
                         value={formData.query}
                         onChange={(e) => setFormData({ ...formData, query: e.target.value })}
-                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white focus:ring-2 focus:ring-orange-500/50 outline-none transition-all resize-none"
+                        className="w-full bg-stone-100 dark:bg-white/5 border border-stone-200 dark:border-white/10 rounded-2xl px-4 py-3 text-stone-900 dark:text-white focus:ring-2 focus:ring-orange-500/50 outline-none transition-all resize-none"
                         placeholder="e.g. Career growth, marriage timing..."
                       />
                     </div>
@@ -446,10 +446,10 @@ export default function Astrology() {
                       <select
                         value={rashifalData.sign}
                         onChange={(e) => setRashifalData({ ...rashifalData, sign: e.target.value })}
-                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white focus:ring-2 focus:ring-orange-500/50 outline-none transition-all appearance-none"
+                        className="w-full bg-stone-100 dark:bg-white/5 border border-stone-200 dark:border-white/10 rounded-2xl px-4 py-3 text-stone-900 dark:text-white focus:ring-2 focus:ring-orange-500/50 outline-none transition-all appearance-none"
                       >
                         {ZODIAC_SIGNS.map(sign => (
-                          <option key={sign} value={sign} className="bg-stone-900">{sign}</option>
+                          <option key={sign} value={sign} className="bg-white dark:bg-stone-900">{sign}</option>
                         ))}
                       </select>
                     </div>
@@ -465,7 +465,7 @@ export default function Astrology() {
                             className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${
                               rashifalData.timeframe === tf
                                 ? 'bg-orange-500 text-white'
-                                : 'bg-white/5 text-stone-400 hover:bg-white/10'
+                                : 'bg-stone-100 dark:bg-white/5 text-stone-500 dark:text-stone-400 hover:bg-stone-200 dark:hover:bg-white/10'
                             }`}
                           >
                             {tf}
@@ -480,7 +480,7 @@ export default function Astrology() {
                   <div className="space-y-8">
                     {/* Groom */}
                     <div className="space-y-4">
-                      <div className="flex items-center justify-between border-b border-white/10 pb-2">
+                      <div className="flex items-center justify-between border-b border-stone-200 dark:border-stone-200 dark:border-white/10 pb-2">
                         <h4 className="text-sm font-bold text-orange-400 uppercase tracking-widest">Groom (Male)</h4>
                       </div>
                       <input
@@ -489,7 +489,7 @@ export default function Astrology() {
                         placeholder="Groom's Name"
                         value={kundliData.p1Name}
                         onChange={(e) => setKundliData({ ...kundliData, p1Name: e.target.value })}
-                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white focus:ring-2 focus:ring-orange-500/50 outline-none"
+                        className="w-full bg-stone-100 dark:bg-white/5 border border-stone-200 dark:border-white/10 rounded-2xl px-4 py-3 text-stone-900 dark:text-white focus:ring-2 focus:ring-orange-500/50 outline-none"
                       />
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <input
@@ -497,14 +497,14 @@ export default function Astrology() {
                           type="date"
                           value={kundliData.p1Dob}
                           onChange={(e) => setKundliData({ ...kundliData, p1Dob: e.target.value })}
-                          className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white focus:ring-2 focus:ring-orange-500/50 outline-none"
+                          className="w-full bg-stone-100 dark:bg-white/5 border border-stone-200 dark:border-white/10 rounded-2xl px-4 py-3 text-stone-900 dark:text-white focus:ring-2 focus:ring-orange-500/50 outline-none"
                         />
                         <input
                           required
                           type="time"
                           value={kundliData.p1Tob}
                           onChange={(e) => setKundliData({ ...kundliData, p1Tob: e.target.value })}
-                          className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white focus:ring-2 focus:ring-orange-500/50 outline-none"
+                          className="w-full bg-stone-100 dark:bg-white/5 border border-stone-200 dark:border-white/10 rounded-2xl px-4 py-3 text-stone-900 dark:text-white focus:ring-2 focus:ring-orange-500/50 outline-none"
                         />
                       </div>
                       <input
@@ -513,13 +513,13 @@ export default function Astrology() {
                         placeholder="Groom's Place of Birth"
                         value={kundliData.p1Pob}
                         onChange={(e) => setKundliData({ ...kundliData, p1Pob: e.target.value })}
-                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white focus:ring-2 focus:ring-orange-500/50 outline-none"
+                        className="w-full bg-stone-100 dark:bg-white/5 border border-stone-200 dark:border-white/10 rounded-2xl px-4 py-3 text-stone-900 dark:text-white focus:ring-2 focus:ring-orange-500/50 outline-none"
                       />
                     </div>
 
                     {/* Bride */}
                     <div className="space-y-4">
-                      <div className="flex items-center justify-between border-b border-white/10 pb-2">
+                      <div className="flex items-center justify-between border-b border-stone-200 dark:border-stone-200 dark:border-white/10 pb-2">
                         <h4 className="text-sm font-bold text-purple-400 uppercase tracking-widest">Bride (Female)</h4>
                       </div>
                       <input
@@ -528,7 +528,7 @@ export default function Astrology() {
                         placeholder="Bride's Name"
                         value={kundliData.p2Name}
                         onChange={(e) => setKundliData({ ...kundliData, p2Name: e.target.value })}
-                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white focus:ring-2 focus:ring-orange-500/50 outline-none"
+                        className="w-full bg-stone-100 dark:bg-white/5 border border-stone-200 dark:border-white/10 rounded-2xl px-4 py-3 text-stone-900 dark:text-white focus:ring-2 focus:ring-orange-500/50 outline-none"
                       />
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <input
@@ -536,14 +536,14 @@ export default function Astrology() {
                           type="date"
                           value={kundliData.p2Dob}
                           onChange={(e) => setKundliData({ ...kundliData, p2Dob: e.target.value })}
-                          className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white focus:ring-2 focus:ring-orange-500/50 outline-none"
+                          className="w-full bg-stone-100 dark:bg-white/5 border border-stone-200 dark:border-white/10 rounded-2xl px-4 py-3 text-stone-900 dark:text-white focus:ring-2 focus:ring-orange-500/50 outline-none"
                         />
                         <input
                           required
                           type="time"
                           value={kundliData.p2Tob}
                           onChange={(e) => setKundliData({ ...kundliData, p2Tob: e.target.value })}
-                          className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white focus:ring-2 focus:ring-orange-500/50 outline-none"
+                          className="w-full bg-stone-100 dark:bg-white/5 border border-stone-200 dark:border-white/10 rounded-2xl px-4 py-3 text-stone-900 dark:text-white focus:ring-2 focus:ring-orange-500/50 outline-none"
                         />
                       </div>
                       <input
@@ -552,7 +552,7 @@ export default function Astrology() {
                         placeholder="Bride's Place of Birth"
                         value={kundliData.p2Pob}
                         onChange={(e) => setKundliData({ ...kundliData, p2Pob: e.target.value })}
-                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white focus:ring-2 focus:ring-orange-500/50 outline-none"
+                        className="w-full bg-stone-100 dark:bg-white/5 border border-stone-200 dark:border-white/10 rounded-2xl px-4 py-3 text-stone-900 dark:text-white focus:ring-2 focus:ring-orange-500/50 outline-none"
                       />
                     </div>
                   </div>
@@ -583,8 +583,8 @@ export default function Astrology() {
             transition={{ delay: 0.4 }}
             className="lg:col-span-7"
           >
-            <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-[2.5rem] min-h-[300px] md:min-h-[500px] flex flex-col overflow-hidden">
-              <div className="p-8 border-b border-white/10 flex justify-between items-center">
+            <div className="bg-white dark:bg-white/5 backdrop-blur-xl border border-stone-200 dark:border-white/10 rounded-[2.5rem] min-h-[300px] md:min-h-[500px] flex flex-col overflow-hidden">
+              <div className="p-8 border-b border-stone-200 dark:border-white/10 flex justify-between items-center">
                 <h3 className="text-xl font-serif font-bold text-white flex items-center">
                   <Star className="w-5 h-5 mr-2 text-orange-500" />
                   Your Reading

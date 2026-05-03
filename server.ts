@@ -1655,6 +1655,31 @@ async function startServer() {
     }
   });
 
+  app.put("/api/yatras/:id", requireAuth, async (req, res) => {
+    const { title, description, price, duration, location, category, rating, images } = req.body;
+    try {
+      await adapter.updateYatra(req.params.id, {
+        title, description, price: Number(price), duration, location, category,
+        rating: rating ? Number(rating) : 0,
+        images: images || []
+      });
+      res.json({ success: true });
+    } catch (error) {
+      console.error("[API] PUT /api/yatras/:id error:", error);
+      res.status(500).json({ error: (error as Error).message });
+    }
+  });
+
+  app.delete("/api/yatras/:id", requireAuth, async (req, res) => {
+    try {
+      await adapter.deleteYatra(req.params.id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("[API] DELETE /api/yatras/:id error:", error);
+      res.status(500).json({ error: (error as Error).message });
+    }
+  });
+
   // Bookings
   app.get("/api/bookings/:uid", async (req, res) => {
     try {

@@ -33,6 +33,7 @@ export interface User {
   role: 'devotee' | 'vendor' | 'admin';
   fcmToken?: string;
   createdAt?: any;
+  provider?: 'email' | 'google' | 'facebook';
 }
 
 // Auth state management
@@ -82,6 +83,19 @@ firebaseOnAuthStateChanged(firebaseAuth, async (firebaseUser) => {
       notifyListeners(user);
     }
   } else {
+    // Email/password users have no Firebase session — Firebase fires null for them on every
+    // refresh. Preserve their session; only clear when they explicitly call logout().
+    const savedRaw = localStorage.getItem('user');
+    if (savedRaw) {
+      try {
+        const savedUser = JSON.parse(savedRaw) as User;
+        if (savedUser.provider === 'email') {
+          auth.currentUser = savedUser;
+          notifyListeners(savedUser);
+          return;
+        }
+      } catch {}
+    }
     auth.currentUser = null;
     localStorage.removeItem('user');
     notifyListeners(null);
@@ -176,7 +190,7 @@ export const registerWithEmail = async (email: string, pass: string, name: strin
   const data = await response.json();
   if (!data.success) throw new Error(data.error || 'Registration failed');
   
-  const user: User = { uid: data.uid, email, displayName: name, role: role as any };
+  const user: User = { uid: data.uid, email, displayName: name, role: role as any, provider: 'email' };
   localStorage.setItem('user', JSON.stringify(user));
   notifyListeners(user);
   return user;
@@ -192,7 +206,7 @@ export const loginWithEmail = async (email: string, pass: string) => {
   const data = await response.json();
   if (!data.success) throw new Error(data.message || 'Login failed');
   
-  const user = data.user;
+  const user: User = { ...data.user, provider: 'email' };
   localStorage.setItem('user', JSON.stringify(user));
   notifyListeners(user);
   return user;
