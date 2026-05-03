@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { GoogleGenAI } from "@google/genai";
@@ -75,6 +76,7 @@ Rules:
 `.trim();
 
 export default function Contact() {
+  const { t } = useTranslation();
   const [messages, setMessages] = useState<ChatMessage[]>(() => {
     const saved = localStorage.getItem('punyaseva_chat_history');
     if (saved) {
@@ -210,7 +212,7 @@ export default function Contact() {
             </div>
             <div className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-orange-500/20 text-orange-300 text-xs font-bold uppercase tracking-widest mb-6 border border-orange-500/30">
               <Sparkles className="w-4 h-4" />
-              <span>Contact Us</span>
+              <span>{t('contact.title')}</span>
             </div>
             <h1 className="text-4xl md:text-6xl font-serif font-bold text-white mb-6">
               We are here to <span className="text-orange-400">Help</span>
@@ -273,7 +275,7 @@ export default function Contact() {
               </button>
               <div className="inline-flex items-center gap-2 rounded-full bg-emerald-50 dark:bg-emerald-900/20 px-3 py-1.5 text-xs font-bold text-emerald-700 dark:text-emerald-400">
                 <Sparkles className="w-3.5 h-3.5" />
-                <span>AI Support Online</span>
+                <span>{t('contact.aiSupport')}</span>
               </div>
             </div>
           </div>
@@ -357,7 +359,7 @@ export default function Contact() {
                 type="text"
                 value={draft}
                 onChange={(event) => setDraft(event.target.value)}
-                placeholder="Ask about booking, order status, vendor onboarding..."
+                placeholder={t('contact.aiPlaceholder')}
                 className="flex-1 rounded-2xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 px-4 py-3 outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:text-white"
               />
               <button
@@ -365,7 +367,7 @@ export default function Contact() {
                 disabled={isSending || !draft.trim()}
                 className="bg-stone-900 text-white px-5 py-3 rounded-2xl font-bold hover:bg-orange-500 transition-colors disabled:opacity-50 inline-flex items-center justify-center gap-2"
               >
-                <span>Send</span>
+                <span>{t('contact.send')}</span>
                 <Send className="w-4 h-4" />
               </button>
             </form>

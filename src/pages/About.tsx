@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React from 'react';
 import { motion } from 'framer-motion';
 import {
@@ -67,6 +68,7 @@ const developers = [
 ];
 
 export default function About() {
+  const { t } = useTranslation();
   return (
     <div className="min-h-screen bg-stone-50 dark:bg-stone-950 pb-20 transition-colors duration-300">
       <section className="relative h-[50vh] flex items-center overflow-hidden mb-20">

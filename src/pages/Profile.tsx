@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { auth } from '../firebase';
@@ -28,6 +29,7 @@ interface ReceiptData {
 
 export default function Profile() {
   const { user: currentUser, loading: authLoading } = useAuth();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
 
@@ -142,7 +144,7 @@ export default function Profile() {
   if (!currentUser) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center bg-stone-50 dark:bg-stone-950">
-        <p className="text-stone-500 dark:text-stone-400">Please sign in to view your profile.</p>
+        <p className="text-stone-500 dark:text-stone-400">{t('profile.signInRequired')}</p>
       </div>
     );
   }
@@ -161,7 +163,7 @@ export default function Profile() {
             />
           ) : (
             <div className="w-full h-full bg-gradient-to-r from-orange-100 to-amber-100 dark:from-orange-900/20 dark:to-amber-900/20 flex items-center justify-center">
-              <p className="text-stone-400 dark:text-stone-600 font-serif italic">No banner image set</p>
+              <p className="text-stone-400 dark:text-stone-600 font-serif italic">{t('profile.noBanner')}</p>
             </div>
           )}
         </div>
@@ -262,13 +264,13 @@ export default function Profile() {
                   <div className="space-y-8">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                       <div className="space-y-2">
-                        <label className="text-xs font-bold text-stone-400 dark:text-stone-500 uppercase tracking-wider">Full Name</label>
+                        <label className="text-xs font-bold text-stone-400 dark:text-stone-500 uppercase tracking-wider">{t('profile.fullName')}</label>
                         <div className="p-4 bg-stone-50 dark:bg-stone-800 rounded-2xl border border-stone-100 dark:border-stone-700 font-bold text-stone-900 dark:text-white">
                           {currentUser.displayName}
                         </div>
                       </div>
                       <div className="space-y-2">
-                        <label className="text-xs font-bold text-stone-400 dark:text-stone-500 uppercase tracking-wider">Email Address</label>
+                        <label className="text-xs font-bold text-stone-400 dark:text-stone-500 uppercase tracking-wider">{t('profile.emailAddress')}</label>
                         <div className="p-4 bg-stone-50 dark:bg-stone-800 rounded-2xl border border-stone-100 dark:border-stone-700 font-bold text-stone-900 dark:text-white">
                           {currentUser.email}
                         </div>
@@ -287,7 +289,7 @@ export default function Profile() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-xs font-bold text-stone-400 dark:text-stone-500 uppercase tracking-wider">Short Bio</label>
+                        <label className="text-xs font-bold text-stone-400 dark:text-stone-500 uppercase tracking-wider">{t('profile.shortBio')}</label>
                         <input 
                           type="text"
                           value={profile?.bio || ''}
@@ -299,7 +301,7 @@ export default function Profile() {
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-xs font-bold text-stone-400 dark:text-stone-500 uppercase tracking-wider">Default Shipping Address</label>
+                      <label className="text-xs font-bold text-stone-400 dark:text-stone-500 uppercase tracking-wider">{t('profile.shippingAddress')}</label>
                       <textarea 
                         value={profile?.address || ''}
                         onChange={(e) => setProfile(prev => prev ? { ...prev, address: e.target.value } : null)}
@@ -345,8 +347,8 @@ export default function Profile() {
                               <Store className="w-5 h-5 text-purple-600" />
                             </div>
                             <div>
-                              <p className="text-sm font-bold text-stone-900 dark:text-white">You are an Admin</p>
-                              <p className="text-xs text-stone-500 dark:text-stone-400">Manage the platform</p>
+                              <p className="text-sm font-bold text-stone-900 dark:text-white">{t('profile.youAreAdmin')}</p>
+                              <p className="text-xs text-stone-500 dark:text-stone-400">{t('profile.managePlatform')}</p>
                             </div>
                           </div>
                           <Link to="/admin" className="px-4 py-2 bg-purple-600 text-white text-xs font-bold rounded-xl hover:bg-purple-700 transition-colors">
@@ -411,8 +413,8 @@ export default function Profile() {
                               <Briefcase className="w-5 h-5 text-orange-600" />
                             </div>
                             <div>
-                              <p className="text-sm font-bold text-stone-900 dark:text-white">Become a Vendor</p>
-                              <p className="text-xs text-stone-500 dark:text-stone-400">Start selling your spiritual products or services</p>
+                              <p className="text-sm font-bold text-stone-900 dark:text-white">{t('profile.becomeVendor')}</p>
+                              <p className="text-xs text-stone-500 dark:text-stone-400">{t('profile.startSelling')}</p>
                             </div>
                           </div>
                           <Link 
@@ -426,7 +428,7 @@ export default function Profile() {
                     </div>
 
                     <div className="pt-8 border-t border-stone-100 dark:border-stone-800">
-                      <h4 className="text-lg font-bold text-stone-900 dark:text-white mb-6">Appearance</h4>
+                      <h4 className="text-lg font-bold text-stone-900 dark:text-white mb-6">{t('profile.appearance')}</h4>
                       <div className="grid grid-cols-3 gap-4">
                         {[
                           { id: 'light', label: 'Light', icon: Sun },
@@ -450,15 +452,15 @@ export default function Profile() {
                     </div>
 
                     <div className="pt-8 border-t border-stone-100 dark:border-stone-800">
-                      <h4 className="text-lg font-bold text-stone-900 dark:text-white mb-6">Reset Password</h4>
+                      <h4 className="text-lg font-bold text-stone-900 dark:text-white mb-6">{t('profile.resetPassword')}</h4>
                       <form onSubmit={handleResetPassword} className="max-w-md space-y-4">
                         <div className="space-y-2">
-                          <label className="text-xs font-bold text-stone-400 dark:text-stone-500 uppercase tracking-wider">New Password</label>
+                          <label className="text-xs font-bold text-stone-400 dark:text-stone-500 uppercase tracking-wider">{t('profile.newPassword')}</label>
                           <input 
                             type="password" 
                             value={newPassword}
                             onChange={(e) => setNewPassword(e.target.value)}
-                            placeholder="Enter new password"
+                            placeholder={t('profile.passwordPlaceholder')}
                             className="w-full px-4 py-3 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all dark:text-white"
                           />
                         </div>
@@ -477,7 +479,7 @@ export default function Profile() {
                     {bookings.length === 0 ? (
                       <div className="text-center py-20">
                         <Calendar className="w-12 h-12 text-stone-200 dark:text-stone-800 mx-auto mb-4" />
-                        <p className="text-stone-400 dark:text-stone-500">No bookings found.</p>
+                        <p className="text-stone-400 dark:text-stone-500">{t('profile.noBookings')}</p>
                       </div>
                     ) : (
                       bookings.map((booking: any) => (
@@ -557,7 +559,7 @@ export default function Profile() {
                     {orders.length === 0 ? (
                       <div className="text-center py-20">
                         <Package className="w-12 h-12 text-stone-200 dark:text-stone-800 mx-auto mb-4" />
-                        <p className="text-stone-400 dark:text-stone-500">No orders found.</p>
+                        <p className="text-stone-400 dark:text-stone-500">{t('profile.noOrders')}</p>
                       </div>
                     ) : (
                       orders.map((order) => (
@@ -612,7 +614,7 @@ export default function Profile() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/80 backdrop-blur-sm print:bg-white print:p-0">
           <div className="bg-white w-full max-w-2xl rounded-[2.5rem] overflow-hidden shadow-2xl print:shadow-none print:rounded-none">
             <div className="p-8 border-b border-stone-100 flex justify-between items-center print:hidden">
-              <h3 className="text-xl font-serif font-bold text-stone-900">Digital Receipt</h3>
+              <h3 className="text-xl font-serif font-bold text-stone-900">{t('profile.digitalReceipt')}</h3>
               <div className="flex items-center space-x-4">
                 <button 
                   onClick={handlePrint}
@@ -638,7 +640,7 @@ export default function Profile() {
                   className="h-12 w-auto mx-auto mb-2" 
                   referrerPolicy="no-referrer"
                 />
-                <p className="text-stone-500 text-sm">Your Spiritual Companion</p>
+                <p className="text-stone-500 text-sm">{t('profile.yourCompanion')}</p>
                 <div className="mt-4 inline-block px-4 py-1 bg-orange-50 text-orange-600 rounded-full text-xs font-bold uppercase tracking-widest">
                   Official Receipt
                 </div>
@@ -646,7 +648,7 @@ export default function Profile() {
 
               <div className="grid grid-cols-2 gap-8 mb-12 text-sm">
                 <div>
-                  <p className="text-stone-400 uppercase text-[10px] font-bold tracking-wider mb-1">Receipt ID</p>
+                  <p className="text-stone-400 uppercase text-[10px] font-bold tracking-wider mb-1">{t('profile.receiptId')}</p>
                   <p className="font-bold text-stone-900">{selectedReceipt.receiptId}</p>
                 </div>
                 <div className="text-right">

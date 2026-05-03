@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useEffect, useState } from 'react';
 import { Product, PRODUCT_CATEGORIES, VendorProfile } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -113,6 +114,7 @@ function normalizeCategory(category: string | null) {
 }
 
 export default function Shop() {
+  const { t } = useTranslation();
   const [products, setProducts] = useState<Product[]>([]);
   const [vendors, setVendors] = useState<VendorProfile[]>([]);
   const [loading, setLoading] = useState(true);
@@ -323,7 +325,7 @@ export default function Shop() {
                 type="text"
                 value={searchInput}
                 onChange={(event) => handleSearchChange(event.target.value)}
-                placeholder="Search products..."
+                placeholder={t('shop.searchPlaceholder')}
                 className="w-full md:w-72 pl-10 pr-10 py-2 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-full text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none dark:text-white"
               />
               {searchInput && (
@@ -381,7 +383,7 @@ export default function Shop() {
             </div>
 
             <div className="col-span-1 md:col-span-3 space-y-4">
-              <label className="text-xs font-bold text-stone-400 dark:text-stone-500 uppercase tracking-wider block">Filter by Vendor Type</label>
+              <label className="text-xs font-bold text-stone-400 dark:text-stone-500 uppercase tracking-wider block">{t('shop.filterVendor')}</label>
               <div className="flex flex-wrap gap-2">
                 {[
                   { id: 'all', label: 'All Types' },
@@ -411,7 +413,7 @@ export default function Shop() {
                 onChange={(e) => setSelectedVendor(e.target.value)}
                 className="w-full px-4 py-2.5 bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl text-sm dark:text-white outline-none focus:ring-2 focus:ring-orange-500 transition-all"
               >
-                <option value="all">All Vendors</option>
+                <option value="all">{t('shop.allVendors')}</option>
                 {availableVendorIds
                   .filter((vId: any) => selectedVendorType === 'all' || vendors.find(v => v.uid === vId)?.type === selectedVendorType)
                   .map((vId: any) => (
@@ -423,17 +425,17 @@ export default function Shop() {
             </div>
 
             <div className="space-y-3">
-              <label className="text-xs font-bold text-stone-400 dark:text-stone-500 uppercase tracking-wider">Sort By</label>
+              <label className="text-xs font-bold text-stone-400 dark:text-stone-500 uppercase tracking-wider">{t('shop.sortBy')}</label>
               <select 
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
                 className="w-full px-4 py-2.5 bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl text-sm dark:text-white outline-none focus:ring-2 focus:ring-orange-500 transition-all"
               >
-                <option value="featured">Featured</option>
-                <option value="price-low">Price: Low to High</option>
-                <option value="price-high">Price: High to Low</option>
-                <option value="rating">Top Rated</option>
-                <option value="newest">Newest Arrivals</option>
+                <option value="featured">{t('shop.featured')}</option>
+                <option value="price-low">{t('shop.priceLow')}</option>
+                <option value="price-high">{t('shop.priceHigh')}</option>
+                <option value="rating">{t('shop.topRated')}</option>
+                <option value="newest">{t('shop.newest')}</option>
               </select>
             </div>
 
@@ -682,7 +684,7 @@ export default function Shop() {
                       {quickViewProduct.stock > 0 ? (
                         <span className="text-sm text-green-600">In Stock ({quickViewProduct.stock})</span>
                       ) : (
-                        <span className="text-sm text-red-600">Out of Stock</span>
+                        <span className="text-sm text-red-600">{t('shop.outOfStock')}</span>
                       )}
                     </div>
                   </div>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, MapPin, Send, Star, Moon, Sun, Info, Lock, ArrowRight, Users, Calendar, Compass, Heart } from 'lucide-react';
@@ -23,6 +24,7 @@ function scoreColor(score: number, max: number) {
 }
 
 function KundliReport({ data }: { data: any }) {
+  const { t } = useTranslation();
   const { total, verdict, scores, groom, bride } = data;
   const totalPct = Math.round((total / 36) * 100);
 
@@ -35,7 +37,7 @@ function KundliReport({ data }: { data: any }) {
         <div className="relative">
           <div className="flex items-center justify-center mb-3">
             <Heart className="w-5 h-5 text-rose-400 mr-2" />
-            <span className="text-stone-400 text-sm font-medium uppercase tracking-widest">Guna Milan Score</span>
+            <span className="text-stone-400 text-sm font-medium uppercase tracking-widest">{t('astrology.gunaMilanScore')}</span>
           </div>
           <div className="text-6xl font-bold text-stone-900 dark:text-white mb-1">
             {total}<span className="text-2xl text-stone-400 font-normal"> / 36</span>
@@ -85,7 +87,7 @@ function KundliReport({ data }: { data: any }) {
       {/* Ashta Koota Scores */}
       <div className="rounded-xl border border-stone-200 dark:border-white/10 bg-stone-50 dark:bg-white/5 overflow-hidden">
         <div className="px-4 py-3 border-b border-stone-200 dark:border-white/10">
-          <p className="text-white font-semibold text-sm">Ashta Koota Breakdown</p>
+          <p className="text-white font-semibold text-sm">{t('astrology.ashtaKoota')}</p>
         </div>
         <div className="divide-y divide-white/5">
           {scores?.map((s: any) => {
@@ -118,6 +120,7 @@ const ZODIAC_SIGNS = [
 const TIMEFRAMES = ['Daily', 'Weekly', 'Monthly', 'Yearly'];
 
 export default function Astrology() {
+  const { t } = useTranslation();
   const [currentUser, setCurrentUser] = useState<FirebaseUser | null>(auth?.currentUser ?? null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>('birth-chart');
@@ -282,7 +285,7 @@ export default function Astrology() {
             className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-400 text-xs font-bold uppercase tracking-widest mb-6"
           >
             <Sparkles className="w-4 h-4" />
-            <span>Divine Guidance</span>
+            <span>{t('astrology.divineGuidance')}</span>
           </motion.div>
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
@@ -351,7 +354,7 @@ export default function Astrology() {
                   onClick={() => setIsAuthModalOpen(true)}
                   className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-2xl font-bold transition-all inline-flex items-center justify-center gap-2"
                 >
-                  <span>Sign In to Continue</span>
+                  <span>{t('astrology.signInToContinue')}</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
                 <Link
@@ -390,7 +393,7 @@ export default function Astrology() {
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <label className="text-xs font-bold text-stone-500 uppercase tracking-wider ml-1">Date of Birth</label>
+                        <label className="text-xs font-bold text-stone-500 uppercase tracking-wider ml-1">{t('astrology.dateOfBirth')}</label>
                         <input
                           required
                           type="date"
@@ -400,7 +403,7 @@ export default function Astrology() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-xs font-bold text-stone-500 uppercase tracking-wider ml-1">Time of Birth</label>
+                        <label className="text-xs font-bold text-stone-500 uppercase tracking-wider ml-1">{t('astrology.timeOfBirth')}</label>
                         <input
                           required
                           type="time"
@@ -412,7 +415,7 @@ export default function Astrology() {
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-xs font-bold text-stone-500 uppercase tracking-wider ml-1">Place of Birth</label>
+                      <label className="text-xs font-bold text-stone-500 uppercase tracking-wider ml-1">{t('astrology.placeOfBirth')}</label>
                       <div className="relative">
                         <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-500" />
                         <input
@@ -442,7 +445,7 @@ export default function Astrology() {
                 {activeTab === 'rashifal' && (
                   <>
                     <div className="space-y-2">
-                      <label className="text-xs font-bold text-stone-500 uppercase tracking-wider ml-1">Zodiac Sign</label>
+                      <label className="text-xs font-bold text-stone-500 uppercase tracking-wider ml-1">{t('astrology.zodiacSign')}</label>
                       <select
                         value={rashifalData.sign}
                         onChange={(e) => setRashifalData({ ...rashifalData, sign: e.target.value })}
@@ -455,7 +458,7 @@ export default function Astrology() {
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-xs font-bold text-stone-500 uppercase tracking-wider ml-1">Timeframe</label>
+                      <label className="text-xs font-bold text-stone-500 uppercase tracking-wider ml-1">{t('astrology.timeframe')}</label>
                       <div className="grid grid-cols-2 gap-2">
                         {TIMEFRAMES.map(tf => (
                           <button
@@ -616,8 +619,8 @@ export default function Astrology() {
                         </div>
                       </div>
                       <div>
-                        <p className="text-xl font-serif text-white mb-2">Aligning the Planets...</p>
-                        <p className="text-stone-500 text-sm">Our AI is analyzing your birth chart across the cosmos.</p>
+                        <p className="text-xl font-serif text-white mb-2">{t('astrology.aligning')}</p>
+                        <p className="text-stone-500 text-sm">{t('astrology.analyzing')}</p>
                       </div>
                     </motion.div>
                   ) : kundliResult ? (
@@ -661,7 +664,7 @@ export default function Astrology() {
                   <UserIcon className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h4 className="text-white font-bold">Want a Live Consultation?</h4>
+                  <h4 className="text-white font-bold">{t('astrology.consultation')}</h4>
                   <p className="text-stone-400 text-xs">Connect with our verified expert astrologers for a 1-on-1 session.</p>
                 </div>
               </div>

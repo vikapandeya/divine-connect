@@ -8,8 +8,10 @@ import { addToCart } from '../lib/cart';
 import { addToWishlist, removeFromWishlist, isInWishlist } from '../lib/wishlist';
 import { auth } from '../firebase';
 import AIGroundedSearch from '../components/AIGroundedSearch';
+import { useTranslation } from 'react-i18next';
 
 export default function Services() {
+  const { t } = useTranslation();
   const [pujas, setPujas] = useState<Puja[]>([]);
   const [yatras, setYatras] = useState<Yatra[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
@@ -305,10 +307,10 @@ export default function Services() {
               />
             </div>
             <h1 className="text-5xl md:text-7xl font-serif font-bold text-white mb-6">
-              Our Spiritual Services
+              {t('services.pageTitle')}
             </h1>
             <p className="text-xl text-stone-200 max-w-2xl mx-auto leading-relaxed">
-              Explore a world of divine connection through our traditional pujas and soul-stirring pilgrimage yatras.
+              {t('services.pageSubtitle')}
             </p>
           </motion.div>
         </div>
@@ -321,10 +323,10 @@ export default function Services() {
             <div className="flex flex-wrap items-center justify-between gap-6">
               <div className="flex bg-stone-100 dark:bg-stone-800 p-1.5 rounded-2xl overflow-x-auto no-scrollbar transition-colors">
                 {[
-                  { id: 'all', label: 'All', icon: <Compass className="w-4 h-4" /> },
-                  { id: 'puja', label: 'Pujas', icon: <Flame className="w-4 h-4" /> },
-                  { id: 'yatra', label: 'Yatras', icon: <Navigation className="w-4 h-4" /> },
-                  { id: 'product', label: 'Products', icon: <ShoppingBag className="w-4 h-4" /> }
+                  { id: 'all', label: t('services.all'), icon: <Compass className="w-4 h-4" /> },
+                  { id: 'puja', label: t('services.pujas'), icon: <Flame className="w-4 h-4" /> },
+                  { id: 'yatra', label: t('services.yatras'), icon: <Navigation className="w-4 h-4" /> },
+                  { id: 'product', label: t('services.products'), icon: <ShoppingBag className="w-4 h-4" /> }
                 ].map((tab) => (
                   <button
                     key={tab.id}
@@ -345,7 +347,7 @@ export default function Services() {
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 w-5 h-5" />
                 <input
                   type="text"
-                  placeholder="Search for pujas, locations, or yatras..."
+                  placeholder={t('services.searchPlaceholder')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-12 pr-4 py-3 bg-stone-50 dark:bg-stone-800 border-stone-100 dark:border-stone-700 border rounded-2xl focus:ring-2 focus:ring-orange-500 transition-all outline-none dark:text-white"
@@ -360,7 +362,7 @@ export default function Services() {
                   }`}
                 >
                   <Navigation className="w-4 h-4" />
-                  Nearby
+                  {t('services.nearby')}
                 </button>
 
                 <button
@@ -370,7 +372,7 @@ export default function Services() {
                   }`}
                 >
                   <Filter className="w-4 h-4" />
-                  Filters
+                  {t('services.filters')}
                 </button>
               </div>
             </div>
@@ -398,7 +400,7 @@ export default function Services() {
                 <div className="pt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 border-t border-stone-100 dark:border-stone-800 mt-4">
                   {/* Category Filter */}
                   <div>
-                    <label className="block text-xs font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider mb-2">Puja Category</label>
+                    <label className="block text-xs font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider mb-2">{t('services.pujaCategory')}</label>
                     <div className="flex flex-wrap gap-2">
                       {categories.map(cat => (
                         <button
@@ -418,11 +420,11 @@ export default function Services() {
 
                   {/* Price Filter */}
                   <div>
-                    <label className="block text-xs font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider mb-2">Price Range (₹)</label>
+                    <label className="block text-xs font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider mb-2">{t('services.priceRange')}</label>
                     <div className="flex items-center space-x-2">
                       <input
                         type="number"
-                        placeholder="Min"
+                        placeholder={t('services.min')}
                         value={priceRange.min}
                         onChange={(e) => setPriceRange({ ...priceRange, min: Number(e.target.value) })}
                         className="w-full px-3 py-2 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl text-sm dark:text-white"
@@ -430,7 +432,7 @@ export default function Services() {
                       <span className="text-stone-400">-</span>
                       <input
                         type="number"
-                        placeholder="Max"
+                        placeholder={t('services.max')}
                         value={priceRange.max}
                         onChange={(e) => setPriceRange({ ...priceRange, max: Number(e.target.value) })}
                         className="w-full px-3 py-2 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl text-sm dark:text-white"
@@ -440,13 +442,13 @@ export default function Services() {
 
                   {/* Vendor Filter */}
                   <div>
-                    <label className="block text-xs font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider mb-2">Vendor / Priest</label>
+                    <label className="block text-xs font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider mb-2">{t('services.vendorPriest')}</label>
                     <select
                       value={selectedVendor}
                       onChange={(e) => setSelectedVendor(e.target.value)}
                       className="w-full px-3 py-2 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl text-sm dark:text-white"
                     >
-                      <option value="all">All Vendors</option>
+                      <option value="all">{t('services.allVendors')}</option>
                       {vendors.map(vendor => (
                         <option key={vendor.uid} value={vendor.uid}>{vendor.businessName}</option>
                       ))}
@@ -455,13 +457,13 @@ export default function Services() {
 
                   {/* Temple Filter */}
                   <div>
-                    <label className="block text-xs font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider mb-2">Temple</label>
+                    <label className="block text-xs font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider mb-2">{t('services.temple')}</label>
                     <select
                       value={selectedTemple}
                       onChange={(e) => setSelectedTemple(e.target.value)}
                       className="w-full px-3 py-2 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl text-sm dark:text-white"
                     >
-                      <option value="all">All Temples</option>
+                      <option value="all">{t('services.allTemples')}</option>
                       {temples.map(temple => (
                         <option key={temple} value={temple}>{temple}</option>
                       ))}
@@ -508,8 +510,8 @@ export default function Services() {
                       <Navigation className="w-10 h-10" />
                     </div>
                     <div>
-                      <h2 className="text-4xl md:text-5xl font-serif font-bold text-stone-900 dark:text-white leading-tight">Divine Yatra Packages</h2>
-                      <p className="text-stone-500 dark:text-stone-400 font-medium text-lg">Curated spiritual journeys to the soul of India</p>
+                      <h2 className="text-4xl md:text-5xl font-serif font-bold text-stone-900 dark:text-white leading-tight">{t('services.yatraTitle')}</h2>
+                      <p className="text-stone-500 dark:text-stone-400 font-medium text-lg">{t('services.yatraSubtitle')}</p>
                     </div>
                   </div>
                   {activeService === 'all' && (
@@ -565,22 +567,22 @@ export default function Services() {
                             <div className="bg-emerald-50/50 dark:bg-emerald-900/20 p-4 rounded-3xl flex items-center gap-4 border border-emerald-100/50 dark:border-emerald-900/30">
                               <Calendar className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
                               <div className="flex flex-col">
-                                <span className="text-[10px] font-bold text-stone-400 dark:text-stone-500 uppercase tracking-widest leading-none mb-1.5">Duration</span>
+                                <span className="text-[10px] font-bold text-stone-400 dark:text-stone-500 uppercase tracking-widest leading-none mb-1.5">{t('services.duration')}</span>
                                 <span className="text-sm font-black text-stone-800 dark:text-stone-200">{yatra.duration.split('/')[0]}</span>
                               </div>
                             </div>
                             <div className="bg-stone-50 dark:bg-stone-800 p-4 rounded-3xl flex items-center gap-4 border border-stone-100 dark:border-stone-700">
                               <CheckCircle2 className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
                               <div className="flex flex-col">
-                                <span className="text-[10px] font-bold text-stone-400 dark:text-stone-500 uppercase tracking-widest leading-none mb-1.5">Comfort</span>
-                                <span className="text-sm font-black text-stone-800 dark:text-stone-200">Premium</span>
+                                <span className="text-[10px] font-bold text-stone-400 dark:text-stone-500 uppercase tracking-widest leading-none mb-1.5">{t('services.comfort')}</span>
+                                <span className="text-sm font-black text-stone-800 dark:text-stone-200">{t('services.premium')}</span>
                               </div>
                             </div>
                           </div>
   
                           <div className="mt-auto flex items-center justify-between pt-8 border-t border-stone-100 dark:border-stone-800">
                             <div className="flex flex-col">
-                              <span className="text-[10px] uppercase tracking-[0.3em] text-stone-400 font-black mb-1.5">STARTING AT</span>
+                              <span className="text-[10px] uppercase tracking-[0.3em] text-stone-400 font-black mb-1.5">{t('services.startingAt')}</span>
                               <div className="flex items-center text-3xl font-serif font-black text-stone-900 dark:text-white">
                                 <IndianRupee className="w-6 h-6 text-emerald-600" />
                                 <span>{formatIndianRupees(yatra.price)}</span>
@@ -601,8 +603,8 @@ export default function Services() {
                 ) : (
                   <div className="text-center py-24 bg-white dark:bg-stone-900 rounded-[3rem] border border-stone-100 dark:border-stone-800 shadow-inner">
                     <Compass className="w-16 h-16 text-stone-200 dark:text-stone-800 mx-auto mb-6" />
-                    <p className="text-stone-500 dark:text-stone-400 text-lg font-medium">No pilgrimage packages matching your search.</p>
-                    <button onClick={() => setSearchQuery('')} className="mt-4 text-emerald-600 dark:text-emerald-400 font-bold hover:underline">Clear search filters</button>
+                    <p className="text-stone-500 dark:text-stone-400 text-lg font-medium">{t('services.noYatras')}</p>
+                    <button onClick={() => setSearchQuery('')} className="mt-4 text-emerald-600 dark:text-emerald-400 font-bold hover:underline">{t('services.clearFilters')}</button>
                   </div>
                 )}
               </section>
@@ -617,8 +619,8 @@ export default function Services() {
                       <Flame className="w-10 h-10" />
                     </div>
                     <div>
-                      <h2 className="text-4xl md:text-5xl font-serif font-bold text-stone-900 dark:text-white leading-tight">Sacred Puja Services</h2>
-                      <p className="text-stone-500 dark:text-stone-400 font-medium text-lg">Traditional rituals performed by expert Ved-pathis</p>
+                      <h2 className="text-4xl md:text-5xl font-serif font-bold text-stone-900 dark:text-white leading-tight">{t('services.pujaTitle')}</h2>
+                      <p className="text-stone-500 dark:text-stone-400 font-medium text-lg">{t('services.pujaSubtitle')}</p>
                     </div>
                   </div>
                 </div>
@@ -663,22 +665,22 @@ export default function Services() {
                             <div className="bg-orange-50/50 dark:bg-orange-900/20 p-4 rounded-3xl flex items-center gap-4 border border-orange-100/50 dark:border-orange-900/30">
                               <Clock className="w-6 h-6 text-orange-600 dark:text-orange-400" />
                               <div className="flex flex-col">
-                                <span className="text-[10px] font-bold text-stone-400 dark:text-stone-500 uppercase tracking-widest leading-none mb-1.5">Duration</span>
+                                <span className="text-[10px] font-bold text-stone-400 dark:text-stone-500 uppercase tracking-widest leading-none mb-1.5">{t('services.duration')}</span>
                                 <span className="text-sm font-black text-stone-800 dark:text-stone-200">{puja.duration}</span>
                               </div>
                             </div>
                             <div className="bg-stone-50 dark:bg-stone-800 p-4 rounded-3xl flex items-center gap-4 border border-stone-100 dark:border-stone-700">
                               <CheckCircle2 className="w-6 h-6 text-orange-600 dark:text-orange-400" />
                               <div className="flex flex-col">
-                                <span className="text-[10px] font-bold text-stone-400 dark:text-stone-500 uppercase tracking-widest leading-none mb-1.5">Samagri</span>
-                                <span className="text-sm font-black text-stone-800 dark:text-stone-200">Available</span>
+                                <span className="text-[10px] font-bold text-stone-400 dark:text-stone-500 uppercase tracking-widest leading-none mb-1.5">{t('services.samagri')}</span>
+                                <span className="text-sm font-black text-stone-800 dark:text-stone-200">{t('services.available')}</span>
                               </div>
                             </div>
                           </div>
   
                           <div className="mt-auto flex items-center justify-between pt-8 border-t border-stone-100 dark:border-stone-800">
                             <div className="flex flex-col">
-                              <span className="text-[10px] uppercase tracking-[0.3em] text-stone-400 font-black mb-1.5">DASHINA FROM</span>
+                              <span className="text-[10px] uppercase tracking-[0.3em] text-stone-400 font-black mb-1.5">{t('services.dashinaFrom')}</span>
                               <div className="flex items-center text-3xl font-serif font-black text-stone-900 dark:text-white">
                                 <IndianRupee className="w-6 h-6 text-orange-600" />
                                 <span>{formatIndianRupees(puja.onlinePrice)}</span>
@@ -698,8 +700,8 @@ export default function Services() {
                 ) : (
                   <div className="text-center py-24 bg-white dark:bg-stone-900 rounded-[3rem] border border-stone-100 dark:border-stone-800 shadow-inner">
                     <Flame className="w-16 h-16 text-stone-200 dark:text-stone-800 mx-auto mb-6" />
-                    <p className="text-stone-500 dark:text-stone-400 text-lg font-medium">No puja services matching your search.</p>
-                    <button onClick={() => setSearchQuery('')} className="mt-4 text-orange-600 dark:text-orange-400 font-bold hover:underline">Clear search filters</button>
+                    <p className="text-stone-500 dark:text-stone-400 text-lg font-medium">{t('services.noPujas')}</p>
+                    <button onClick={() => setSearchQuery('')} className="mt-4 text-orange-600 dark:text-orange-400 font-bold hover:underline">{t('services.clearFilters')}</button>
                   </div>
                 )}
               </section>
@@ -714,8 +716,8 @@ export default function Services() {
                       <ShoppingBag className="w-10 h-10" />
                     </div>
                     <div>
-                      <h2 className="text-4xl md:text-5xl font-serif font-bold text-stone-900 dark:text-white leading-tight">Spiritual Essentials</h2>
-                      <p className="text-stone-500 dark:text-stone-400 font-medium text-lg">Holy idols, malas, and pure puja essentials</p>
+                      <h2 className="text-4xl md:text-5xl font-serif font-bold text-stone-900 dark:text-white leading-tight">{t('services.productsTitle')}</h2>
+                      <p className="text-stone-500 dark:text-stone-400 font-medium text-lg">{t('services.productsSubtitle')}</p>
                     </div>
                   </div>
                   {activeService === 'all' && (
@@ -777,7 +779,7 @@ export default function Services() {
                   </div>
                 ) : (
                   <div className="text-center py-20 bg-stone-50 dark:bg-stone-900/50 rounded-[3rem] border border-dashed border-stone-200 dark:border-stone-800">
-                    <p className="text-stone-400 dark:text-stone-500 font-medium">No products matching your search.</p>
+                    <p className="text-stone-400 dark:text-stone-500 font-medium">{t('services.noProducts')}</p>
                   </div>
                 )}
               </section>

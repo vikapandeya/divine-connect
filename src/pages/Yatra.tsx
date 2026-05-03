@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { MapPin, Calendar, Users, ArrowRight, Info, CheckCircle2, Phone, Mail, Clock, MessageSquare, Star, ShieldCheck, Plane } from 'lucide-react';
@@ -52,6 +53,7 @@ const inclusions = [
 ];
 
 export default function Yatra() {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -184,7 +186,7 @@ export default function Yatra() {
                     <Users className="w-6 h-6 text-orange-500" />
                   </div>
                   <div>
-                    <h4 className="font-bold text-stone-900 dark:text-white mb-2">Expert Guides</h4>
+                    <h4 className="font-bold text-stone-900 dark:text-white mb-2">{t('yatra.expertGuides')}</h4>
                     <p className="text-stone-600 dark:text-stone-400 text-sm">Experienced spiritual guides who know the history and significance of every site.</p>
                   </div>
                 </div>
@@ -193,7 +195,7 @@ export default function Yatra() {
                     <Info className="w-6 h-6 text-blue-500" />
                   </div>
                   <div>
-                    <h4 className="font-bold text-stone-900 dark:text-white mb-2">Complete Assistance</h4>
+                    <h4 className="font-bold text-stone-900 dark:text-white mb-2">{t('yatra.completeAssistance')}</h4>
                     <p className="text-stone-600 dark:text-stone-400 text-sm">From registration to VIP darshan, we handle all the logistics for you.</p>
                   </div>
                 </div>
@@ -232,7 +234,7 @@ export default function Yatra() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-stone-500 uppercase tracking-widest mb-2">Select Yatra</label>
+                  <label className="block text-xs font-bold text-stone-500 uppercase tracking-widest mb-2">{t('yatra.selectYatra')}</label>
                   <select 
                     value={formData.yatra}
                     onChange={(e) => setFormData({ ...formData, yatra: e.target.value })}
@@ -244,7 +246,7 @@ export default function Yatra() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-stone-500 uppercase tracking-widest mb-2">Preferred Date</label>
+                  <label className="block text-xs font-bold text-stone-500 uppercase tracking-widest mb-2">{t('yatra.preferredDate')}</label>
                   <input 
                     type="date" 
                     required
@@ -279,7 +281,7 @@ export default function Yatra() {
               </form>
 
               <div className="mt-10 pt-10 border-t border-stone-100 dark:border-stone-800">
-                <h4 className="font-bold text-stone-900 dark:text-white mb-6">What's Included?</h4>
+                <h4 className="font-bold text-stone-900 dark:text-white mb-6">{t('yatra.whatsIncluded')}</h4>
                 <ul className="space-y-4">
                   {inclusions.map((item) => (
                     <li key={item} className="flex items-center gap-3 text-stone-600 dark:text-stone-400 text-sm">
@@ -291,7 +293,7 @@ export default function Yatra() {
               </div>
 
               <div className="mt-10 p-6 bg-stone-50 dark:bg-stone-800/50 rounded-2xl">
-                <p className="text-xs font-bold text-stone-400 uppercase tracking-widest mb-4">Need Help?</p>
+                <p className="text-xs font-bold text-stone-400 uppercase tracking-widest mb-4">{t('yatra.needHelp')}</p>
                 <div className="space-y-3">
                   <a href="tel:+911234567890" className="flex items-center gap-3 text-stone-700 dark:text-stone-300 hover:text-orange-500 transition-colors">
                     <Phone className="w-4 h-4" />

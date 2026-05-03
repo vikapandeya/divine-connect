@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { auth } from '../firebase';
@@ -9,6 +10,7 @@ import WhatsAppBookingModal from '../components/WhatsAppBookingModal';
 import { Feedback } from '../types';
 
 export default function PujaDetail() {
+  const { t } = useTranslation();
   const currentUser = auth?.currentUser;
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -155,8 +157,8 @@ export default function PujaDetail() {
     setShowConfirmation(true);
   };
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center font-serif text-stone-500">Loading sacred space...</div>;
-  if (!puja) return <div className="min-h-screen flex items-center justify-center font-serif text-stone-500">Puja not found.</div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center font-serif text-stone-500">{t('pujaDetail.loading')}</div>;
+  if (!puja) return <div className="min-h-screen flex items-center justify-center font-serif text-stone-500">{t('pujaDetail.notFound')}</div>;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -242,7 +244,7 @@ export default function PujaDetail() {
           </div>
 
           <div className="bg-stone-100 p-8 rounded-3xl space-y-4">
-            <h3 className="font-bold text-stone-900">Puja Details:</h3>
+            <h3 className="font-bold text-stone-900">{t('pujaDetail.pujaDetails')}</h3>
             <div className="space-y-2">
               <div className="flex items-center text-stone-600">
                 <CheckCircle2 className={`w-4 h-4 mr-2 ${puja.samagriIncluded ? 'text-emerald-500' : 'text-stone-300'}`} />
@@ -308,7 +310,7 @@ export default function PujaDetail() {
                 </div>
               </div>
               <div className="mt-4 pt-4 border-t border-stone-50 flex items-center justify-between text-xs font-bold text-orange-600">
-                <span>View Full Profile</span>
+                <span>{t('pujaDetail.viewFullProfile')}</span>
                 <ArrowLeft className="w-4 h-4 rotate-180" />
               </div>
             </div>
@@ -317,7 +319,7 @@ export default function PujaDetail() {
           <div className="bg-white p-8 md:p-12 rounded-[2.5rem] border border-stone-200 shadow-xl shadow-stone-200/50 h-fit">
             <div className="space-y-6">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-stone-500 font-medium">Base Price</span>
+                <span className="text-stone-500 font-medium">{t('pujaDetail.basePrice')}</span>
                 <div className="flex items-center text-xl font-serif font-bold text-stone-900">
                   <IndianRupee className="w-4 h-4" />
                   <span>{basePrice}</span>
@@ -326,7 +328,7 @@ export default function PujaDetail() {
 
             {!isOnline && bringSamagri && (
               <div className="flex items-center justify-between mb-2">
-                <span className="text-stone-500 font-medium">Samagri Cost</span>
+                <span className="text-stone-500 font-medium">{t('pujaDetail.samagriCost')}</span>
                 <div className="flex items-center text-xl font-serif font-bold text-stone-900">
                   <IndianRupee className="w-4 h-4" />
                   <span>{puja.samagriPrice || 0}</span>
@@ -335,7 +337,7 @@ export default function PujaDetail() {
             )}
 
             <div className="flex items-center justify-between pt-4 border-t border-stone-100 mb-8">
-              <span className="text-stone-900 font-bold">Total Amount</span>
+              <span className="text-stone-900 font-bold">{t('pujaDetail.totalAmount')}</span>
               <div className="flex items-center text-3xl font-serif font-bold text-orange-600">
                 <IndianRupee className="w-6 h-6" />
                 <span>{totalAmount}</span>
@@ -468,7 +470,7 @@ export default function PujaDetail() {
               <div className="p-8">
                 <div className="flex justify-between items-start mb-6">
                   <div>
-                    <h2 className="text-2xl font-serif font-bold text-stone-900">Confirm Booking</h2>
+                    <h2 className="text-2xl font-serif font-bold text-stone-900">{t('pujaDetail.confirmBooking')}</h2>
                     <p className="text-stone-500 text-sm">Please review your puja details</p>
                   </div>
                   <button 
@@ -509,7 +511,7 @@ export default function PujaDetail() {
                         <span className="font-bold text-stone-900">{isOnline ? 'Online (Video Call)' : 'Offline (At Home)'}</span>
                       </div>
                       <div className="flex justify-between text-sm">
-                        <span className="text-stone-500">Base Price</span>
+                        <span className="text-stone-500">{t('pujaDetail.basePrice')}</span>
                         <div className="flex items-center font-bold text-stone-900">
                           <IndianRupee className="w-3 h-3" />
                           <span>{basePrice}</span>
@@ -517,7 +519,7 @@ export default function PujaDetail() {
                       </div>
                       {!isOnline && bringSamagri && (
                         <div className="flex justify-between text-sm">
-                          <span className="text-stone-500">Samagri Cost</span>
+                          <span className="text-stone-500">{t('pujaDetail.samagriCost')}</span>
                           <div className="flex items-center font-bold text-stone-900">
                             <IndianRupee className="w-3 h-3" />
                             <span>{puja.samagriPrice || 0}</span>
@@ -526,7 +528,7 @@ export default function PujaDetail() {
                       )}
                     </div>
                     <div className="flex justify-between text-sm pt-2 px-2">
-                      <span className="text-stone-900 font-bold">Total Amount</span>
+                      <span className="text-stone-900 font-bold">{t('pujaDetail.totalAmount')}</span>
                       <div className="flex items-center text-xl font-serif font-bold text-orange-600">
                         <IndianRupee className="w-4 h-4" />
                         <span>{totalAmount}</span>
@@ -566,14 +568,14 @@ export default function PujaDetail() {
         <div className="mt-24">
           <div className="flex items-center justify-between mb-10">
             <div>
-              <h2 className="text-3xl font-serif font-bold text-stone-900 mb-2">Other Sacred Services</h2>
+              <h2 className="text-3xl font-serif font-bold text-stone-900 mb-2">{t('pujaDetail.otherServices')}</h2>
               <p className="text-stone-500">Explore more pujas and spiritual rituals.</p>
             </div>
             <button 
               onClick={() => navigate('/services')}
               className="text-orange-600 font-bold hover:text-orange-700 transition-colors flex items-center gap-2"
             >
-              <span>View All</span>
+              <span>{t('pujaDetail.viewAll')}</span>
               <CheckCircle2 className="w-4 h-4" />
             </button>
           </div>
@@ -625,7 +627,7 @@ export default function PujaDetail() {
       <div className="mt-24 bg-stone-50 dark:bg-stone-900/50 rounded-[3rem] p-12 border border-stone-100 dark:border-stone-800">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-serif font-bold text-stone-900 mb-4">The Sacred Process</h2>
+            <h2 className="text-3xl font-serif font-bold text-stone-900 mb-4">{t('pujaDetail.sacredProcess')}</h2>
             <p className="text-stone-500">Every ritual is performed with absolute devotion and adherence to Vedic traditions.</p>
           </div>
           
@@ -651,7 +653,7 @@ export default function PujaDetail() {
       <div className="mt-24">
         <div className="flex items-center justify-between mb-10">
           <div>
-            <h2 className="text-3xl font-serif font-bold text-stone-900 mb-2">Devotee Experiences</h2>
+            <h2 className="text-3xl font-serif font-bold text-stone-900 mb-2">{t('pujaDetail.devoteeExperiences')}</h2>
             <p className="text-stone-500">Real stories of faith and divine connection.</p>
           </div>
           <button 

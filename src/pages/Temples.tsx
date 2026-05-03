@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { MapPin, Star, ArrowRight, Search, Filter, Info, Calendar } from 'lucide-react';
@@ -58,6 +59,7 @@ const temples = [
 ];
 
 export default function Temples() {
+  const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTemple, setSelectedTemple] = useState<any>(null);
 
@@ -108,7 +110,7 @@ export default function Temples() {
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-400" />
             <input
               type="text"
-              placeholder="Search by temple name or city..."
+              placeholder={t('temples.searchPlaceholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-12 pr-4 py-3 bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-2xl focus:ring-2 focus:ring-orange-500 outline-none dark:text-white"
@@ -237,7 +239,7 @@ export default function Temples() {
                       {selectedTemple.services.map((s: string) => (
                         <div key={s} className="flex items-center justify-between p-3 bg-stone-50 dark:bg-stone-800 rounded-2xl border border-stone-100 dark:border-stone-700">
                           <span className="text-sm font-bold text-stone-800 dark:text-stone-200">{s}</span>
-                          <Link to="/shop" className="text-orange-500 text-xs font-bold hover:underline">Book Now</Link>
+                          <Link to="/shop" className="text-orange-500 text-xs font-bold hover:underline">{t('temples.bookNow')}</Link>
                         </div>
                       ))}
                     </div>
