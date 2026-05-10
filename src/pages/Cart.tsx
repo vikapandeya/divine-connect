@@ -35,8 +35,10 @@ import {
 } from '../lib/cart';
 import { formatIndianRupees } from '../lib/utils';
 
-// Initialize Stripe
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || 'pk_test_demo');
+// Initialize Stripe — VITE_STRIPE_PUBLISHABLE_KEY must be set in .env
+const stripeKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
+if (!stripeKey) console.warn('[Stripe] VITE_STRIPE_PUBLISHABLE_KEY not set — payments will not work.');
+const stripePromise = stripeKey ? loadStripe(stripeKey) : null;
 
 const CheckoutForm = ({ 
   amount, 
@@ -542,15 +544,21 @@ export default function Cart() {
 
                   {paymentMethod === 'card' && (
                     <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
-                      <Elements stripe={stripePromise}>
-                        <CheckoutForm 
-                          amount={finalTotal} 
-                          onSuccess={(id) => handleCheckout(id)}
-                          onError={(msg) => alert(msg)}
-                          isLoading={isCheckingOut}
-                          setIsLoading={setIsCheckingOut}
-                        />
-                      </Elements>
+                      {stripePromise ? (
+                        <Elements stripe={stripePromise}>
+                          <CheckoutForm
+                            amount={finalTotal}
+                            onSuccess={(id) => handleCheckout(id)}
+                            onError={(msg) => alert(msg)}
+                            isLoading={isCheckingOut}
+                            setIsLoading={setIsCheckingOut}
+                          />
+                        </Elements>
+                      ) : (
+                        <div className="p-4 bg-red-50 dark:bg-red-900/20 rounded-2xl border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-sm">
+                          Online card payments are not configured. Please choose UPI or Cash on Delivery.
+                        </div>
+                      )}
                     </div>
                   )}
 

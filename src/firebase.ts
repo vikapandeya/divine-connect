@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, FacebookAuthProvider, signInWithPopup, onAuthStateChanged as firebaseOnAuthStateChanged } from 'firebase/auth';
+import { getAuth, GoogleAuthProvider, FacebookAuthProvider, signInWithPopup, onAuthStateChanged as firebaseOnAuthStateChanged, sendPasswordResetEmail } from 'firebase/auth';
 import { getFirestore, doc, setDoc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { getMessaging, getToken, onMessage } from 'firebase/messaging';
 import firebaseConfig from '../firebase-applet-config.json';
@@ -217,6 +217,10 @@ export const logout = async () => {
   localStorage.removeItem('user');
   notifyListeners(null);
   window.location.href = '/';
+};
+
+export const resetPassword = async (email: string) => {
+  await sendPasswordResetEmail(firebaseAuth, email);
 };
 
 export const requestNotificationPermission = async () => {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Puja, VendorProfile, Yatra, Product } from '../types';
+import { Puja, Yatra, Product } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Flame, Clock, IndianRupee, CheckCircle2, Search, Filter, X, MapPin, User, Star, Navigation, Info, Compass, Calendar, Sparkles, ShoppingBag, Heart, ShoppingCart } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -10,16 +10,19 @@ import { auth } from '../firebase';
 import AIGroundedSearch from '../components/AIGroundedSearch';
 import { useTranslation } from 'react-i18next';
 
+const YATRA_IMAGES: Record<string, string> = {
+  y1: 'https://images.unsplash.com/photo-1545105511-930777907912?auto=format&fit=crop&q=80&w=1200',
+  y2: 'https://images.unsplash.com/photo-1561361058-c24cecae35ca?auto=format&fit=crop&q=80&w=1200',
+  y3: 'https://images.unsplash.com/photo-1584277274775-5231c1837865?auto=format&fit=crop&q=80&w=1200',
+  default: 'https://images.unsplash.com/photo-1603525545933-722a95c9a0b9?auto=format&fit=crop&q=80&w=1200',
+};
+
 export default function Services() {
   const { t } = useTranslation();
   const [pujas, setPujas] = useState<Puja[]>([]);
   const [yatras, setYatras] = useState<Yatra[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
-  const [vendors, setVendors] = useState<VendorProfile[]>([]);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-  }, []);
 
   const [activeService, setActiveService] = useState<'all' | 'puja' | 'yatra' | 'product'>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -72,13 +75,12 @@ export default function Services() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [pujasRes, yatrasRes, vendorsRes, productsRes] = await Promise.all([
+        const [pujasRes, yatrasRes, productsRes] = await Promise.all([
           fetch('/api/pujas'),
           fetch('/api/yatras'),
-          fetch('/api/admin/vendors-performance'),
           fetch('/api/products')
         ]);
-        
+
         if (pujasRes.ok) {
           const data = await pujasRes.json();
           setPujas(data);
@@ -86,10 +88,6 @@ export default function Services() {
         if (yatrasRes.ok) {
           const data = await yatrasRes.json();
           setYatras(data);
-        }
-        if (vendorsRes.ok) {
-          const data = await vendorsRes.json();
-          setVendors(data.filter((v: any) => v.type === 'priest' || v.type === 'temple' || v.type === 'shop'));
         }
         if (productsRes.ok) {
           const data = await productsRes.json();
@@ -170,30 +168,11 @@ export default function Services() {
       const matchesTemple = selectedTemple === 'all' || puja.templeName === selectedTemple;
       const matchesPrice = puja.onlinePrice >= priceRange.min && puja.onlinePrice <= priceRange.max;
 
-      let matchesNearby = true;
-      if (showNearbyOnly && userLocation) {
-        const vendor = vendors.find(v => v.uid === puja.vendorId);
-        // For demo purposes, we assign mock locations to some vendors if they don't have one
-        const mockLocations: Record<string, { lat: number, lng: number }> = {
-          'v1': { lat: userLocation.lat + 0.01, lng: userLocation.lng + 0.01 }, // ~1.5km away
-          'v2': { lat: userLocation.lat + 0.1, lng: userLocation.lng + 0.1 },   // ~15km away
-          'v3': { lat: userLocation.lat - 0.02, lng: userLocation.lng - 0.02 }, // ~3km away
-          'v4': { lat: userLocation.lat + 0.5, lng: userLocation.lng + 0.5 }    // ~75km away
-        };
-        
-        const vendorLocation = vendor?.location || mockLocations[puja.vendorId];
-        
-        if (vendorLocation) {
-          const distance = getDistance(userLocation.lat, userLocation.lng, vendorLocation.lat, vendorLocation.lng);
-          matchesNearby = distance <= 5; // 5km range
-        } else {
-          matchesNearby = false;
-        }
-      }
+      const matchesNearby = true; // nearby filter requires vendor location data (future feature)
 
       return matchesSearch && matchesCategory && matchesVendor && matchesTemple && matchesPrice && matchesNearby;
     });
-  }, [pujas, searchQuery, selectedCategory, selectedVendor, selectedTemple, priceRange, showNearbyOnly, userLocation, vendors]);
+  }, [pujas, searchQuery, selectedCategory, selectedVendor, selectedTemple, priceRange, showNearbyOnly, userLocation]);
 
   const displayYatras = useMemo(() => {
     const baseYatras = (yatras.length > 0 ? yatras : [
@@ -449,9 +428,6 @@ export default function Services() {
                       className="w-full px-3 py-2 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl text-sm dark:text-white"
                     >
                       <option value="all">{t('services.allVendors')}</option>
-                      {vendors.map(vendor => (
-                        <option key={vendor.uid} value={vendor.uid}>{vendor.businessName}</option>
-                      ))}
                     </select>
                   </div>
 
@@ -534,7 +510,7 @@ export default function Services() {
                       >
                         <div className="aspect-[16/10] bg-emerald-100 dark:bg-emerald-900/20 relative overflow-hidden">
                           <img 
-                            src={`https://images.unsplash.com/photo-1545105511-930777907912?auto=format&fit=crop&q=80&w=1200&seed=${yatra.id}`} 
+                            src={YATRA_IMAGES[yatra.id] ?? YATRA_IMAGES.default}
                             alt={yatra.title} 
                             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                             referrerPolicy="no-referrer"

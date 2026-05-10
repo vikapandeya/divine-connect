@@ -31,42 +31,36 @@ export default function ProductDetail() {
     const fetchProduct = async () => {
       setLoading(true);
       try {
-        const response = await fetch(`/api/products`);
-        if (response.ok) {
-          const data = await response.json();
-          const found = data.find((p: any) => p.id.toString() === id);
-          if (found) {
-            const parsed = {
-              ...found,
-              weightOptions: typeof found.weightOptions === 'string' ? JSON.parse(found.weightOptions) : found.weightOptions
-            };
-            setProduct(parsed);
-            setMainImage(parsed.image || `/products/ganesha-idol.jpg`);
-            if (parsed.weightOptions && parsed.weightOptions.length > 0) {
-              setSelectedOption(parsed.weightOptions[0]);
-            }
+        const [productRes, reviewsRes, allRes] = await Promise.all([
+          fetch(`/api/products/${id}`),
+          fetch(`/api/feedback?serviceId=${id}&type=product`),
+          fetch(`/api/products`),
+        ]);
 
-            // Fetch vendor details
-            if (parsed.vendorId) {
-              const vRes = await fetch(`/api/vendors/${parsed.vendorId}`);
-              if (vRes.ok) {
-                setVendor(await vRes.json());
-              }
-            }
-
-            // Set recommended products (excluding current)
-            const filtered = data
-              .filter((p: any) => p.id.toString() !== id)
-              .slice(0, 4);
-            setRecommendedProducts(filtered);
+        if (productRes.ok) {
+          const found = await productRes.json();
+          const parsed = {
+            ...found,
+            weightOptions: typeof found.weightOptions === 'string' ? JSON.parse(found.weightOptions) : found.weightOptions
+          };
+          setProduct(parsed);
+          setMainImage(parsed.image || `/products/ganesha-idol.jpg`);
+          if (parsed.weightOptions?.length > 0) {
+            setSelectedOption(parsed.weightOptions[0]);
+          }
+          if (parsed.vendorId) {
+            const vRes = await fetch(`/api/vendors/${parsed.vendorId}`);
+            if (vRes.ok) setVendor(await vRes.json());
           }
         }
 
-        // Fetch reviews
-        const reviewsRes = await fetch(`/api/feedback?serviceId=${id}&type=product`);
         if (reviewsRes.ok) {
-          const reviewsData = await reviewsRes.json();
-          setReviews(reviewsData);
+          setReviews(await reviewsRes.json());
+        }
+
+        if (allRes.ok) {
+          const all = await allRes.json();
+          setRecommendedProducts(all.filter((p: any) => p.id.toString() !== id).slice(0, 4));
         }
       } catch (error) {
         console.error('Error fetching product detail:', error);

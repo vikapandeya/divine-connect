@@ -1,7 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { GoogleGenAI } from "@google/genai";
 import {
   Mail,
   MapPin,
@@ -24,8 +23,8 @@ const contactCards = [
   {
     title: 'Call Us',
     description: 'Speak with the team for puja bookings and service guidance.',
-    value: '+91 1800-DIVINE-00',
-    href: 'tel:+91180034846300',
+    value: '+91 1800-348-4600',
+    href: 'tel:+918003484600',
     icon: Phone,
   },
   {
@@ -48,32 +47,6 @@ type ChatMessage = {
   content: string;
 };
 
-const SYSTEM_INSTRUCTION = `
-You are PunyaSeva AI Support.
-Your role is to help users with:
-- Puja bookings (online/offline)
-- Darshan and Prasad guidance
-- Order status and delivery support
-- Account access and sign-in issues
-- Vendor onboarding questions (how to join as a priest, temple, or shop)
-
-Puja Booking Flow:
-If a user expresses interest in booking a puja:
-1. Prompt them for the type of puja or service they are interested in. Provide a selectable list of common types in this format: [OPTIONS: Ganesh Puja, Lakshmi Puja, Satyanarayan Katha, Durga Puja, Saraswati Puja].
-2. Prompt them for their preferred date.
-3. Prompt them for their preferred time slot (morning, afternoon, or evening). Provide a selectable list in this format: [OPTIONS: Morning, Afternoon, Evening].
-4. Ask if they prefer an online (virtual) or offline (in-person) service. Provide a selectable list in this format: [OPTIONS: Online (Virtual), Offline (In-person)].
-5. Once you have these details, provide a summary and guide them to the official "Pujas" page to finalize the booking.
-
-Rules:
-- Be concise, practical, and warm.
-- Stay focused on product and platform support.
-- Use the provided conversation history to maintain context and provide relevant answers.
-- If the user needs direct human help, tell them to use the Contact Us page email or phone support.
-- Do not invent order status, account status, or booking confirmations.
-- If information is unavailable, say so clearly.
-- Use a helpful, spiritual, yet professional tone.
-`.trim();
 
 export default function Contact() {
   const { t } = useTranslation();
@@ -131,44 +104,25 @@ export default function Contact() {
     setChatError('');
 
     try {
-      const apiKey = process.env.GEMINI_API_KEY;
-      if (!apiKey) {
-        throw new Error('AI support is not configured yet. Add GEMINI_API_KEY before using this feature.');
-      }
-
-      const ai = new GoogleGenAI({ apiKey });
-      
-      const history = nextMessages.map(m => ({
-        role: m.role === 'assistant' ? 'model' : 'user',
-        parts: [{ text: m.content }]
-      }));
-
-      const result = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: history,
-        config: {
-          systemInstruction: SYSTEM_INSTRUCTION,
-        }
+      const res = await fetch('/api/ai/support', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: nextMessage,
+          history: messages,
+        }),
       });
 
-      const reply = result.text?.trim();
-
-      if (!reply) {
-        throw new Error("The AI support response was empty.");
-      }
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'AI support is unavailable right now.');
 
       setMessages([
         ...nextMessages,
-        {
-          role: 'assistant',
-          content: reply,
-        },
+        { role: 'assistant', content: data.reply },
       ]);
     } catch (error) {
       setChatError(
-        error instanceof Error
-          ? error.message
-          : 'AI support is unavailable right now.',
+        error instanceof Error ? error.message : 'AI support is unavailable right now.',
       );
     } finally {
       setIsSending(false);

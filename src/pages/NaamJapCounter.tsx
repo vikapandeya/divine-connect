@@ -21,6 +21,29 @@ import { useTranslation } from 'react-i18next';
 import { useTheme } from '../contexts/ThemeContext';
 
 const TARGET_OPTIONS = [27, 54, 108, 216, 324, 1008];
+const LS_HISTORY_KEY = 'naamjap_history';
+
+const readLocalHistory = (): NaamJap[] => {
+  try {
+    const saved = localStorage.getItem(LS_HISTORY_KEY);
+    return saved ? JSON.parse(saved) : [];
+  } catch { return []; }
+};
+
+const upsertLocalRecord = (record: Pick<NaamJap, 'date' | 'mantraName' | 'count' | 'target'>): void => {
+  const records = readLocalHistory();
+  const idx = records.findIndex(r => r.date === record.date && r.mantraName === record.mantraName);
+  const entry: NaamJap = {
+    id: `local-${record.date}-${record.mantraName.replace(/\s+/g, '-')}`,
+    userId: 'local',
+    mantraId: record.mantraName.toLowerCase().replace(/\s+/g, '-'),
+    updatedAt: new Date().toISOString(),
+    ...record,
+  };
+  if (idx >= 0) records[idx] = entry;
+  else records.push(entry);
+  localStorage.setItem(LS_HISTORY_KEY, JSON.stringify(records));
+};
 const DEFAULT_MANTRAS = [
   {
     name: 'Radhe Radhe',
@@ -240,12 +263,17 @@ export default function NaamJapCounter() {
 
   useEffect(() => {
     const today = new Date().toISOString().split('T')[0];
-    if (user && (count > 0 || todayTotal > 0)) {
-      const timer = setTimeout(() => {
-        saveNaamJap({ userId: user.uid, mantraId: mantra.toLowerCase().replace(/\s+/g, '-'), mantraName: mantra, count: todayTotal, target, date: today })
-          .catch(() => {});
-      }, 5000);
-      return () => clearTimeout(timer);
+    if (count > 0 || todayTotal > 0) {
+      // Always persist locally (works for guests too)
+      upsertLocalRecord({ date: today, mantraName: mantra, count: todayTotal, target });
+      // Debounced sync to server when logged in
+      if (user) {
+        const timer = setTimeout(() => {
+          saveNaamJap({ userId: user.uid, mantraId: mantra.toLowerCase().replace(/\s+/g, '-'), mantraName: mantra, count: todayTotal, target, date: today })
+            .catch(() => {});
+        }, 5000);
+        return () => clearTimeout(timer);
+      }
     }
   }, [todayTotal, target, user, mantra, count]);
 
@@ -266,22 +294,50 @@ export default function NaamJapCounter() {
 
   useEffect(() => {
     const today = new Date().toISOString().split('T')[0];
+    // Load local history first — works for guests and logged-in users alike
+    const localRecords = readLocalHistory();
+    const todayLocal = localRecords.find(r => r.date === today && r.mantraName === mantra);
+    if (todayLocal) { setCount(todayLocal.count); setTodayTotal(todayLocal.count); setTarget(todayLocal.target); }
+    setLifetimeTotal(localRecords.reduce((sum, r) => sum + r.count, 0));
+    setStreak(calculateStreak(localRecords));
+
     if (user) {
-      getDailyJaps(user.uid, today).then(japs => {
-        setHistory(japs);
-        const relevantJap = japs.find(j => j.mantraName === mantra);
-        if (relevantJap) { setTodayTotal(relevantJap.count); setTarget(relevantJap.target); }
+      // Server is the source of truth when logged in — override local values
+      getDailyJaps(user.uid, today).then(serverToday => {
+        const serverJap = serverToday.find(j => j.mantraName === mantra);
+        if (serverJap) { setCount(serverJap.count); setTodayTotal(serverJap.count); setTarget(serverJap.target); }
         fetch(`/api/naam-jap/logs?userId=${user.uid}`)
           .then(res => res.json())
-          .then(allLogs => {
+          .then((allLogs: NaamJap[]) => {
             setStreak(calculateStreak(allLogs));
+            setLifetimeTotal(allLogs.reduce((sum, l) => sum + l.count, 0));
             const targets: Record<string, number> = {};
-            allLogs.forEach((l: NaamJap) => { if (!targets[l.mantraName] || new Date(l.updatedAt) > new Date()) targets[l.mantraName] = l.target; });
-            setMantraTargets(targets);
-          });
+            allLogs.forEach(l => { if (!targets[l.mantraName]) targets[l.mantraName] = l.target; });
+            setMantraTargets(prev => ({ ...prev, ...targets }));
+          }).catch(() => {});
       }).catch(() => {});
     }
   }, [user, mantra, calculateStreak]);
+
+  // Lazy-load history panel data when opened
+  useEffect(() => {
+    if (!showHistory) return;
+    const localRecords = readLocalHistory().sort((a, b) => b.date.localeCompare(a.date));
+    if (user) {
+      fetch(`/api/naam-jap/logs?userId=${user.uid}`)
+        .then(r => r.json())
+        .then((allLogs: NaamJap[]) => {
+          const serverKeys = new Set(allLogs.map(l => `${l.date}|${l.mantraName}`));
+          const merged = [
+            ...allLogs,
+            ...localRecords.filter(l => !serverKeys.has(`${l.date}|${l.mantraName}`)),
+          ].sort((a, b) => b.date.localeCompare(a.date));
+          setHistory(merged);
+        }).catch(() => setHistory(localRecords));
+    } else {
+      setHistory(localRecords);
+    }
+  }, [showHistory, user]);
 
   const progressPercentage = Math.min((count / target) * 100, 100);
   const dotsCount = 108;
@@ -397,36 +453,42 @@ export default function NaamJapCounter() {
       {/* Mantra display — shown when no panel open */}
       {currentMantraDef && !showSettings && !showHistory && (
         <motion.div
-          initial={{ opacity: 0, y: 6 }}
+          initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          className="w-full max-w-sm mb-6 text-center"
+          className="w-full max-w-sm mb-5 text-center"
         >
-          <motion.h2
-            key={count}
-            initial={count > 0 ? { scale: 1.08, color: '#FCD34D', textShadow: '0 0 24px rgba(252,211,77,0.9), 0 0 48px rgba(245,158,11,0.6)' } : { scale: 1, color: '#ffffff', textShadow: 'none' }}
-            animate={{ scale: 1, color: th.mantraName, textShadow: '0 0 0px rgba(252,211,77,0)' }}
-            transition={{ duration: 0.55, ease: 'easeOut' }}
-            className="text-4xl font-black mb-2 tracking-tight leading-tight"
-          >
-            {mantra}
-          </motion.h2>
+          {/* Sanskrit text — primary */}
           {currentMantraDef.hindi && (
             <motion.p
               key={`hindi-${count}`}
-              initial={count > 0 ? { scale: 1.06, color: '#FCD34D', textShadow: '0 0 16px rgba(252,211,77,0.7)' } : { scale: 1, color: 'rgba(251,191,36,0.75)', textShadow: 'none' }}
-              animate={{ scale: 1, color: 'rgba(251,191,36,0.75)', textShadow: '0 0 0px rgba(252,211,77,0)' }}
-              transition={{ duration: 0.55, ease: 'easeOut' }}
-              className="text-xl font-bold mb-2"
-              style={{ fontFamily: 'serif', color: undefined }}
+              initial={count > 0 ? { scale: 1.06, color: '#FCD34D', textShadow: '0 0 24px rgba(252,211,77,0.9)' } : { scale: 1 }}
+              animate={{ scale: 1, color: dk ? 'rgba(251,191,36,0.88)' : 'rgba(140,75,0,0.9)', textShadow: '0 0 0px transparent' }}
+              transition={{ duration: 0.5, ease: 'easeOut' }}
+              className="font-devanagari font-bold leading-tight mb-1"
+              style={{ fontSize: '1.65rem' }}
             >
               {currentMantraDef.hindi}
             </motion.p>
           )}
-          <p className="text-[10px] font-bold uppercase tracking-[0.25em] mb-2" style={{ color: th.meaningColor }}>
+          {/* English name */}
+          <motion.p
+            key={`name-${count}`}
+            initial={count > 0 ? { scale: 1.04, color: '#FCD34D' } : { scale: 1 }}
+            animate={{ scale: 1, color: th.mantraName }}
+            transition={{ duration: 0.5, ease: 'easeOut' }}
+            className="text-base font-bold tracking-wide mb-2"
+            style={{ color: th.mantraName, opacity: 0.7 }}
+          >
+            {mantra}
+          </motion.p>
+          {/* Lotus divider */}
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <div className="h-px flex-1 max-w-[40px]" style={{ background: `linear-gradient(to right, transparent, rgba(245,158,11,0.3))` }} />
+            <span className="text-xs" style={{ color: 'rgba(245,158,11,0.45)' }}>🪷</span>
+            <div className="h-px flex-1 max-w-[40px]" style={{ background: `linear-gradient(to left, transparent, rgba(245,158,11,0.3))` }} />
+          </div>
+          <p className="text-[10px] font-bold uppercase tracking-[0.22em]" style={{ color: th.meaningColor }}>
             {currentMantraDef.meaning}
-          </p>
-          <p className="text-xs leading-relaxed px-6" style={{ color: th.descColor }}>
-            {currentMantraDef.description}
           </p>
         </motion.div>
       )}
@@ -601,66 +663,6 @@ export default function NaamJapCounter() {
             exit={{ opacity: 0, scale: 0.97 }}
             className="flex flex-col items-center w-full"
           >
-            {/* Mantra & Target selector card */}
-            <div
-              className="w-full max-w-sm rounded-[2rem] p-5 mb-6 border"
-              style={{ background: th.cardBg, borderColor: th.cardBorder, backdropFilter: 'blur(16px)', boxShadow: '0 8px 40px rgba(0,0,0,0.15)' }}
-            >
-              <div className="flex justify-between items-center mb-4 px-1">
-                <p className="text-[9px] font-black uppercase tracking-[0.3em]" style={{ color: th.sectionLabel }}>{t('naamjap.selectMantra')}</p>
-                <span className="text-[9px] font-black uppercase px-2.5 py-0.5 rounded-full" style={{ color: '#F59E0B', background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.2)' }}>
-                  Active
-                </span>
-              </div>
-
-              <div className="flex flex-wrap gap-2 mb-6">
-                {allMantras.map(m => (
-                  <button
-                    key={m.name}
-                    onClick={() => { setMantra(m.name); setCount(0); setTarget(mantraTargets[m.name] || 108); }}
-                    className="px-3.5 py-1.5 rounded-xl text-[10px] font-bold transition-all border"
-                    style={mantra === m.name
-                      ? { background: 'linear-gradient(135deg, #D97706, #F59E0B)', color: '#000', borderColor: 'transparent', boxShadow: '0 0 18px rgba(245,158,11,0.3)' }
-                      : { background: th.pillBg, borderColor: th.pillBorder, color: th.pillText }
-                    }
-                  >
-                    {m.name}
-                  </button>
-                ))}
-              </div>
-
-              <div className="border-t pt-4 mb-3" style={{ borderColor: th.dividerColor }}>
-                <p className="text-[9px] font-black uppercase tracking-[0.3em] mb-3 text-center" style={{ color: th.sectionLabel }}>
-                  {t('naamjap.sessionTarget')}
-                </p>
-                <div className="grid grid-cols-6 gap-1.5 mb-2">
-                  {TARGET_OPTIONS.map(val => (
-                    <button
-                      key={val}
-                      onClick={() => handleSetTarget(val)}
-                      className="py-2 rounded-xl text-xs font-bold transition-all border"
-                      style={target === val
-                        ? { background: 'rgba(245,158,11,0.15)', color: '#FBBF24', borderColor: 'rgba(245,158,11,0.35)', boxShadow: '0 0 10px rgba(245,158,11,0.15)' }
-                        : { background: th.tgtBg, borderColor: th.tgtBorder, color: th.tgtText }
-                      }
-                    >
-                      {val}
-                    </button>
-                  ))}
-                </div>
-                <button
-                  onClick={() => handleSetTarget(99999)}
-                  className="w-full py-1.5 rounded-xl text-lg font-bold border transition-all"
-                  style={target === 99999
-                    ? { background: 'rgba(245,158,11,0.15)', color: '#FBBF24', borderColor: 'rgba(245,158,11,0.35)' }
-                    : { background: th.tgtBg, borderColor: th.tgtBorder, color: th.tgtText }
-                  }
-                >
-                  ∞
-                </button>
-              </div>
-            </div>
-
             {/* Stats row */}
             <div className="flex gap-3 mb-7 w-full max-w-sm">
               {[
@@ -749,72 +751,259 @@ export default function NaamJapCounter() {
                 })}
               </div>
 
-              {/* Center display */}
+              {/* Center display — Divine Yantra */}
               <div
-                className="text-center z-20 flex flex-col items-center justify-center w-40 h-40 rounded-full border relative"
+                className="text-center z-20 flex flex-col items-center justify-center w-44 h-44 rounded-full relative"
                 style={{
-                  background: 'rgba(10,7,20,0.85)',
-                  borderColor: 'rgba(245,158,11,0.15)',
-                  backdropFilter: 'blur(12px)',
-                  boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.04), 0 0 30px rgba(245,158,11,0.05)'
+                  background: dk
+                    ? 'radial-gradient(circle at 42% 32%, rgba(30,18,52,0.97) 0%, rgba(8,5,18,0.98) 100%)'
+                    : 'radial-gradient(circle at 42% 32%, rgba(255,254,248,0.99) 0%, rgba(255,248,228,0.98) 100%)',
+                  backdropFilter: 'blur(20px)',
+                  boxShadow: isCelebrating
+                    ? '0 0 0 1.5px rgba(74,222,128,0.35), 0 0 50px rgba(74,222,128,0.2), inset 0 1px 2px rgba(255,255,255,0.12)'
+                    : dk
+                      ? '0 0 0 1.5px rgba(245,158,11,0.2), 0 0 50px rgba(245,158,11,0.1), inset 0 1px 1px rgba(255,255,255,0.06)'
+                      : '0 0 0 1.5px rgba(245,158,11,0.25), 0 0 40px rgba(245,158,11,0.14), inset 0 2px 4px rgba(255,255,255,0.85)',
                 }}
               >
-                <div
-                  className="h-px w-5 mb-2 rounded-full transition-colors"
-                  style={{ background: isCelebrating ? '#4ADE80' : '#F59E0B' }}
-                />
-                <span className="text-[9px] font-black tracking-widest uppercase mb-1.5"
-                  style={{ color: isCelebrating ? 'rgba(74,222,128,0.8)' : th.sessionLabel }}>
-                  {isCelebrating ? 'Goal Reached' : 'Session'}
-                </span>
-                <div className="flex items-center gap-1">
+                {/* SVG Mandala — decorative rings, ticks, lotus petals, inner arc */}
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 176 176">
+                  <defs>
+                    <linearGradient id="arcGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stopColor="#D97706" />
+                      <stop offset="100%" stopColor="#FCD34D" />
+                    </linearGradient>
+                  </defs>
+
+                  {/* 8 subtle lotus petals behind count */}
+                  {[0,45,90,135,180,225,270,315].map((deg) => {
+                    const rad = deg * Math.PI / 180;
+                    const cx = 88 + Math.cos(rad) * 26;
+                    const cy = 88 + Math.sin(rad) * 26;
+                    return (
+                      <ellipse key={deg}
+                        cx={cx} cy={cy} rx="10" ry="17"
+                        fill={isCelebrating ? 'rgba(74,222,128,0.06)' : 'rgba(245,158,11,0.055)'}
+                        stroke={isCelebrating ? 'rgba(74,222,128,0.14)' : 'rgba(245,158,11,0.12)'}
+                        strokeWidth="0.5"
+                        transform={`rotate(${deg}, ${cx}, ${cy})`}
+                      />
+                    );
+                  })}
+
+                  {/* Outer decorative dashed ring */}
+                  <circle cx="88" cy="88" r="83"
+                    fill="none"
+                    stroke={isCelebrating ? 'rgba(74,222,128,0.22)' : 'rgba(245,158,11,0.18)'}
+                    strokeWidth="0.75" strokeDasharray="3,7"
+                  />
+
+                  {/* Compass tick marks N/S/E/W */}
+                  {[0,90,180,270].map(deg => {
+                    const rad = (deg - 90) * Math.PI / 180;
+                    return (
+                      <line key={deg}
+                        x1={88 + Math.cos(rad) * 79} y1={88 + Math.sin(rad) * 79}
+                        x2={88 + Math.cos(rad) * 71} y2={88 + Math.sin(rad) * 71}
+                        stroke={isCelebrating ? 'rgba(74,222,128,0.5)' : 'rgba(245,158,11,0.45)'}
+                        strokeWidth="1.5" strokeLinecap="round"
+                      />
+                    );
+                  })}
+
+                  {/* Diagonal small dots */}
+                  {[45,135,225,315].map(deg => {
+                    const rad = (deg - 90) * Math.PI / 180;
+                    return (
+                      <circle key={deg}
+                        cx={88 + Math.cos(rad) * 79} cy={88 + Math.sin(rad) * 79}
+                        r="1.8"
+                        fill={isCelebrating ? 'rgba(74,222,128,0.4)' : 'rgba(245,158,11,0.35)'}
+                      />
+                    );
+                  })}
+
+                  {/* Session progress arc track */}
+                  <circle cx="88" cy="88" r="64"
+                    fill="none"
+                    stroke={isCelebrating ? 'rgba(74,222,128,0.07)' : 'rgba(245,158,11,0.07)'}
+                    strokeWidth="5"
+                  />
+                  {/* Session progress arc fill */}
+                  {progressPercentage > 0 && (
+                    <motion.circle cx="88" cy="88" r="64"
+                      fill="none"
+                      stroke={isCelebrating ? 'rgba(74,222,128,0.6)' : 'url(#arcGrad)'}
+                      strokeWidth="4"
+                      strokeLinecap="round"
+                      strokeDasharray={2 * Math.PI * 64}
+                      animate={{ strokeDashoffset: (2 * Math.PI * 64) * (1 - progressPercentage / 100) }}
+                      transition={{ type: 'spring', damping: 22, stiffness: 55 }}
+                      transform="rotate(-90, 88, 88)"
+                    />
+                  )}
+
+                  {/* Center origin dot */}
+                  <circle cx="88" cy="88" r="2"
+                    fill={isCelebrating ? 'rgba(74,222,128,0.5)' : 'rgba(245,158,11,0.35)'}
+                  />
+                </svg>
+
+                {/* ॐ — breathing glow animation */}
+                <motion.span
+                  animate={{
+                    textShadow: isCelebrating
+                      ? ['0 0 18px rgba(74,222,128,0.9)', '0 0 38px rgba(74,222,128,0.4)', '0 0 18px rgba(74,222,128,0.9)']
+                      : ['0 0 14px rgba(245,158,11,0.55)', '0 0 30px rgba(245,158,11,0.22)', '0 0 14px rgba(245,158,11,0.55)'],
+                  }}
+                  transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut' }}
+                  className="font-devanagari leading-none relative z-10 select-none"
+                  style={{
+                    fontSize: '1.75rem',
+                    color: isCelebrating ? 'rgba(74,222,128,0.92)' : dk ? 'rgba(251,191,36,0.75)' : 'rgba(150,80,0,0.82)',
+                    marginBottom: '-2px',
+                    marginTop: '-4px',
+                  }}
+                >
+                  ॐ
+                </motion.span>
+
+                {/* Count number */}
+                <div className="flex items-center relative z-10">
                   <motion.span
                     key={count}
-                    initial={{ y: 6, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    className="text-5xl font-black tabular-nums"
-                    style={{ color: isCelebrating ? '#4ADE80' : th.countColor }}
+                    initial={{ y: -10, opacity: 0, scale: 1.18 }}
+                    animate={{ y: 0, opacity: 1, scale: 1 }}
+                    transition={{ type: 'spring', damping: 13, stiffness: 230 }}
+                    className="font-black tabular-nums leading-none"
+                    style={{
+                      fontSize: count >= 1000 ? '2.1rem' : count >= 100 ? '2.75rem' : '3.4rem',
+                      letterSpacing: '-0.02em',
+                      color: isCelebrating ? '#4ADE80' : th.countColor,
+                      textShadow: isCelebrating
+                        ? '0 0 28px rgba(74,222,128,0.6)'
+                        : count > 0
+                          ? dk ? '0 0 22px rgba(245,158,11,0.38)' : '0 0 18px rgba(200,110,0,0.22)'
+                          : 'none',
+                    }}
                   >
                     {count}
                   </motion.span>
                   {isCelebrating && (
-                    <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}>
-                      <Check size={22} strokeWidth={3.5} className="text-green-400" />
+                    <motion.div
+                      initial={{ scale: 0, rotate: -20 }}
+                      animate={{ scale: 1, rotate: 0 }}
+                      transition={{ type: 'spring', delay: 0.08 }}
+                      className="ml-1"
+                    >
+                      <Check size={18} strokeWidth={3.5} className="text-green-400" />
                     </motion.div>
                   )}
                 </div>
-                <span className="text-[10px] font-bold mt-1" style={{ color: th.targetLabel }}>/ {target}</span>
-                {count >= dotsCount && (
-                  <span className="text-[8px] font-black uppercase mt-0.5" style={{ color: th.sectionLabel }}>
-                    {Math.floor(count / dotsCount)} Mala{Math.floor(count / dotsCount) > 1 ? 's' : ''}
+
+                {/* Golden divider + target */}
+                <div className="flex items-center gap-1.5 relative z-10 mt-0.5">
+                  <div className="h-px w-4 rounded-full"
+                    style={{ background: isCelebrating ? 'rgba(74,222,128,0.5)' : 'rgba(245,158,11,0.4)' }}
+                  />
+                  <span className="font-bold"
+                    style={{
+                      fontSize: '0.58rem',
+                      letterSpacing: '0.07em',
+                      color: isCelebrating ? 'rgba(74,222,128,0.85)' : th.targetLabel,
+                    }}
+                  >
+                    {isCelebrating ? '🙏 पूर्ण' : `/ ${target === 99999 ? '∞' : target}`}
                   </span>
+                  <div className="h-px w-4 rounded-full"
+                    style={{ background: isCelebrating ? 'rgba(74,222,128,0.5)' : 'rgba(245,158,11,0.4)' }}
+                  />
+                </div>
+
+                {/* Mala count badge */}
+                {count >= dotsCount && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.7 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="relative z-10 mt-1 px-2 py-0.5 rounded-full"
+                    style={{
+                      background: isCelebrating ? 'rgba(74,222,128,0.12)' : 'rgba(245,158,11,0.1)',
+                      border: `1px solid ${isCelebrating ? 'rgba(74,222,128,0.25)' : 'rgba(245,158,11,0.22)'}`,
+                    }}
+                  >
+                    <span className="text-[8.5px] font-black font-devanagari"
+                      style={{ color: isCelebrating ? 'rgba(74,222,128,0.92)' : th.sectionLabel }}>
+                      {Math.floor(count / dotsCount)} माला
+                    </span>
+                  </motion.div>
                 )}
               </div>
             </div>
 
-            {/* Main TAP button */}
+            {/* Main TAP button — Sacred Divine Button */}
             <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.87, y: 3 }}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.86, y: 4 }}
               onClick={handleIncrement}
-              className="w-52 h-52 shrink-0 rounded-full flex flex-col items-center justify-center mb-12 relative overflow-hidden"
+              className="w-52 h-52 shrink-0 rounded-full flex flex-col items-center justify-center mb-8 relative overflow-hidden"
               style={{
-                background: th.tapBg,
+                background: dk
+                  ? 'radial-gradient(circle at 38% 32%, rgba(45,28,8,0.96) 0%, rgba(12,8,2,0.97) 70%)'
+                  : 'radial-gradient(circle at 38% 32%, rgba(255,248,225,0.99) 0%, rgba(254,240,195,0.98) 70%)',
                 border: `2px solid ${th.tapBorder}`,
-                boxShadow: th.tapShadow
+                boxShadow: dk
+                  ? '0 0 0 4px rgba(245,158,11,0.06), 0 24px 70px rgba(0,0,0,0.75), 0 0 50px rgba(245,158,11,0.1), inset 0 1px 1px rgba(255,255,255,0.07)'
+                  : '0 0 0 4px rgba(245,158,11,0.08), 0 16px 50px rgba(0,0,0,0.1), 0 0 40px rgba(245,158,11,0.18), inset 0 2px 6px rgba(255,255,255,0.95)',
               }}
             >
-              {/* Decorative concentric rings */}
-              <div className="absolute inset-4 rounded-full pointer-events-none" style={{ border: '1px solid rgba(245,158,11,0.08)' }} />
-              <div className="absolute inset-8 rounded-full pointer-events-none" style={{ border: '1px solid rgba(245,158,11,0.05)' }} />
+              {/* SVG lotus interior */}
+              <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-60" viewBox="0 0 208 208">
+                {[0,45,90,135,180,225,270,315].map((deg) => {
+                  const rad = deg * Math.PI / 180;
+                  const cx = 104 + Math.cos(rad) * 36;
+                  const cy = 104 + Math.sin(rad) * 36;
+                  return (
+                    <ellipse key={deg} cx={cx} cy={cy} rx="14" ry="24"
+                      fill="rgba(245,158,11,0.04)"
+                      stroke="rgba(245,158,11,0.1)" strokeWidth="0.5"
+                      transform={`rotate(${deg}, ${cx}, ${cy})`}
+                    />
+                  );
+                })}
+                <circle cx="104" cy="104" r="98" fill="none" stroke="rgba(245,158,11,0.06)" strokeWidth="1" />
+                <circle cx="104" cy="104" r="82" fill="none" stroke="rgba(245,158,11,0.05)" strokeWidth="0.75" strokeDasharray="2,8" />
+                <circle cx="104" cy="104" r="66" fill="none" stroke="rgba(245,158,11,0.04)" strokeWidth="0.5" />
+              </svg>
 
-              {/* Clapping hands animation */}
-              <div className="relative flex items-center justify-center mb-1 h-16">
+              {/* Concentric sacred rings */}
+              <div className="absolute inset-3 rounded-full pointer-events-none" style={{ border: '1px solid rgba(245,158,11,0.1)' }} />
+              <div className="absolute inset-7 rounded-full pointer-events-none" style={{ border: '1px solid rgba(245,158,11,0.07)' }} />
+              <div className="absolute inset-11 rounded-full pointer-events-none" style={{ border: '1px solid rgba(245,158,11,0.05)' }} />
+
+              {/* Top ॐ label */}
+              <span
+                className="font-devanagari font-bold select-none relative z-10 mb-0.5"
+                style={{
+                  fontSize: '1rem',
+                  color: dk ? 'rgba(251,191,36,0.45)' : 'rgba(160,90,0,0.4)',
+                  letterSpacing: '0.05em',
+                }}
+              >
+                ॐ
+              </span>
+
+              {/* 🙏 hands */}
+              <div className="relative flex items-center justify-center h-14 relative z-10">
                 <motion.div
-                  animate={{ rotate: count > 0 ? [-20, 0, -20] : 0, x: count > 0 ? [-10, 0, -10] : 0, scale: count > 0 ? [1, 1.12, 1] : 1 }}
-                  transition={{ duration: 0.15, ease: "easeOut" }}
                   key={`hand-${count}`}
-                  className="text-5xl"
+                  animate={{
+                    rotate: count > 0 ? [-18, 0] : 0,
+                    x: count > 0 ? [-8, 0] : 0,
+                    scale: count > 0 ? [1.14, 1] : 1,
+                  }}
+                  transition={{ duration: 0.18, ease: 'easeOut' }}
+                  className="text-5xl select-none"
+                  style={{ filter: 'drop-shadow(0 2px 8px rgba(245,158,11,0.3))' }}
                 >
                   🙏
                 </motion.div>
@@ -822,11 +1011,11 @@ export default function NaamJapCounter() {
                   {count > 0 && (
                     <motion.div
                       key={`spark-${count}`}
-                      initial={{ opacity: 1, scale: 0.4 }}
-                      animate={{ opacity: 0, scale: 1.8 }}
+                      initial={{ opacity: 1, scale: 0.3, y: 0 }}
+                      animate={{ opacity: 0, scale: 2, y: -20 }}
                       exit={{ opacity: 0 }}
-                      className="absolute font-bold text-xl select-none pointer-events-none"
-                      style={{ color: '#FBBF24' }}
+                      className="absolute select-none pointer-events-none font-bold"
+                      style={{ color: '#FCD34D', fontSize: '1.1rem' }}
                     >
                       ✦
                     </motion.div>
@@ -834,24 +1023,106 @@ export default function NaamJapCounter() {
                 </AnimatePresence>
               </div>
 
-              <span className="font-black tracking-widest text-2xl text-white drop-shadow-sm">{t('naamjap.jap')}</span>
-              <span className="text-[11px] tracking-[0.3em] mt-0.5 font-bold" style={{ color: th.sessionLabel, fontFamily: 'serif' }}>जाप</span>
-              <div
-                className="h-px w-8 mt-2 rounded-full transition-all"
-                style={{ background: 'linear-gradient(90deg, transparent, #F59E0B, transparent)' }}
+              {/* JAP label */}
+              <span
+                className="font-black tracking-[0.2em] relative z-10 select-none"
+                style={{
+                  fontSize: '1.3rem',
+                  color: dk ? 'rgba(255,255,255,0.9)' : 'rgba(30,18,0,0.85)',
+                  textShadow: dk ? '0 1px 8px rgba(245,158,11,0.2)' : 'none',
+                }}
+              >
+                {t('naamjap.jap')}
+              </span>
+              <span
+                className="font-devanagari font-bold relative z-10 select-none mt-0.5"
+                style={{
+                  fontSize: '0.95rem',
+                  letterSpacing: '0.18em',
+                  color: dk ? 'rgba(245,158,11,0.6)' : 'rgba(150,85,0,0.65)',
+                }}
+              >
+                जाप
+              </span>
+
+              {/* Bottom golden line */}
+              <div className="h-px w-10 mt-2 rounded-full relative z-10"
+                style={{ background: 'linear-gradient(90deg, transparent, rgba(245,158,11,0.6), transparent)' }}
               />
 
               {/* Tap ripple */}
               <AnimatePresence>
                 <motion.div
                   key={`rip-${count}`}
-                  initial={{ opacity: 0.25, scale: 0 }}
-                  animate={{ opacity: 0, scale: 2.5 }}
+                  initial={{ opacity: 0.3, scale: 0 }}
+                  animate={{ opacity: 0, scale: 2.8 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.6, ease: 'easeOut' }}
                   className="absolute inset-0 rounded-full pointer-events-none"
-                  style={{ background: 'rgba(245,158,11,0.08)' }}
+                  style={{ background: 'radial-gradient(circle, rgba(245,158,11,0.18) 0%, transparent 70%)' }}
                 />
               </AnimatePresence>
             </motion.button>
+
+            {/* Mantra & Target selector card — bottom */}
+            <div
+              className="w-full max-w-sm rounded-[2rem] p-5 mb-6 border"
+              style={{ background: th.cardBg, borderColor: th.cardBorder, backdropFilter: 'blur(16px)', boxShadow: '0 8px 40px rgba(0,0,0,0.15)' }}
+            >
+              <div className="flex justify-between items-center mb-4 px-1">
+                <p className="text-[9px] font-black uppercase tracking-[0.3em]" style={{ color: th.sectionLabel }}>{t('naamjap.selectMantra')}</p>
+                <span className="text-[9px] font-black uppercase px-2.5 py-0.5 rounded-full" style={{ color: '#F59E0B', background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.2)' }}>
+                  Active
+                </span>
+              </div>
+
+              <div className="flex flex-wrap gap-2 mb-6">
+                {allMantras.map(m => (
+                  <button
+                    key={m.name}
+                    onClick={() => { setMantra(m.name); setCount(0); setTarget(mantraTargets[m.name] || 108); }}
+                    className="px-3.5 py-1.5 rounded-xl text-[10px] font-bold transition-all border"
+                    style={mantra === m.name
+                      ? { background: 'linear-gradient(135deg, #D97706, #F59E0B)', color: '#000', borderColor: 'transparent', boxShadow: '0 0 18px rgba(245,158,11,0.3)' }
+                      : { background: th.pillBg, borderColor: th.pillBorder, color: th.pillText }
+                    }
+                  >
+                    {m.name}
+                  </button>
+                ))}
+              </div>
+
+              <div className="border-t pt-4 mb-3" style={{ borderColor: th.dividerColor }}>
+                <p className="text-[9px] font-black uppercase tracking-[0.3em] mb-3 text-center" style={{ color: th.sectionLabel }}>
+                  {t('naamjap.sessionTarget')}
+                </p>
+                <div className="grid grid-cols-6 gap-1.5 mb-2">
+                  {TARGET_OPTIONS.map(val => (
+                    <button
+                      key={val}
+                      onClick={() => handleSetTarget(val)}
+                      className="py-2 rounded-xl text-xs font-bold transition-all border"
+                      style={target === val
+                        ? { background: 'rgba(245,158,11,0.15)', color: '#FBBF24', borderColor: 'rgba(245,158,11,0.35)', boxShadow: '0 0 10px rgba(245,158,11,0.15)' }
+                        : { background: th.tgtBg, borderColor: th.tgtBorder, color: th.tgtText }
+                      }
+                    >
+                      {val}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  onClick={() => handleSetTarget(99999)}
+                  className="w-full py-1.5 rounded-xl text-lg font-bold border transition-all"
+                  style={target === 99999
+                    ? { background: 'rgba(245,158,11,0.15)', color: '#FBBF24', borderColor: 'rgba(245,158,11,0.35)' }
+                    : { background: th.tgtBg, borderColor: th.tgtBorder, color: th.tgtText }
+                  }
+                >
+                  ∞
+                </button>
+              </div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

@@ -3,26 +3,7 @@ import { motion } from 'framer-motion';
 import { Sun, Moon, Calendar, Clock, Star, Sparkles, Loader2, MapPin } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { fetchLivePanchang, PanchangData } from '../services/geminiService';
-
-const fallbackPanchang: PanchangData = {
-  tithi: 'Dwitiya',
-  paksha: 'Shukla Paksha',
-  nakshatra: 'Pushya',
-  yoga: 'Siddha',
-  karana: 'Vanija',
-  mahina: '17, Vaishakha',
-  vikramSamvat: '2083',
-  samvatName: 'Siddharthi',
-  sunrise: '05:52 AM',
-  sunset: '06:49 PM',
-  moonrise: '07:38 AM',
-  moonset: '08:52 PM',
-  rahukaal: '05:12 PM - 06:49 PM',
-  gulika: '03:35 PM - 05:12 PM',
-  yamaganda: '12:21 PM - 01:58 PM',
-  auspicious: 'Abhijit Muhurat: 11:55 AM - 12:47 PM',
-  location: 'New Delhi, India'
-};
+import { calculatePanchang } from '../lib/panchangCalc';
 
 const stripLabel = (val: string, label?: string) => {
   if (!val) return val;
@@ -45,7 +26,7 @@ const stripLabel = (val: string, label?: string) => {
 
 export default function DailyPanchang() {
   const { t, i18n } = useTranslation();
-  const [data, setData] = useState<PanchangData>(fallbackPanchang);
+  const [data, setData] = useState<PanchangData>(() => calculatePanchang(new Date()) as unknown as PanchangData);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isLoading, setIsLoading] = useState(true);
   const [isLive, setIsLive] = useState(false);
@@ -56,7 +37,7 @@ export default function DailyPanchang() {
     }, 1000);
 
     const getPanchang = async () => {
-      const dateKey = `panchang_v3_${new Date().toISOString().split('T')[0]}_${i18n.language}`;
+      const dateKey = `panchang_v4_${new Date().toISOString().split('T')[0]}_${i18n.language}`;
       const cached = localStorage.getItem(dateKey);
 
       if (cached) {
@@ -78,7 +59,7 @@ export default function DailyPanchang() {
         localStorage.setItem(dateKey, JSON.stringify(liveData));
       } catch (error) {
         console.error('Failed to fetch live panchang:', error);
-        setData(fallbackPanchang);
+        setData(calculatePanchang(new Date()) as unknown as PanchangData);
         setIsLive(false);
       } finally {
         setIsLoading(false);

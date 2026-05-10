@@ -1,16 +1,19 @@
 import React, { useEffect, useState } from 'react';
-import { db, auth } from '../firebase';
-import { collection, query, where, getDocs, doc, getDoc, deleteDoc } from 'firebase/firestore';
-import { Product, WishlistItem } from '../types';
+import { auth } from '../firebase';
+import { Product } from '../types';
 import { motion } from 'framer-motion';
 import { Heart, ShoppingCart, Trash2, IndianRupee, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { addToCart } from '../lib/cart';
 import { formatIndianRupees } from '../lib/utils';
+import AuthModal from '../components/AuthModal';
+
+type WishlistProduct = Product & { wishlistId: string; type: string };
 
 export default function Wishlist() {
-  const [items, setItems] = useState<(Product & { wishlistId: string })[]>([]);
+  const [items, setItems] = useState<WishlistProduct[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchWishlist = async () => {
@@ -18,40 +21,25 @@ export default function Wishlist() {
         setLoading(false);
         return;
       }
-
       try {
-        const wishlistRef = collection(db, 'wishlist');
-        const q = query(wishlistRef, where('userId', '==', auth.currentUser.uid), where('type', '==', 'product'));
-        const snapshot = await getDocs(q);
-        
-        const productPromises = snapshot.docs.map(async (wishDoc) => {
-          const data = wishDoc.data() as WishlistItem;
-          const productDoc = await getDoc(doc(db, 'products', data.itemId));
-          if (productDoc.exists()) {
-            return {
-              id: productDoc.id,
-              ...productDoc.data(),
-              wishlistId: wishDoc.id
-            } as Product & { wishlistId: string };
-          }
-          return null;
-        });
-
-        const products = (await Promise.all(productPromises)).filter(p => p !== null) as (Product & { wishlistId: string })[];
-        setItems(products);
+        const res = await fetch(`/api/wishlist/${auth.currentUser.uid}`);
+        if (res.ok) {
+          const data = await res.json();
+          setItems(data);
+        }
       } catch (error) {
         console.error('Error fetching wishlist:', error);
       } finally {
         setLoading(false);
       }
     };
-
     fetchWishlist();
   }, []);
 
-  const removeItem = async (wishlistId: string) => {
+  const removeItem = async (wishlistId: string, itemId: string, type: string) => {
+    if (!auth.currentUser) return;
     try {
-      await deleteDoc(doc(db, 'wishlist', wishlistId));
+      await fetch(`/api/wishlist/${auth.currentUser.uid}/${itemId}?type=${type}`, { method: 'DELETE' });
       setItems(prev => prev.filter(item => item.wishlistId !== wishlistId));
     } catch (error) {
       console.error('Error removing item from wishlist:', error);
@@ -59,13 +47,7 @@ export default function Wishlist() {
   };
 
   const handleAddToCart = (product: Product) => {
-    addToCart({
-      id: product.id,
-      name: product.name,
-      price: product.price,
-      image: product.image
-    });
-    alert(`Added ${product.name} to cart!`);
+    addToCart({ id: product.id, name: product.name, price: product.price, image: product.image });
   };
 
   if (loading) {
@@ -80,13 +62,17 @@ export default function Wishlist() {
     return (
       <div className="min-h-[70vh] flex flex-col items-center justify-center px-4 bg-white dark:bg-stone-950">
         <Heart className="w-16 h-16 text-stone-200 dark:text-stone-800 mb-6" />
-        <h2 className="text-2xl font-serif font-bold text-stone-900 dark:text-white mb-2">Please Login</h2>
+        <h2 className="text-2xl font-serif font-bold text-stone-900 dark:text-white mb-2">Please Sign In</h2>
         <p className="text-stone-600 dark:text-stone-400 mb-8 text-center max-w-md">
-          You need to be logged in to view your wishlist and save your favorite spiritual items.
+          Sign in to view your saved items and wishlist.
         </p>
-        <Link to="/login" className="bg-orange-500 text-white px-8 py-3 rounded-full font-bold hover:bg-orange-600 transition-all">
-          Login Now
-        </Link>
+        <button
+          onClick={() => setIsAuthModalOpen(true)}
+          className="bg-orange-500 text-white px-8 py-3 rounded-full font-bold hover:bg-orange-600 transition-all"
+        >
+          Sign In
+        </button>
+        <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
       </div>
     );
   }
@@ -96,10 +82,10 @@ export default function Wishlist() {
       <section className="bg-stone-50 dark:bg-stone-900/50 py-16 mb-12 border-b border-stone-200 dark:border-stone-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-6">
-            <img 
-              src="/logo/icon-only.png" 
-              alt="PunyaSeva" 
-              className="h-12 w-auto" 
+            <img
+              src="/logo/icon-only.svg"
+              alt="PunyaSeva"
+              className="h-12 w-auto"
               referrerPolicy="no-referrer"
             />
           </div>
@@ -145,8 +131,9 @@ export default function Wishlist() {
                     />
                   </Link>
                   <button
-                    onClick={() => removeItem(product.wishlistId)}
+                    onClick={() => removeItem(product.wishlistId, product.id, product.type)}
                     className="absolute top-4 right-4 p-2 bg-white/90 dark:bg-stone-900/90 backdrop-blur-sm rounded-full shadow-sm hover:bg-red-50 dark:hover:bg-red-900/20 text-stone-400 hover:text-red-500 transition-colors"
+                    aria-label="Remove from wishlist"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -160,7 +147,6 @@ export default function Wishlist() {
                       {product.name}
                     </h3>
                   </Link>
-                  
                   <div className="mt-auto flex justify-between items-center gap-3">
                     <div className="flex items-center text-xl font-serif font-bold text-orange-600 dark:text-orange-400">
                       <IndianRupee className="w-4 h-4" />
@@ -170,6 +156,7 @@ export default function Wishlist() {
                       type="button"
                       onClick={() => handleAddToCart(product)}
                       className="bg-stone-900 dark:bg-stone-700 text-white px-4 py-2 rounded-xl hover:bg-orange-500 transition-colors flex items-center space-x-2 text-sm font-bold"
+                      aria-label={`Add ${product.name} to cart`}
                     >
                       <ShoppingCart className="w-4 h-4" />
                       <span>Add</span>

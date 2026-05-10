@@ -42,12 +42,17 @@ export default function PujaDetail() {
     return isOnline ? (puja.onlinePrice || 0) : (puja.offlinePrice || 0);
   }, [puja, isOnline]);
 
-  const pujaImages = useMemo(() => [
-    `https://picsum.photos/seed/${id}_1/1200/800`,
-    `https://picsum.photos/seed/${id}_2/1200/800`,
-    `https://picsum.photos/seed/${id}_3/1200/800`,
-    `https://picsum.photos/seed/${id}_4/1200/800`,
-  ], [id]);
+  const pujaImages = useMemo(() => {
+    const base: string[] = [];
+    const fallbacks = [
+      'https://images.unsplash.com/photo-1544607549-d75d4156674e?auto=format&fit=crop&q=80&w=1200',
+      'https://images.unsplash.com/photo-1603525545933-722a95c9a0b9?auto=format&fit=crop&q=80&w=1200',
+      'https://images.unsplash.com/photo-1584277274775-5231c1837865?auto=format&fit=crop&q=80&w=1200',
+      'https://images.unsplash.com/photo-1561361058-c24cecae35ca?auto=format&fit=crop&q=80&w=1200',
+    ];
+    const all = [...base, ...fallbacks];
+    return all.slice(0, 4);
+  }, [puja]);
 
   useEffect(() => {
     const fetchPuja = async () => {

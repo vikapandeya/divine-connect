@@ -66,13 +66,17 @@ function julianDay(utcDate: Date): number {
   const A = Math.floor((14 - m) / 12);
   const Y = y + 4800 - A;
   const M = m + 12 * A - 3;
+  // Subtract 0.5 to convert from midnight-based civil JD to standard astronomical JD
+  // (standard JD epoch is noon; without correction all T values are 0.5 days too large,
+  // causing ~6.6° error in moon longitude and wrong tithi)
   return d
     + Math.floor((153 * M + 2) / 5)
     + 365 * Y
     + Math.floor(Y / 4)
     - Math.floor(Y / 100)
     + Math.floor(Y / 400)
-    - 32045;
+    - 32045
+    - 0.5;
 }
 
 // ── Sun tropical longitude (degrees) ─────────────────────────────────────────
@@ -177,6 +181,83 @@ function slotTimes(slot: number, sunriseH: number, slotSize: number) {
   return { start, end: start + slotSize };
 }
 
+// ── Moon ecliptic latitude (degrees, dominant terms) ─────────────────────────
+function moonLat(jd: number): number {
+  const T  = (jd - 2451545) / 36525;
+  const Mm = (134.9633964 + 477198.8675055 * T + 0.0087414 * T * T) * DEG;
+  const F  = (93.2720950  + 483202.0175233 * T - 0.0036539 * T * T) * DEG;
+  const D  = (297.8501921 + 445267.1114034 * T - 0.0018819 * T * T) * DEG;
+  const Ms = (357.5291092 + 35999.0502909  * T - 0.0001536 * T * T) * DEG;
+  return  5.128122 * Math.sin(F)
+        + 0.280602 * Math.sin(Mm + F)
+        + 0.277693 * Math.sin(Mm - F)
+        + 0.173237 * Math.sin(2 * D - F)
+        + 0.055413 * Math.sin(2 * D - Mm + F)
+        + 0.046272 * Math.sin(2 * D - Mm - F)
+        + 0.032573 * Math.sin(2 * D + F)
+        + 0.017198 * Math.sin(2 * Mm + F)
+        + 0.009266 * Math.sin(2 * D + Mm - F)
+        + 0.008823 * Math.sin(2 * Mm - F)
+        - 0.008247 * Math.sin(2 * D - Ms - F);
+}
+
+// ── Moon rise / set (altitude scanning) ──────────────────────────────────────
+function moonriseSetUTC(year: number, month: number, day: number, lat: number, lon: number): { rise: number; set: number } {
+  // JD at midnight UTC for the requested date
+  const jd0 = julianDay(new Date(Date.UTC(year, month - 1, day, 0, 0, 0)));
+
+  // Moon altitude (degrees) at utcH hours relative to midnight UTC of the date
+  function moonAltDeg(utcH: number): number {
+    const jd = jd0 + utcH / 24;
+    const mLonRad = moonLon(jd) * DEG;
+    const mLatRad = moonLat(jd) * DEG; // ecliptic latitude correction
+    const T = (jd - 2451545) / 36525;
+    const oblRad = (23.439 - 0.0000004 * T) * DEG;
+    // Ecliptic → Equatorial (with latitude)
+    const ra  = Math.atan2(
+      Math.sin(mLonRad) * Math.cos(oblRad) - Math.tan(mLatRad) * Math.sin(oblRad),
+      Math.cos(mLonRad)
+    );
+    const dec = Math.asin(
+      Math.sin(mLatRad) * Math.cos(oblRad) + Math.cos(mLatRad) * Math.sin(oblRad) * Math.sin(mLonRad)
+    );
+    // Greenwich Mean Sidereal Time (degrees)
+    const gst = ((280.46061837 + 360.98564736629 * (jd - 2451545)) % 360 + 360) % 360;
+    // Local Hour Angle (radians) — lon is degrees east
+    const ha = (gst + lon) * DEG - ra;
+    const latR = lat * DEG;
+    return Math.asin(Math.sin(latR) * Math.sin(dec) + Math.cos(latR) * Math.cos(dec) * Math.cos(ha)) * RAD;
+  }
+
+  // Effective horizon altitude for moon:
+  // Moon parallax ≈ 0.9507°, refraction ≈ 0.5667°, semi-diameter ≈ 0.2725°
+  // h0 = 0.7275 * 0.9507° - 0.5667° ≈ +0.125° (moon parallax > refraction)
+  const h0 = 0.125;
+  const step = 0.25; // 15-minute steps
+
+  // Scan from UTC -8 to UTC +32 (covers the full IST calendar day with buffer)
+  let rise = 6.0, set = 18.0;
+  let riseFound = false, setFound = false;
+  let prev = moonAltDeg(-8);
+
+  for (let i = 1; i <= 160; i++) {
+    const utcH = -8 + i * step;
+    const curr = moonAltDeg(utcH);
+    if (!riseFound && prev < h0 && curr >= h0) {
+      // Interpolate crossing
+      rise = (utcH - step) + step * (h0 - prev) / (curr - prev);
+      riseFound = true;
+    }
+    if (riseFound && !setFound && prev >= h0 && curr < h0) {
+      set = (utcH - step) + step * (h0 - prev) / (curr - prev);
+      setFound = true;
+    }
+    prev = curr;
+  }
+
+  return { rise, set };
+}
+
 // ── Main export ───────────────────────────────────────────────────────────────
 export function calculatePanchang(date: Date, lat = 28.6139, lon = 77.2090) {
   const y = date.getFullYear(), m = date.getMonth() + 1, d = date.getDate();
@@ -231,8 +312,10 @@ export function calculatePanchang(date: Date, lat = 28.6139, lon = 77.2090) {
   const sunRashi  = RASHIS[Math.floor(sSid / 30)];
   const moonRashi = RASHIS[Math.floor(mSid / 30)];
 
-  // Hindu month (from sun sidereal position)
-  const hinduMonth = HINDU_MONTHS[Math.floor(sSid / 30)];
+  // Hindu month (Purnimanta calendar — North Indian style)
+  // In Krishna Paksha (elongation ≥ 180°) the month name is one ahead of sun's rashi
+  // In Shukla Paksha it is already one ahead (Mesha sun → Vaishakha month)
+  const hinduMonth = HINDU_MONTHS[(Math.floor(sSid / 30) + 1 + (elongation >= 180 ? 1 : 0)) % 12];
 
   // Vikram Samvat
   // VS 2082 (Siddharthi): Chaitra 2025 - Phalguna 2026 → dates up to ~March 2026
@@ -248,7 +331,7 @@ export function calculatePanchang(date: Date, lat = 28.6139, lon = 77.2090) {
     'Nala','Pingala','Kalayukti','Siddharthi','Raudri','Durmati','Dundubhi','Rudhirodgari',
     'Raktakshi','Krodhana','Kshaya',
   ];
-  const vsName = SAMVATSARAS[(vs - 1) % 60];
+  const vsName = SAMVATSARAS[(vs + 10) % 60];
 
   // Rahukaal, Gulika, Yamaganda (each = 1/8 of day duration, in UTC)
   const dayDurationUTC = setUTC - riseUTC;
@@ -262,11 +345,8 @@ export function calculatePanchang(date: Date, lat = 28.6139, lon = 77.2090) {
   // Abhijit Muhurat — 24 min either side of solar noon (local)
   const solarNoonUTC = (riseUTC + setUTC) / 2;
 
-  // Moon times (approximate — moon rises ~50 min later each day relative to sun)
-  const dayOfYear = Math.floor((new Date(y,m-1,d) as any - new Date(y,0,0) as any) / 86400000);
-  const moonLag = (dayOfYear * 0.033) % 24; // rough offset
-  const moonRiseUTC = riseUTC + moonLag;
-  const moonSetUTC  = moonRiseUTC + 12.4;
+  // Moon rise/set via altitude scanning (replaces inaccurate dayOfYear approximation)
+  const { rise: moonRiseUTC, set: moonSetUTC } = moonriseSetUTC(y, m, d, lat, lon);
 
   return {
     tithi: tithiName,

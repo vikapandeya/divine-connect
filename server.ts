@@ -70,6 +70,7 @@ const __dirname = path.dirname(__filename);
 
 let adapter: DatabaseAdapter;
 let firebaseConfig: any = {};
+let adminDb: admin.firestore.Firestore | null = null;
 
 async function retryAsync<T>(fn: () => Promise<T>, retries = 3, delayMs = 1000): Promise<T> {
   try {
@@ -252,6 +253,7 @@ async function initDatabase() {
       conn.release();
       adapter = new MySQLAdapter(pool);
       console.log("[DB] MySQL Adapter initialized successfully.");
+      // Still init admin for auth/notifications; Firestore used for wishlist + social auth
       return;
     } catch (mysqlErr: any) {
       console.error(`[DB] MySQL connection failed (${mysqlErr.code || mysqlErr.message}). Auto-falling back to Firestore...`);
@@ -315,6 +317,7 @@ async function initDatabase() {
     console.log(`[Firebase] Canary write successful for ${label}`);
     
     adapter = new FirestoreAdapter(db);
+    adminDb = db;
     return true;
   };
 
@@ -343,7 +346,9 @@ async function initDatabase() {
   if (!success) {
     console.error("[Firebase] ALL Firestore connection attempts failed. Falling back to ADC (default)");
     try {
-      adapter = new FirestoreAdapter(admin.firestore());
+      const fallbackDb = admin.firestore();
+      adapter = new FirestoreAdapter(fallbackDb);
+      adminDb = fallbackDb;
     } catch (e) {
       console.error("[Firebase] ADC Fallback failed too.");
     }
@@ -1042,9 +1047,11 @@ async function startServer() {
       }
       const otp = Math.floor(100000 + Math.random() * 900000).toString();
       passwordResetOTPs.set(email.toLowerCase(), { otp, expiresAt: Date.now() + 15 * 60 * 1000 });
-      console.log(`[Auth] Password reset OTP for ${email}: ${otp}`);
       // TODO: send OTP via email (nodemailer/SendGrid) when email service is configured
-      res.json({ success: true, message: "OTP sent to your email address.", ...(process.env.NODE_ENV !== 'production' && { otp }) });
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`[Auth][DEV] Password reset OTP for ${email}: ${otp}`);
+      }
+      res.json({ success: true, message: "OTP sent to your email address.", ...(process.env.NODE_ENV === 'development' && { otp }) });
     } catch (error) {
       console.error("[API] POST /api/auth/request-password-reset error:", error);
       res.status(500).json({ error: (error as Error).message });
@@ -1574,6 +1581,90 @@ async function startServer() {
     } catch (error) {
       console.error("[API] DELETE /api/products/:id error:", error);
       res.status(500).json({ error: (error as Error).message });
+    }
+  });
+
+  // ── Wishlist endpoints (admin Firestore for storage; adapter for product lookup) ──
+
+  // GET /api/wishlist/:userId — fetch all wishlist items with product data resolved
+  app.get("/api/wishlist/:userId", async (req, res) => {
+    const { userId } = req.params;
+    try {
+      const db = adminDb || admin.firestore();
+      const snap = await db.collection("wishlist")
+        .where("userId", "==", userId)
+        .get();
+
+      const items = await Promise.all(snap.docs.map(async (d) => {
+        const data = d.data();
+        let productData: any = null;
+        try {
+          productData = await adapter.getProduct(data.itemId);
+        } catch {}
+        if (!productData) return null;
+        return { ...productData, wishlistId: d.id, type: data.type };
+      }));
+
+      res.json(items.filter(Boolean));
+    } catch (err: any) {
+      console.error("[API] GET /api/wishlist/:userId error:", err.message);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // POST /api/wishlist — add an item { userId, itemId, type }
+  app.post("/api/wishlist", async (req, res) => {
+    const { userId, itemId, type } = req.body;
+    if (!userId || !itemId || !type) return res.status(400).json({ error: "userId, itemId, type required" });
+    try {
+      const db = adminDb || admin.firestore();
+      const existing = await db.collection("wishlist")
+        .where("userId", "==", userId)
+        .where("itemId", "==", itemId)
+        .where("type", "==", type)
+        .limit(1).get();
+      if (!existing.empty) return res.json({ success: true, id: existing.docs[0].id });
+      const ref = await db.collection("wishlist").add({ userId, itemId, type, createdAt: new Date() });
+      res.json({ success: true, id: ref.id });
+    } catch (err: any) {
+      console.error("[API] POST /api/wishlist error:", err.message);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // DELETE /api/wishlist/:userId/:itemId — remove an item
+  app.delete("/api/wishlist/:userId/:itemId", async (req, res) => {
+    const { userId, itemId } = req.params;
+    const type = req.query.type as string || 'product';
+    try {
+      const db = adminDb || admin.firestore();
+      const snap = await db.collection("wishlist")
+        .where("userId", "==", userId)
+        .where("itemId", "==", itemId)
+        .where("type", "==", type)
+        .get();
+      await Promise.all(snap.docs.map(d => d.ref.delete()));
+      res.json({ success: true });
+    } catch (err: any) {
+      console.error("[API] DELETE /api/wishlist error:", err.message);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // GET /api/wishlist/:userId/:itemId/check — check if item is wishlisted
+  app.get("/api/wishlist/:userId/:itemId/check", async (req, res) => {
+    const { userId, itemId } = req.params;
+    const type = req.query.type as string || 'product';
+    try {
+      const db = adminDb || admin.firestore();
+      const snap = await db.collection("wishlist")
+        .where("userId", "==", userId)
+        .where("itemId", "==", itemId)
+        .where("type", "==", type)
+        .limit(1).get();
+      res.json({ inWishlist: !snap.empty });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
     }
   });
 
@@ -2561,6 +2652,73 @@ Rules:
       if (isRateLimit) return res.status(429).json({ error: "Rate limit reached" });
       console.error("[AI] Chat error:", err.message);
       res.status(500).json({ error: "Failed to connect to divine insights" });
+    }
+  });
+
+  // POST /api/ai/support { message, history } — Contact page support chat
+  app.post("/api/ai/support", async (req, res) => {
+    const { message, history } = req.body;
+    if (!message?.trim()) return res.status(400).json({ error: "Message is required" });
+
+    const SUPPORT_SYSTEM = `You are PunyaSeva AI Support.
+Your role is to help users with:
+- Puja bookings (online/offline)
+- Darshan and Prasad guidance
+- Order status and delivery support
+- Account access and sign-in issues
+- Vendor onboarding questions (how to join as a priest, temple, or shop)
+
+Puja Booking Flow:
+If a user expresses interest in booking a puja:
+1. Prompt them for the type of puja or service they are interested in. Provide a selectable list in this format: [OPTIONS: Ganesh Puja, Lakshmi Puja, Satyanarayan Katha, Durga Puja, Saraswati Puja].
+2. Prompt them for their preferred date.
+3. Prompt them for their preferred time slot. Provide a selectable list: [OPTIONS: Morning, Afternoon, Evening].
+4. Ask if they prefer online or offline. Provide a selectable list: [OPTIONS: Online (Virtual), Offline (In-person)].
+5. Once you have these details, guide them to /services to finalize.
+
+Rules:
+- Be concise, practical, and warm.
+- Stay focused on platform support.
+- Use conversation history to maintain context.
+- If the user needs direct human help, tell them to use the Contact Us email or phone.
+- Do not invent order status, account status, or booking confirmations.
+- Use a helpful, spiritual, yet professional tone.`;
+
+    try {
+      let reply = "";
+
+      if (aiClient) {
+        try {
+          const formattedHistory = (history || []).map((m: any) => ({
+            role: m.role === 'assistant' ? 'model' : 'user',
+            parts: [{ text: m.content || '' }]
+          }));
+          formattedHistory.push({ role: 'user', parts: [{ text: message }] });
+
+          const response = await withRetry(() => aiClient!.models.generateContent({
+            model: "gemini-2.0-flash",
+            contents: formattedHistory,
+            config: { systemInstruction: SUPPORT_SYSTEM, temperature: 0.5 }
+          }));
+          reply = response.text || "";
+        } catch (geminiErr: any) {
+          console.warn("[AI Support] Gemini failed:", geminiErr.message);
+        }
+      }
+
+      if (!reply) {
+        const msgs = (history || [])
+          .filter((m: any) => m.role === 'user' || m.role === 'assistant')
+          .map((m: any) => ({ role: m.role === 'assistant' ? 'assistant' : 'user', content: m.content || '' }));
+        msgs.push({ role: 'user', content: message });
+        reply = await openRouterChatMessages(SUPPORT_SYSTEM, msgs);
+      }
+
+      if (!reply) reply = "Our support team is unavailable right now. Please email support@punyaseva.in.";
+      res.json({ reply });
+    } catch (err: any) {
+      console.error("[AI] Support chat error:", err.message);
+      res.status(500).json({ error: "Support AI is currently unavailable." });
     }
   });
 

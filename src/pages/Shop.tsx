@@ -7,8 +7,7 @@ import { useSearchParams, Link } from 'react-router-dom';
 import { addToCart } from '../lib/cart';
 import { formatIndianRupees } from '../lib/utils';
 import { addToWishlist, removeFromWishlist, isInWishlist } from '../lib/wishlist';
-import { auth, db } from '../firebase';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { auth } from '../firebase';
 import AIGroundedSearch from '../components/AIGroundedSearch';
 
 const categories = ['all', ...PRODUCT_CATEGORIES];
@@ -133,11 +132,15 @@ export default function Shop() {
   useEffect(() => {
     const fetchWishlist = async () => {
       if (!auth.currentUser) return;
-      const wishlistRef = collection(db, 'wishlist');
-      const q = query(wishlistRef, where('userId', '==', auth.currentUser.uid), where('type', '==', 'product'));
-      const snapshot = await getDocs(q);
-      const itemIds = new Set(snapshot.docs.map(doc => doc.data().itemId));
-      setWishlistItems(itemIds);
+      try {
+        const res = await fetch(`/api/wishlist/${auth.currentUser.uid}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        const itemIds = new Set<string>((data as { itemId: string }[]).map(w => w.itemId));
+        setWishlistItems(itemIds);
+      } catch {
+        // wishlist load failure is non-critical
+      }
     };
     fetchWishlist();
   }, []);

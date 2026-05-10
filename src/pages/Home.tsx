@@ -23,13 +23,14 @@ import {
   MapPin,
   Compass,
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { addToCart } from '../lib/cart';
 import { formatIndianRupees } from '../lib/utils';
 import DailyPanchang from '../components/DailyPanchang';
 import DailyHoroscope from '../components/DailyHoroscope';
 import AuthModal from '../components/AuthModal';
 import { auth } from '../firebase';
+import { useAuth } from '../hooks/useAuth';
 
 const services = [
   {
@@ -84,42 +85,12 @@ const services = [
     id: 'yatra',
     title: 'Yatra',
     description: 'Guided pilgrimage tours to India\'s most sacred sites.',
-    icon: <MapPin className="w-8 h-8 text-orange-600" />,
+    icon: <Compass className="w-8 h-8 text-orange-600" />,
     color: 'bg-orange-50',
     link: '/services/yatra',
   },
 ];
 
-const featuredProducts = [
-  {
-    id: '1',
-    name: 'Brass Ganesha Idol',
-    price: 1250,
-    image: '/products/ganesha-idol.jpg',
-    rating: 4.8,
-  },
-  {
-    id: '2',
-    name: 'Sandalwood Incense Sticks',
-    price: 150,
-    image: '/products/incense-sticks.jpg',
-    rating: 4.5,
-  },
-  {
-    id: '3',
-    name: 'Rudraksha Mala',
-    price: 450,
-    image: '/products/rudraksha-mala.jpg',
-    rating: 4.9,
-  },
-  {
-    id: '8',
-    name: 'Premium Brass Diya',
-    price: 499,
-    image: '/products/brass-diya.jpg',
-    rating: 4.7,
-  },
-];
 
 const feedback = [
   {
@@ -164,7 +135,10 @@ const spiritualQuotes = [
 
 export default function Home() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const { user: currentUser } = useAuth();
   const [feedbackList, setFeedbackList] = useState(feedback);
+  const [featuredProducts, setFeaturedProducts] = useState<any[]>([]);
   const [visitorStats, setVisitorStats] = useState<any>({ new: 0, total: 0 });
   const [formData, setFormData] = useState({
     name: '',
@@ -179,19 +153,30 @@ export default function Home() {
   const [currentQuote, setCurrentQuote] = useState(spiritualQuotes[0]);
 
   useEffect(() => {
+    const fetchFeaturedProducts = async () => {
+      try {
+        const res = await fetch('/api/products');
+        if (res.ok) {
+          const data = await res.json();
+          setFeaturedProducts(data.slice(0, 4));
+        }
+      } catch {
+        // fallback: leave featuredProducts empty, section won't render
+      }
+    };
+    fetchFeaturedProducts();
+  }, []);
+
+  useEffect(() => {
     const dayOfYear = Math.floor((new Date().getTime() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000);
     setCurrentQuote(spiritualQuotes[dayOfYear % spiritualQuotes.length]);
     fetchFeedback();
     fetchVisitorStats();
     incrementVisitorCount();
 
-    // Pre-fill name if user is logged in
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      if (user) {
-        setFormData(prev => ({ ...prev, name: user.displayName || '' }));
-      }
-    });
-    return () => unsubscribe();
+    if (currentUser) {
+      setFormData(prev => ({ ...prev, name: currentUser.displayName || '' }));
+    }
   }, []);
 
   const fetchVisitorStats = async () => {
@@ -233,12 +218,11 @@ export default function Home() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!auth.currentUser) {
+    if (!currentUser) {
       setIsAuthModalOpen(true);
       return;
     }
 
-    console.log('Submitting feedback:', formData);
     setIsSubmitting(true);
     try {
       const response = await fetch('/api/feedback', {
@@ -302,7 +286,7 @@ export default function Home() {
               onSubmit={(e) => {
                 e.preventDefault();
                 const q = (e.currentTarget.elements.namedItem('search') as HTMLInputElement).value;
-                if (q.trim()) window.location.href = `/search?q=${encodeURIComponent(q.trim())}`;
+                if (q.trim()) navigate(`/search?q=${encodeURIComponent(q.trim())}`);
               }}
               className="relative max-w-xl mb-8 group"
             >
@@ -515,23 +499,22 @@ export default function Home() {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/20 to-transparent" />
                 
                 <div className="absolute top-6 left-6 flex gap-3">
-                  <div className="bg-red-600 px-4 py-1.5 rounded-full flex items-center gap-2 shadow-xl">
-                    <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
-                    <span className="text-[10px] font-bold uppercase tracking-widest">{t('home.live')}</span>
-                  </div>
-                  <div className="bg-black/40 backdrop-blur-xl px-4 py-1.5 rounded-full flex items-center gap-2 border border-white/10">
-                    <User className="w-3.5 h-3.5 text-stone-300" />
-                    <span className="text-[10px] font-bold text-white">{live.viewers}</span>
+                  <div className="bg-orange-600/80 backdrop-blur-sm px-4 py-1.5 rounded-full flex items-center gap-2 shadow-xl border border-orange-400/30">
+                    <Sparkles className="w-3 h-3 text-white" />
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-white">Coming Soon</span>
                   </div>
                 </div>
 
                 <div className="absolute bottom-4 sm:bottom-8 left-4 sm:left-8 right-4 sm:right-8">
                   <p className="text-orange-400 text-xs font-bold uppercase tracking-[0.2em] mb-1 sm:mb-2">{t(live.temple)}</p>
                   <h3 className="text-xl sm:text-3xl font-serif font-bold mb-3 sm:mb-6">{t(live.title)}</h3>
-                  <button className="w-full py-3 sm:py-4 bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl font-bold hover:bg-white hover:text-stone-950 transition-all flex items-center justify-center gap-3 group/btn text-sm sm:text-base">
+                  <Link
+                    to="/services"
+                    className="w-full py-3 sm:py-4 bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl font-bold hover:bg-white hover:text-stone-950 transition-all flex items-center justify-center gap-3 group/btn text-sm sm:text-base"
+                  >
                     <Play className="w-4 h-4 sm:w-5 sm:h-5 fill-current group-hover/btn:scale-110 transition-transform" />
                     {t('home.watchLive')}
-                  </button>
+                  </Link>
                 </div>
               </motion.div>
             ))}

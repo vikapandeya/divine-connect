@@ -87,6 +87,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     { to: '/shop', label: t('Shop') },
     { to: '/temples', label: t('Temples') },
     { to: '/astrology', label: t('AI Astrology') },
+    { to: '/about', label: t('About') },
+    { to: '/contact', label: t('Contact') },
   ];
 
   useEffect(() => {
@@ -130,7 +132,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className={`min-h-screen font-sans transition-colors duration-300 overflow-x-hidden ${resolvedTheme === 'dark' ? 'dark bg-stone-950 text-stone-100' : 'bg-stone-50 text-stone-900'}`}>
+    <div className={`min-h-screen font-sans transition-colors duration-300 overflow-x-hidden ${resolvedTheme === 'dark' ? 'dark text-stone-100' : 'text-stone-900'}`} style={{ backgroundColor: resolvedTheme === 'dark' ? '#0D0A1E' : '#FFFDF0' }}>
       <ThemePrompt />
       <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
       
@@ -166,7 +168,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             {/* Logo */}
             <Link to="/" className="flex items-center shrink-0">
               <img
-                src={resolvedTheme === 'dark' ? '/logo/dark-logo.svg' : '/logo/horizontal-logo.svg'}
+                src={resolvedTheme === 'dark' ? '/logo/dark-horizontal-logo.svg' : '/logo/horizontal-logo.svg'}
                 alt="PunyaSeva"
                 className="h-10 w-auto hidden md:block"
                 referrerPolicy="no-referrer"
@@ -216,7 +218,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 />
               </form>
               
-              <Link to="/cart" className="relative p-2 text-stone-600 dark:text-stone-400 hover:text-orange-500 dark:hover:text-orange-500 transition-colors">
+              <Link to="/cart" aria-label="Shopping cart" className="relative p-2 text-stone-600 dark:text-stone-400 hover:text-orange-500 dark:hover:text-orange-500 transition-colors">
                 <ShoppingCart className="w-6 h-6" />
                 {cartCount > 0 && (
                   <span className="absolute top-0 right-0 bg-orange-500 text-white text-[10px] font-bold rounded-full min-w-4 h-4 px-1 flex items-center justify-center border-2 border-white dark:border-stone-900">
@@ -413,7 +415,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   {/* Full logo */}
                   <div className="pb-3 mb-1 border-b border-stone-100 dark:border-stone-800">
                     <img
-                      src={resolvedTheme === 'dark' ? '/logo/dark-logo.svg' : '/logo/horizontal-logo.svg'}
+                      src={resolvedTheme === 'dark' ? '/logo/dark-horizontal-logo.svg' : '/logo/horizontal-logo.svg'}
                       alt="PunyaSeva"
                       className="h-8 w-auto"
                       referrerPolicy="no-referrer"
@@ -568,6 +570,26 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       {/* Footer */}
       <footer className="bg-stone-900 text-stone-400 py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+          {/* Sacred Om & Shloka banner */}
+          <div className="text-center mb-10 pb-8 border-b border-stone-800/60">
+            <div
+              className="text-6xl animate-om-pulse mb-3 leading-none font-devanagari"
+              style={{ color: 'rgba(245,158,11,0.55)', textShadow: '0 0 40px rgba(245,158,11,0.2)' }}
+            >
+              ॐ
+            </div>
+            <p className="font-devanagari text-base text-stone-400 leading-relaxed tracking-wide mb-1">
+              सर्वे भवन्तु सुखिनः। सर्वे सन्तु निरामयाः।
+            </p>
+            <p className="font-devanagari text-base text-stone-400 leading-relaxed tracking-wide mb-2">
+              सर्वे भद्राणि पश्यन्तु। मा कश्चिद्दुःखभाग्भवेत्।।
+            </p>
+            <p className="text-xs text-stone-600 italic">
+              May all be happy · May all be free from illness · May all see auspiciousness · May none suffer
+            </p>
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
             <div className="col-span-1 sm:col-span-2 md:col-span-2">
               <div className="mb-6">
@@ -604,7 +626,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             </div>
           </div>
           <div className="mt-12 pt-8 border-t border-stone-800 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs">
-            <p>&copy; 2026 PunyaSeva. {t('All spiritual rights reserved.')}</p>
+            <p className="flex items-center gap-2">
+              <span className="font-devanagari text-amber-700/60 text-base">🪷</span>
+              &copy; 2026 PunyaSeva. {t('All spiritual rights reserved.')}
+              <span className="font-devanagari text-amber-700/60 text-base">🪷</span>
+            </p>
             <div className="flex space-x-6">
               <Link to="/terms" className="hover:text-orange-500 transition-colors">{t('Terms of Service')}</Link>
               <Link to="/privacy" className="hover:text-orange-500 transition-colors">{t('Privacy Policy')}</Link>

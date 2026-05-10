@@ -39,7 +39,7 @@ export default function ProtectedRoute({ children, requiredRole }: ProtectedRout
     let hasAccess = false;
 
     if (requiredRole === 'vendor') {
-      hasAccess = userRole === 'vendor' || userRole === 'devotee';
+      hasAccess = userRole === 'vendor' || userRole === 'admin';
     } else {
       hasAccess = userRole === requiredRole;
     }

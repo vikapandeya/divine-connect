@@ -1,7 +1,89 @@
-<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="200" height="200" rx="40" fill="#F97316"/>
-  <path d="M100 40L130 90H70L100 40Z" fill="white"/>
-  <path d="M100 160L70 110H130L100 160Z" fill="white"/>
-  <circle cx="100" cy="100" r="20" fill="white"/>
-  <text x="100" y="185" text-anchor="middle" fill="white" font-family="serif" font-weight="bold" font-size="24">PunyaSeva</text>
+<svg width="200" height="272" viewBox="0 0 200 272" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="bg2" cx="38%" cy="28%" r="75%">
+      <stop offset="0%"   stop-color="#FCD34D"/>
+      <stop offset="48%"  stop-color="#F97316"/>
+      <stop offset="100%" stop-color="#B45309"/>
+    </radialGradient>
+    <radialGradient id="cg2" cx="50%" cy="44%" r="40%">
+      <stop offset="0%"   stop-color="white" stop-opacity="0.26"/>
+      <stop offset="100%" stop-color="white" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="200" height="272" rx="42" fill="url(#bg2)"/>
+
+  <!-- Radiance centered on lotus (y=88) -->
+  <ellipse cx="100" cy="88" rx="72" ry="68" fill="url(#cg2)"/>
+
+  <!-- Outer ring guide -->
+  <circle cx="100" cy="88" r="52" fill="none" stroke="white"
+          stroke-width="0.6" stroke-opacity="0.18"/>
+
+  <!-- 8 outer petals (lotus centered at 100,88) -->
+  <g fill="white" opacity="0.38">
+    <path d="M100,87 Q83,62 100,36 Q117,62 100,87Z" transform="rotate(0   100 88)"/>
+    <path d="M100,87 Q83,62 100,36 Q117,62 100,87Z" transform="rotate(45  100 88)"/>
+    <path d="M100,87 Q83,62 100,36 Q117,62 100,87Z" transform="rotate(90  100 88)"/>
+    <path d="M100,87 Q83,62 100,36 Q117,62 100,87Z" transform="rotate(135 100 88)"/>
+    <path d="M100,87 Q83,62 100,36 Q117,62 100,87Z" transform="rotate(180 100 88)"/>
+    <path d="M100,87 Q83,62 100,36 Q117,62 100,87Z" transform="rotate(225 100 88)"/>
+    <path d="M100,87 Q83,62 100,36 Q117,62 100,87Z" transform="rotate(270 100 88)"/>
+    <path d="M100,87 Q83,62 100,36 Q117,62 100,87Z" transform="rotate(315 100 88)"/>
+  </g>
+
+  <!-- 8 inner petals -->
+  <g fill="white" opacity="0.72">
+    <path d="M100,87 Q87,68 100,49 Q113,68 100,87Z" transform="rotate(22.5  100 88)"/>
+    <path d="M100,87 Q87,68 100,49 Q113,68 100,87Z" transform="rotate(67.5  100 88)"/>
+    <path d="M100,87 Q87,68 100,49 Q113,68 100,87Z" transform="rotate(112.5 100 88)"/>
+    <path d="M100,87 Q87,68 100,49 Q113,68 100,87Z" transform="rotate(157.5 100 88)"/>
+    <path d="M100,87 Q87,68 100,49 Q113,68 100,87Z" transform="rotate(202.5 100 88)"/>
+    <path d="M100,87 Q87,68 100,49 Q113,68 100,87Z" transform="rotate(247.5 100 88)"/>
+    <path d="M100,87 Q87,68 100,49 Q113,68 100,87Z" transform="rotate(292.5 100 88)"/>
+    <path d="M100,87 Q87,68 100,49 Q113,68 100,87Z" transform="rotate(337.5 100 88)"/>
+  </g>
+
+  <!-- Central circle -->
+  <circle cx="100" cy="88" r="23" fill="white" opacity="0.16"/>
+  <circle cx="100" cy="88" r="18" fill="white" opacity="0.18"/>
+
+  <!-- OM symbol -->
+  <text x="100" y="103"
+        text-anchor="middle"
+        fill="white"
+        font-family="'Noto Serif Devanagari','Noto Sans Devanagari',serif"
+        font-size="38"
+        font-weight="700">ॐ</text>
+
+  <!-- Decorative separator -->
+  <line x1="36" y1="162" x2="164" y2="162"
+        stroke="white" stroke-width="0.7" stroke-opacity="0.35"/>
+  <circle cx="100" cy="162" r="2.5" fill="white" opacity="0.5"/>
+
+  <!-- Brand name -->
+  <text x="100" y="196"
+        text-anchor="middle"
+        fill="white"
+        font-family="'Cinzel Decorative','Cinzel','Trajan Pro','Times New Roman',serif"
+        font-size="21"
+        font-weight="700"
+        letter-spacing="0.5">PunyaSeva</text>
+
+  <!-- Tagline -->
+  <text x="100" y="218"
+        text-anchor="middle"
+        fill="rgba(255,255,255,0.72)"
+        font-family="'Cormorant Garamond','Garamond','Georgia',serif"
+        font-size="10.5"
+        font-style="italic"
+        letter-spacing="1.2">Seva · Shakti · Sanatan</text>
+
+  <!-- Bottom decorative dots -->
+  <g fill="white" opacity="0.4">
+    <circle cx="78"  cy="236" r="2"/>
+    <circle cx="100" cy="236" r="2.8"/>
+    <circle cx="122" cy="236" r="2"/>
+  </g>
 </svg>

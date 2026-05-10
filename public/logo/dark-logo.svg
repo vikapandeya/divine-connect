@@ -1,7 +1,66 @@
-<svg width="400" height="100" viewBox="0 0 400 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="80" height="80" x="10" y="10" rx="16" fill="#F97316"/>
-  <path d="M50 25L65 50H35L50 25Z" fill="white"/>
-  <path d="M50 75L35 50H65L50 75Z" fill="white"/>
-  <circle cx="50" cy="50" r="10" fill="white"/>
-  <text x="100" y="65" fill="white" font-family="serif" font-weight="bold" font-size="48">PunyaSeva</text>
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="darkBg" cx="50%" cy="50%" r="50%">
+      <stop offset="0%"   stop-color="#1C1233"/>
+      <stop offset="100%" stop-color="#0D0A1E"/>
+    </radialGradient>
+    <radialGradient id="goldenGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%"   stop-color="#FBBF24" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#FBBF24" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="petalOuter" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%"   stop-color="#F97316"/>
+      <stop offset="100%" stop-color="#FCD34D"/>
+    </linearGradient>
+    <linearGradient id="petalInner" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%"   stop-color="#FB923C"/>
+      <stop offset="100%" stop-color="#FBBF24"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Deep divine indigo background -->
+  <rect width="200" height="200" rx="42" fill="url(#darkBg)"/>
+
+  <!-- Golden aura -->
+  <circle cx="100" cy="100" r="70" fill="url(#goldenGlow)"/>
+
+  <!-- Outer guide ring -->
+  <circle cx="100" cy="100" r="55" fill="none" stroke="#FBBF24"
+          stroke-width="0.6" stroke-opacity="0.22"/>
+
+  <!-- 8 outer petals in golden gradient -->
+  <g opacity="0.55">
+    <path d="M100,99 Q83,74 100,48 Q117,74 100,99Z" fill="url(#petalOuter)" transform="rotate(0   100 100)"/>
+    <path d="M100,99 Q83,74 100,48 Q117,74 100,99Z" fill="url(#petalOuter)" transform="rotate(45  100 100)"/>
+    <path d="M100,99 Q83,74 100,48 Q117,74 100,99Z" fill="url(#petalOuter)" transform="rotate(90  100 100)"/>
+    <path d="M100,99 Q83,74 100,48 Q117,74 100,99Z" fill="url(#petalOuter)" transform="rotate(135 100 100)"/>
+    <path d="M100,99 Q83,74 100,48 Q117,74 100,99Z" fill="url(#petalOuter)" transform="rotate(180 100 100)"/>
+    <path d="M100,99 Q83,74 100,48 Q117,74 100,99Z" fill="url(#petalOuter)" transform="rotate(225 100 100)"/>
+    <path d="M100,99 Q83,74 100,48 Q117,74 100,99Z" fill="url(#petalOuter)" transform="rotate(270 100 100)"/>
+    <path d="M100,99 Q83,74 100,48 Q117,74 100,99Z" fill="url(#petalOuter)" transform="rotate(315 100 100)"/>
+  </g>
+
+  <!-- 8 inner petals in brighter gold -->
+  <g opacity="0.88">
+    <path d="M100,99 Q87,80 100,61 Q113,80 100,99Z" fill="url(#petalInner)" transform="rotate(22.5  100 100)"/>
+    <path d="M100,99 Q87,80 100,61 Q113,80 100,99Z" fill="url(#petalInner)" transform="rotate(67.5  100 100)"/>
+    <path d="M100,99 Q87,80 100,61 Q113,80 100,99Z" fill="url(#petalInner)" transform="rotate(112.5 100 100)"/>
+    <path d="M100,99 Q87,80 100,61 Q113,80 100,99Z" fill="url(#petalInner)" transform="rotate(157.5 100 100)"/>
+    <path d="M100,99 Q87,80 100,61 Q113,80 100,99Z" fill="url(#petalInner)" transform="rotate(202.5 100 100)"/>
+    <path d="M100,99 Q87,80 100,61 Q113,80 100,99Z" fill="url(#petalInner)" transform="rotate(247.5 100 100)"/>
+    <path d="M100,99 Q87,80 100,61 Q113,80 100,99Z" fill="url(#petalInner)" transform="rotate(292.5 100 100)"/>
+    <path d="M100,99 Q87,80 100,61 Q113,80 100,99Z" fill="url(#petalInner)" transform="rotate(337.5 100 100)"/>
+  </g>
+
+  <!-- Central dark circle so OM stands on deep bg -->
+  <circle cx="100" cy="100" r="24" fill="#0D0A1E" opacity="0.7"/>
+  <circle cx="100" cy="100" r="19" fill="#0D0A1E" opacity="0.55"/>
+
+  <!-- OM in gold -->
+  <text x="100" y="115"
+        text-anchor="middle"
+        fill="#FCD34D"
+        font-family="'Noto Serif Devanagari','Noto Sans Devanagari',serif"
+        font-size="40"
+        font-weight="700">ॐ</text>
 </svg>

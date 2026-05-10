@@ -205,11 +205,16 @@ export default function About() {
                   className="rounded-[2rem] border border-white/10 bg-white/5 backdrop-blur-sm p-6"
                 >
                   <div className="flex flex-col sm:flex-row items-start gap-5">
-                    <div className="w-24 h-24 rounded-[1.5rem] overflow-hidden border-2 border-white/10 shrink-0">
+                    <div className="w-24 h-24 rounded-[1.5rem] overflow-hidden border-2 border-white/10 shrink-0 bg-orange-900/40 flex items-center justify-center">
                       <img
                         src={developer.image}
                         alt={developer.name}
                         className="w-full h-full object-cover"
+                        onError={(e) => {
+                          const el = e.currentTarget;
+                          el.style.display = 'none';
+                          el.parentElement!.innerHTML = `<span class="text-3xl font-bold text-orange-300">${developer.name[0]}</span>`;
+                        }}
                       />
                     </div>
                     <div className="flex-grow">

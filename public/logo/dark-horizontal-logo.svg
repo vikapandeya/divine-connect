@@ -1,0 +1,60 @@
+<svg width="360" height="90" viewBox="0 0 360 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="iconBg" cx="38%" cy="30%" r="72%">
+      <stop offset="0%"   stop-color="#FCD34D"/>
+      <stop offset="48%"  stop-color="#F97316"/>
+      <stop offset="100%" stop-color="#B45309"/>
+    </radialGradient>
+    <radialGradient id="iconGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%"   stop-color="rgba(255,255,255,0.22)"/>
+      <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Icon background (saffron) -->
+  <rect x="5" y="5" width="80" height="80" rx="18" fill="url(#iconBg)"/>
+  <circle cx="45" cy="45" r="36" fill="url(#iconGlow)"/>
+
+  <!-- 8 petals scaled to icon size -->
+  <g fill="white" opacity="0.52">
+    <path d="M45,44.5 Q36,33 45,21.5 Q54,33 45,44.5Z" transform="rotate(0   45 45)"/>
+    <path d="M45,44.5 Q36,33 45,21.5 Q54,33 45,44.5Z" transform="rotate(45  45 45)"/>
+    <path d="M45,44.5 Q36,33 45,21.5 Q54,33 45,44.5Z" transform="rotate(90  45 45)"/>
+    <path d="M45,44.5 Q36,33 45,21.5 Q54,33 45,44.5Z" transform="rotate(135 45 45)"/>
+    <path d="M45,44.5 Q36,33 45,21.5 Q54,33 45,44.5Z" transform="rotate(180 45 45)"/>
+    <path d="M45,44.5 Q36,33 45,21.5 Q54,33 45,44.5Z" transform="rotate(225 45 45)"/>
+    <path d="M45,44.5 Q36,33 45,21.5 Q54,33 45,44.5Z" transform="rotate(270 45 45)"/>
+    <path d="M45,44.5 Q36,33 45,21.5 Q54,33 45,44.5Z" transform="rotate(315 45 45)"/>
+  </g>
+
+  <!-- Dark centre circle for contrast -->
+  <circle cx="45" cy="45" r="21" fill="rgba(0,0,0,0.20)"/>
+
+  <!-- OM in icon -->
+  <text x="45" y="53"
+        text-anchor="middle"
+        fill="white"
+        font-family="'Noto Serif Devanagari','Noto Sans Devanagari',serif"
+        font-size="25"
+        font-weight="700">ॐ</text>
+
+  <!-- Vertical separator (amber glow on dark) -->
+  <line x1="104" y1="18" x2="104" y2="72"
+        stroke="#F97316" stroke-width="1" stroke-opacity="0.45"/>
+
+  <!-- Brand name in cream-white -->
+  <text x="118" y="50"
+        fill="#FAFAF9"
+        font-family="'Cinzel Decorative','Cinzel','Trajan Pro','Times New Roman',serif"
+        font-size="28"
+        font-weight="700"
+        letter-spacing="0.3">PunyaSeva</text>
+
+  <!-- Tagline in saffron -->
+  <text x="118" y="68"
+        fill="#FBBF24"
+        font-family="'Cormorant Garamond','Garamond','Georgia',serif"
+        font-size="11"
+        font-style="italic"
+        letter-spacing="1.5">Seva · Shakti · Sanatan</text>
+</svg>

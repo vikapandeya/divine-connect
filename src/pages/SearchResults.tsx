@@ -3,8 +3,6 @@ import { useTranslation } from 'react-i18next';
 import { useSearchParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, ShoppingCart, Flame, MapPin, Star, ArrowRight, Loader2, Sparkles, AlertCircle } from 'lucide-react';
-import { collection, query, getDocs } from 'firebase/firestore';
-import { db } from '../firebase';
 import { Product, Puja, Yatra } from '../types';
 import AIGroundedSearch from '../components/AIGroundedSearch';
 import { formatIndianRupees } from '../lib/utils';
@@ -34,25 +32,22 @@ export default function SearchResults() {
 
       setLoading(true);
       try {
-        const [productsSnap, pujasSnap, yatrasSnap] = await Promise.all([
-          getDocs(collection(db, 'products')),
-          getDocs(collection(db, 'pujas')),
-          getDocs(collection(db, 'yatras'))
+        const lq = q.toLowerCase();
+        const [productsRes, pujasRes, yatrasRes] = await Promise.all([
+          fetch('/api/products'),
+          fetch('/api/pujas'),
+          fetch('/api/yatras'),
         ]);
 
-        const products = productsSnap.docs
-          .map(doc => ({ id: doc.id, ...doc.data() } as Product))
-          .filter(p => p.name.toLowerCase().includes(q.toLowerCase()) || p.category.toLowerCase().includes(q.toLowerCase()));
+        const allProducts: Product[] = productsRes.ok ? await productsRes.json() : [];
+        const allPujas: Puja[]       = pujasRes.ok   ? await pujasRes.json()   : [];
+        const allYatras: Yatra[]     = yatrasRes.ok  ? await yatrasRes.json()  : [];
 
-        const pujas = pujasSnap.docs
-          .map(doc => ({ id: doc.id, ...doc.data() } as Puja))
-          .filter(p => p.title.toLowerCase().includes(q.toLowerCase()) || p.description.toLowerCase().includes(q.toLowerCase()));
-
-        const yatras = yatrasSnap.docs
-          .map(doc => ({ id: doc.id, ...doc.data() } as Yatra))
-          .filter(y => y.title.toLowerCase().includes(q.toLowerCase()) || y.location.toLowerCase().includes(q.toLowerCase()));
-
-        setResults({ products, pujas, yatras });
+        setResults({
+          products: allProducts.filter(p => p.name?.toLowerCase().includes(lq) || p.category?.toLowerCase().includes(lq)),
+          pujas:    allPujas.filter(p => p.title?.toLowerCase().includes(lq) || p.description?.toLowerCase().includes(lq)),
+          yatras:   allYatras.filter(y => y.title?.toLowerCase().includes(lq) || y.location?.toLowerCase().includes(lq)),
+        });
       } catch (error) {
         console.error('Search error:', error);
       } finally {

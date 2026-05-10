@@ -1,9 +1,11 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-serif: "Playfair Display", ui-serif, Georgia, serif;
+  --font-sans: "Hind", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Cormorant Garamond", "Playfair Display", ui-serif, Georgia, serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --font-devanagari: "Noto Serif Devanagari", "Sanskrit Text", serif;
+  --font-sacred: "Cinzel Decorative", "Cormorant Garamond", serif;
 }
 
 @variant dark (&:where(.dark, .dark *));
@@ -12,43 +14,80 @@
   html {
     @apply transition-colors duration-300 overflow-x-hidden;
   }
-  
+
   body {
-    @apply bg-stone-50 text-stone-900 transition-colors duration-300 overflow-x-hidden;
+    background-color: #FFFDF0;
+    @apply text-stone-900 transition-colors duration-300 overflow-x-hidden;
   }
-  
+
   .dark body {
-    @apply bg-stone-950 text-stone-100;
+    background-color: #0D0A1E;
+    @apply text-stone-100;
   }
+}
+
+/* ── Diya flame flicker ── */
+@keyframes diya-flame {
+  0%, 100% { transform: scaleX(1)   scaleY(1)    rotate(0deg);  filter: brightness(1); }
+  20%       { transform: scaleX(0.88) scaleY(1.07) rotate(-2deg); filter: brightness(1.15); }
+  40%       { transform: scaleX(1.1)  scaleY(0.93) rotate(1.5deg); filter: brightness(0.9); }
+  60%       { transform: scaleX(0.92) scaleY(1.1)  rotate(-1deg); filter: brightness(1.2); }
+  80%       { transform: scaleX(1.06) scaleY(0.96) rotate(2deg);  filter: brightness(0.95); }
+}
+
+@keyframes diya-glow {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50%       { opacity: 0.7; transform: scale(1.15); }
 }
 
 @keyframes fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-.animate-fade-in {
-  animation: fade-in 1s ease-out forwards;
+@keyframes om-pulse {
+  0%, 100% { opacity: 0.35; transform: scale(1); }
+  50%       { opacity: 0.55; transform: scale(1.04); }
 }
+
+@keyframes lotus-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.animate-fade-in      { animation: fade-in 1s ease-out forwards; }
+.animate-diya-flame   { animation: diya-flame 1.8s ease-in-out infinite; transform-origin: bottom center; }
+.animate-diya-glow    { animation: diya-glow 1.8s ease-in-out infinite; }
+.animate-om-pulse     { animation: om-pulse 3s ease-in-out infinite; }
 
 @layer utilities {
-  .custom-scrollbar::-webkit-scrollbar {
-    width: 4px;
-  }
-  .custom-scrollbar::-webkit-scrollbar-track {
-    background: transparent;
-  }
+  .font-devanagari { font-family: "Noto Serif Devanagari", "Sanskrit Text", serif; }
+  .font-sacred     { font-family: "Cinzel Decorative", "Cormorant Garamond", serif; }
+
+  .custom-scrollbar::-webkit-scrollbar       { width: 4px; }
+  .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
   .custom-scrollbar::-webkit-scrollbar-thumb {
     @apply bg-stone-800 rounded-full hover:bg-stone-700 transition-colors;
   }
-  
-  .tabular-nums {
-    font-variant-numeric: tabular-nums;
+
+  .tabular-nums { font-variant-numeric: tabular-nums; }
+
+  /* Subtle Om watermark for section backgrounds */
+  .om-watermark {
+    position: relative;
+  }
+  .om-watermark::before {
+    content: "ॐ";
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: "Noto Serif Devanagari", serif;
+    font-size: 20rem;
+    color: rgba(245, 158, 11, 0.03);
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
   }
 }
