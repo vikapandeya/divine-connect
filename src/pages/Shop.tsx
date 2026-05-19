@@ -262,7 +262,7 @@ export default function Shop() {
 
   const toggleWishlist = async (productId: string) => {
     if (!auth.currentUser) {
-      alert('Please login to add items to wishlist');
+      alert(t('Please login to add items to wishlist'));
       return;
     }
 
@@ -369,7 +369,7 @@ export default function Shop() {
               <div className="flex items-center space-x-3">
                 <input 
                   type="number" 
-                  placeholder="Min"
+                  placeholder={t('shop.min')}
                   value={priceRange.min}
                   onChange={(e) => setPriceRange(prev => ({ ...prev, min: Math.max(0, Number(e.target.value)) }))}
                   className="w-full px-4 py-2.5 bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl text-sm dark:text-white focus:ring-2 focus:ring-orange-500 outline-none transition-all"
@@ -377,7 +377,7 @@ export default function Shop() {
                 <span className="text-stone-400 font-bold">-</span>
                 <input 
                   type="number" 
-                  placeholder="Max"
+                  placeholder={t('shop.max')}
                   value={priceRange.max}
                   onChange={(e) => setPriceRange(prev => ({ ...prev, max: Math.max(0, Number(e.target.value)) }))}
                   className="w-full px-4 py-2.5 bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl text-sm dark:text-white focus:ring-2 focus:ring-orange-500 outline-none transition-all"

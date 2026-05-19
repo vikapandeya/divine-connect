@@ -13,34 +13,13 @@ import {
 } from 'lucide-react';
 
 const contactCards = [
-  {
-    title: 'Email Support',
-    description: 'Reach us for bookings, order help, or partnership questions.',
-    value: 'support@punyaseva.in',
-    href: 'mailto:support@punyaseva.in',
-    icon: Mail,
-  },
-  {
-    title: 'Call Us',
-    description: 'Speak with the team for puja bookings and service guidance.',
-    value: '+91 1800-348-4600',
-    href: 'tel:+918003484600',
-    icon: Phone,
-  },
-  {
-    title: 'Visit / Write',
-    description: 'Our spiritual services team is based in Varanasi, Uttar Pradesh.',
-    value: 'Varanasi, Uttar Pradesh, India',
-    href: 'https://maps.google.com/?q=Varanasi%2C%20Uttar%20Pradesh%2C%20India',
-    icon: MapPin,
-  },
+  { titleKey: 'contact.emailTitle', descKey: 'contact.emailDesc', value: 'support@punyaseva.in', href: 'mailto:support@punyaseva.in', icon: Mail },
+  { titleKey: 'contact.callTitle', descKey: 'contact.callDesc', value: '+91 1800-348-4600', href: 'tel:+918003484600', icon: Phone },
+  { titleKey: 'contact.visitTitle', descKey: 'contact.visitDesc', value: 'Varanasi, Uttar Pradesh, India', href: 'https://maps.google.com/?q=Varanasi%2C%20Uttar%20Pradesh%2C%20India', icon: MapPin },
 ];
 
-const starterQuestions = [
-  'How do I book a puja?',
-  'How can I track my order?',
-  'How do I become a vendor?',
-];
+const starterQuestionKeys = ['contact.q1', 'contact.q2', 'contact.q3'] as const;
+const starterQuestionsEn = ['How do I book a puja?', 'How can I track my order?', 'How do I become a vendor?'];
 
 type ChatMessage = {
   role: 'user' | 'assistant';
@@ -169,10 +148,10 @@ export default function Contact() {
               <span>{t('contact.title')}</span>
             </div>
             <h1 className="text-4xl md:text-6xl font-serif font-bold text-white mb-6">
-              We are here to <span className="text-orange-400">Help</span>
+              {t('contact.hereToHelp')}
             </h1>
             <p className="text-lg text-stone-200 max-w-2xl mx-auto">
-              Reach out for bookings, products, or spiritual guidance. Our team is ready to assist you.
+              {t('contact.subtitle')}
             </p>
           </motion.div>
         </div>
@@ -181,9 +160,9 @@ export default function Contact() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
 
       <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {contactCards.map(({ title, description, value, href, icon: Icon }) => (
+        {contactCards.map(({ titleKey, descKey, value, href, icon: Icon }) => (
           <a
-            key={title}
+            key={titleKey}
             href={href}
             target={href.startsWith('https://') ? '_blank' : undefined}
             rel={href.startsWith('https://') ? 'noreferrer' : undefined}
@@ -192,9 +171,9 @@ export default function Contact() {
             <div className="w-12 h-12 rounded-2xl bg-orange-50 dark:bg-orange-900/20 text-orange-500 flex items-center justify-center mb-6">
               <Icon className="w-6 h-6" />
             </div>
-            <h2 className="text-xl font-bold text-stone-900 dark:text-white mb-3">{title}</h2>
+            <h2 className="text-xl font-bold text-stone-900 dark:text-white mb-3">{t(titleKey)}</h2>
             <p className="text-stone-600 dark:text-stone-400 text-sm leading-relaxed mb-4">
-              {description}
+              {t(descKey)}
             </p>
             <div className="flex items-center justify-between gap-4">
               <span className="font-medium text-stone-900 dark:text-stone-200">{value}</span>
@@ -213,10 +192,10 @@ export default function Contact() {
               </div>
               <div>
                 <h2 className="text-2xl font-serif font-bold text-stone-900 dark:text-white">
-                  Live Chat
+                  {t('contact.liveChat')}
                 </h2>
                 <p className="text-sm text-stone-500 dark:text-stone-400">
-                  AI support for bookings, orders, and onboarding questions.
+                  {t('contact.chatSubtitle')}
                 </p>
               </div>
             </div>
@@ -225,7 +204,7 @@ export default function Contact() {
                 onClick={clearChat}
                 className="text-xs text-stone-400 hover:text-orange-500 transition-colors font-medium"
               >
-                Clear Chat
+                {t('contact.clearChat')}
               </button>
               <div className="inline-flex items-center gap-2 rounded-full bg-emerald-50 dark:bg-emerald-900/20 px-3 py-1.5 text-xs font-bold text-emerald-700 dark:text-emerald-400">
                 <Sparkles className="w-3.5 h-3.5" />
@@ -236,14 +215,14 @@ export default function Contact() {
 
           <div className="p-6 md:p-8 space-y-4">
             <div className="flex flex-wrap gap-2">
-              {starterQuestions.map((question) => (
+              {starterQuestionKeys.map((key, i) => (
                 <button
-                  key={question}
+                  key={key}
                   type="button"
-                  onClick={() => sendMessage(question)}
+                  onClick={() => sendMessage(starterQuestionsEn[i])}
                   className="rounded-full border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 px-4 py-2 text-sm text-stone-700 dark:text-stone-300 hover:border-orange-200 dark:hover:border-orange-500 transition-colors"
                 >
-                  {question}
+                  {t(key)}
                 </button>
               ))}
             </div>
@@ -290,7 +269,7 @@ export default function Contact() {
               {isSending && (
                 <div className="flex justify-start">
                   <div className="rounded-[1.5rem] px-4 py-3 text-sm bg-white dark:bg-stone-900 text-stone-500 dark:text-stone-400 border border-stone-200 dark:border-stone-800">
-                    PunyaSeva AI is typing...
+                    {t('contact.typing')}
                   </div>
                 </div>
               )}
@@ -336,12 +315,10 @@ export default function Contact() {
               </div>
               <div>
                 <h2 className="text-2xl font-serif font-bold text-stone-900 dark:text-white mb-3">
-                  Support Hours
+                  {t('contact.supportHours')}
                 </h2>
                 <p className="text-stone-600 dark:text-stone-400 leading-relaxed">
-                  Monday to Saturday, 9:00 AM to 7:00 PM IST. For online orders
-                  and general support, email is available anytime and we usually
-                  respond within one business day.
+                  {t('contact.supportHoursText')}
                 </p>
               </div>
             </div>
@@ -349,13 +326,13 @@ export default function Contact() {
 
           <section className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-[2.5rem] p-8">
             <h2 className="text-2xl font-serif font-bold text-stone-900 dark:text-white mb-4">
-              What AI Support Can Help With
+              {t('contact.aiHelpTitle')}
             </h2>
             <ul className="space-y-3 text-stone-600 dark:text-stone-400">
-              <li>Booking guidance for pujas and service flows.</li>
-              <li>Order support for products and shipping questions.</li>
-              <li>Vendor onboarding and account-related help.</li>
-              <li>General platform guidance before you contact the team.</li>
+              <li>{t('contact.bookingGuidance')}</li>
+              <li>{t('contact.orderSupport')}</li>
+              <li>{t('contact.vendorOnboarding')}</li>
+              <li>{t('contact.generalHelp')}</li>
             </ul>
           </section>
         </div>

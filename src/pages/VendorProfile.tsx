@@ -110,7 +110,7 @@ export default function VendorProfile() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-stone-50">
+      <div className="min-h-screen flex items-center justify-center bg-stone-50 dark:bg-stone-950">
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 border-4 border-orange-500/30 border-t-orange-500 rounded-full animate-spin" />
           <p className="text-stone-500 font-medium animate-pulse">{t('vendorProfile.loading')}</p>
@@ -121,11 +121,11 @@ export default function VendorProfile() {
 
   if (!vendor) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-stone-50">
+      <div className="min-h-screen flex items-center justify-center bg-stone-50 dark:bg-stone-950">
         <div className="text-center px-4">
           <Info className="w-16 h-16 text-stone-300 mx-auto mb-4" />
-          <h2 className="text-2xl font-serif font-bold text-stone-900 mb-2">{t('vendorProfile.notFound')}</h2>
-          <p className="text-stone-500 mb-6">The vendor you're looking for doesn't exist or has been removed.</p>
+          <h2 className="text-2xl font-serif font-bold text-stone-900 dark:text-white mb-2">{t('vendorProfile.notFound')}</h2>
+          <p className="text-stone-500 dark:text-stone-400 mb-6">The vendor you're looking for doesn't exist or has been removed.</p>
           <button 
             onClick={() => navigate(-1)}
             className="bg-orange-500 text-white px-8 py-3 rounded-2xl font-bold hover:bg-orange-600 transition-all"
@@ -138,7 +138,7 @@ export default function VendorProfile() {
   }
 
   return (
-    <div className="min-h-screen bg-stone-50 pb-24">
+    <div className="min-h-screen bg-stone-50 dark:bg-stone-950 pb-24">
       {/* Header / Banner */}
       <div className="relative h-[300px] md:h-[400px] overflow-hidden">
         <img 
@@ -158,7 +158,7 @@ export default function VendorProfile() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-32 relative z-10">
-        <div className="bg-white rounded-[3rem] shadow-2xl shadow-stone-200/50 overflow-hidden border border-stone-100">
+        <div className="bg-white dark:bg-stone-900 rounded-[3rem] shadow-2xl shadow-stone-200/50 dark:shadow-stone-950/50 overflow-hidden border border-stone-100 dark:border-stone-800">
           {/* Profile Section */}
           <div className="p-8 md:p-12">
             <div className="flex flex-col md:flex-row gap-8 items-start">
@@ -180,7 +180,7 @@ export default function VendorProfile() {
 
               <div className="flex-grow space-y-4">
                 <div className="flex flex-wrap items-center gap-4">
-                  <h1 className="text-3xl md:text-4xl font-serif font-bold text-stone-900">
+                  <h1 className="text-3xl md:text-4xl font-serif font-bold text-stone-900 dark:text-white">
                     {vendor.businessName}
                   </h1>
                   <div className="flex items-center gap-2">
@@ -218,7 +218,7 @@ export default function VendorProfile() {
           </div>
 
           {/* Tabs */}
-          <div className="px-8 md:px-12 border-t border-stone-100 bg-stone-50/50">
+          <div className="px-8 md:px-12 border-t border-stone-100 dark:border-stone-800 bg-stone-50/50 dark:bg-stone-800/30">
             <div className="flex gap-8">
               {pujas.length > 0 && (
                 <button 
@@ -269,7 +269,7 @@ export default function VendorProfile() {
                     <div 
                       key={puja.id}
                       onClick={() => navigate(`/pujas/${puja.id}`)}
-                      className="group bg-white rounded-3xl border border-stone-100 overflow-hidden cursor-pointer hover:shadow-xl hover:shadow-stone-200/50 transition-all flex flex-col"
+                      className="group bg-white dark:bg-stone-800 rounded-3xl border border-stone-100 dark:border-stone-700 overflow-hidden cursor-pointer hover:shadow-xl hover:shadow-stone-200/50 transition-all flex flex-col"
                     >
                       <div className="aspect-video overflow-hidden relative">
                         <img 
@@ -280,12 +280,12 @@ export default function VendorProfile() {
                         <div className="absolute top-4 right-4">
                           <div className="bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full flex items-center gap-1 shadow-sm">
                             <Clock className="w-3.5 h-3.5 text-orange-500" />
-                            <span className="text-xs font-bold text-stone-900">{puja.duration}</span>
+                            <span className="text-xs font-bold text-stone-900 dark:text-white">{puja.duration}</span>
                           </div>
                         </div>
                       </div>
                       <div className="p-6 flex-grow flex flex-col">
-                        <h3 className="text-xl font-bold text-stone-900 mb-2 group-hover:text-orange-600 transition-colors">
+                        <h3 className="text-xl font-bold text-stone-900 dark:text-white mb-2 group-hover:text-orange-600 transition-colors">
                           {puja.title}
                         </h3>
                         <p className="text-stone-500 text-sm line-clamp-2 mb-6 flex-grow">
@@ -316,7 +316,7 @@ export default function VendorProfile() {
                     <div 
                       key={product.id}
                       onClick={() => navigate(`/product/${product.id}`)}
-                      className="group bg-white rounded-3xl border border-stone-100 overflow-hidden cursor-pointer hover:shadow-xl hover:shadow-stone-200/50 transition-all flex flex-col"
+                      className="group bg-white dark:bg-stone-800 rounded-3xl border border-stone-100 dark:border-stone-700 overflow-hidden cursor-pointer hover:shadow-xl hover:shadow-stone-200/50 transition-all flex flex-col"
                     >
                       <div className="aspect-square overflow-hidden relative">
                         <img 
@@ -335,7 +335,7 @@ export default function VendorProfile() {
                         <div className="text-[10px] text-orange-500 font-bold uppercase tracking-widest mb-1">
                           {product.category}
                         </div>
-                        <h3 className="text-xl font-bold text-stone-900 mb-2 group-hover:text-orange-600 transition-colors">
+                        <h3 className="text-xl font-bold text-stone-900 dark:text-white mb-2 group-hover:text-orange-600 transition-colors">
                           {product.name}
                         </h3>
                         <p className="text-stone-500 text-sm line-clamp-2 mb-6 flex-grow">
@@ -364,10 +364,10 @@ export default function VendorProfile() {
                 >
                   {/* Rating Breakdown */}
                   {stats && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-12 bg-stone-50/50 p-8 rounded-[2rem] border border-stone-100">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-12 bg-stone-50/50 dark:bg-stone-800/30 p-8 rounded-[2rem] border border-stone-100 dark:border-stone-800">
                       <div className="flex flex-col items-center justify-center text-center">
                         <h4 className="text-sm font-bold text-stone-400 uppercase tracking-widest mb-4">{t('vendorProfile.avgRating')}</h4>
-                        <div className="text-7xl font-serif font-bold text-stone-900 mb-4">{stats.average.toFixed(1)}</div>
+                        <div className="text-7xl font-serif font-bold text-stone-900 dark:text-white mb-4">{stats.average.toFixed(1)}</div>
                         <div className="flex items-center gap-1 text-amber-500 mb-4">
                           {[1, 2, 3, 4, 5].map((s) => (
                             <Star key={s} className={`w-5 h-5 ${s <= Math.round(stats.average) ? 'fill-current' : 'text-stone-200'}`} />
@@ -403,14 +403,14 @@ export default function VendorProfile() {
                   {/* Reviews List */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     {reviews.map((review) => (
-                      <div key={review.id} className="bg-white p-8 rounded-[2rem] border border-stone-100 shadow-sm">
+                      <div key={review.id} className="bg-white dark:bg-stone-800 p-8 rounded-[2rem] border border-stone-100 dark:border-stone-700 shadow-sm">
                         <div className="flex justify-between items-start mb-6">
                           <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 bg-orange-50 rounded-2xl flex items-center justify-center text-orange-600 font-bold text-lg">
+                            <div className="w-12 h-12 bg-orange-50 dark:bg-orange-900/20 rounded-2xl flex items-center justify-center text-orange-600 font-bold text-lg">
                               {review.userName?.[0] || 'A'}
                             </div>
                             <div>
-                              <h4 className="font-bold text-stone-900">{review.userName || 'Anonymous'}</h4>
+                              <h4 className="font-bold text-stone-900 dark:text-white">{review.userName || 'Anonymous'}</h4>
                               <p className="text-[10px] text-stone-400 uppercase tracking-wider font-bold">{review.city || review.type}</p>
                             </div>
                           </div>
@@ -420,8 +420,8 @@ export default function VendorProfile() {
                             ))}
                           </div>
                         </div>
-                        <p className="text-stone-600 leading-relaxed italic">"{review.message}"</p>
-                        <div className="mt-6 pt-4 border-t border-stone-50 flex items-center justify-between text-[10px] text-stone-400 font-bold uppercase tracking-wider">
+                        <p className="text-stone-600 dark:text-stone-400 leading-relaxed italic">"{review.message}"</p>
+                        <div className="mt-6 pt-4 border-t border-stone-50 dark:border-stone-700 flex items-center justify-between text-[10px] text-stone-400 font-bold uppercase tracking-wider">
                           <span>{review.createdAt ? new Date(review.createdAt).toLocaleDateString() : 'Recent'}</span>
                           {review.serviceId && <span className="text-orange-500">{t('vendorProfile.serviceReview')}</span>}
                         </div>

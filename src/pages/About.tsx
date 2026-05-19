@@ -15,39 +15,15 @@ import {
 import { Link } from 'react-router-dom';
 
 const values = [
-  {
-    icon: <Heart className="w-8 h-8 text-red-500" />,
-    title: 'Devotion First',
-    desc: 'Every service we provide is rooted in deep respect for spiritual traditions.',
-  },
-  {
-    icon: <Shield className="w-8 h-8 text-blue-500" />,
-    title: 'Authentic & Secure',
-    desc: 'We partner only with verified temples and vendors to ensure authenticity.',
-  },
-  {
-    icon: <Globe className="w-8 h-8 text-emerald-500" />,
-    title: 'Global Reach',
-    desc: 'Bringing the sacred energy of holy sites to devotees across the globe.',
-  },
+  { icon: <Heart className="w-8 h-8 text-red-500" />, titleKey: 'about.devotionFirst', descKey: 'about.devotionFirstDesc' },
+  { icon: <Shield className="w-8 h-8 text-blue-500" />, titleKey: 'about.authenticSecure', descKey: 'about.authenticSecureDesc' },
+  { icon: <Globe className="w-8 h-8 text-emerald-500" />, titleKey: 'about.globalReach', descKey: 'about.globalReachDesc' },
 ];
 
 const platformPillars = [
-  {
-    icon: <Sparkles className="w-5 h-5 text-orange-500" />,
-    title: 'Spiritual Services',
-    desc: 'Book pujas, explore darshan support, and discover trusted rituals for important life moments.',
-  },
-  {
-    icon: <BookOpen className="w-5 h-5 text-orange-500" />,
-    title: 'Sacred Commerce',
-    desc: 'Shop essentials like malas, incense, books, and yantras in one guided experience.',
-  },
-  {
-    icon: <HandHelping className="w-5 h-5 text-orange-500" />,
-    title: 'Guided Support',
-    desc: 'Use AI-assisted flows and human support touchpoints to get answers faster and with more clarity.',
-  },
+  { icon: <Sparkles className="w-5 h-5 text-orange-500" />, titleKey: 'about.spiritualServices', descKey: 'about.spiritualServicesDesc' },
+  { icon: <BookOpen className="w-5 h-5 text-orange-500" />, titleKey: 'about.sacredCommerce', descKey: 'about.sacredCommerceDesc' },
+  { icon: <HandHelping className="w-5 h-5 text-orange-500" />, titleKey: 'about.guidedSupport', descKey: 'about.guidedSupportDesc' },
 ];
 
 const developers = [
@@ -89,7 +65,7 @@ export default function About() {
           >
             <div className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-orange-500/20 text-orange-300 text-xs font-bold uppercase tracking-widest mb-6 border border-orange-500/30">
               <Star className="w-4 h-4" />
-              <span>Our Mission</span>
+              <span>{t('about.ourMission')}</span>
             </div>
             <div className="flex justify-center mb-6">
               <img 
@@ -100,12 +76,10 @@ export default function About() {
               />
             </div>
             <h1 className="text-3xl sm:text-5xl md:text-7xl font-serif font-bold text-white mb-6">
-              Bridging the <span className="text-orange-400 italic">Divine</span> & the{' '}
-              <span className="text-orange-400 italic">Digital</span>
+              {t('about.heroTitle')}
             </h1>
             <p className="text-lg sm:text-xl text-stone-200 max-w-3xl mx-auto leading-relaxed">
-              PunyaSeva is designed to make spiritual services more accessible,
-              organized, and trustworthy for devotees everywhere.
+              {t('about.heroSubtitle')}
             </p>
           </motion.div>
         </div>
@@ -124,10 +98,10 @@ export default function About() {
             >
               <div className="flex justify-center mb-6">{value.icon}</div>
               <h3 className="text-xl font-bold text-stone-900 dark:text-white mb-4">
-                {value.title}
+                {t(value.titleKey)}
               </h3>
               <p className="text-stone-500 dark:text-stone-400 text-sm leading-relaxed">
-                {value.desc}
+                {t(value.descKey)}
               </p>
             </motion.div>
           ))}
@@ -161,10 +135,10 @@ export default function About() {
                 >
                   <div className="flex items-center gap-3 mb-3">
                     {pillar.icon}
-                    <h3 className="font-bold text-stone-900 dark:text-white">{pillar.title}</h3>
+                    <h3 className="font-bold text-stone-900 dark:text-white">{t(pillar.titleKey)}</h3>
                   </div>
                   <p className="text-sm text-stone-600 dark:text-stone-400 leading-relaxed">
-                    {pillar.desc}
+                    {t(pillar.descKey)}
                   </p>
                 </div>
               ))}
@@ -183,17 +157,17 @@ export default function About() {
             <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-10">
               <div>
                 <p className="text-xs font-bold uppercase tracking-[0.3em] text-orange-300 mb-3">
-                  Meet the Developer Team
+                  {t('about.devTeamLabel')}
                 </p>
                 <h2 className="text-3xl md:text-4xl font-serif font-bold">
-                  The people shaping PunyaSeva
+                  {t('about.devTeamTitle')}
                 </h2>
               </div>
               <Link
                 to="/contact"
                 className="inline-flex items-center gap-2 self-start bg-orange-500 hover:bg-orange-600 px-6 py-3 rounded-2xl font-bold transition-all"
               >
-                <span>Contact Us</span>
+                <span>{t('about.contactUs')}</span>
                 <ArrowRight className="w-5 h-5" />
               </Link>
             </div>
@@ -234,7 +208,7 @@ export default function About() {
                         className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 px-5 py-3 rounded-2xl transition-all font-bold"
                       >
                         <Github className="w-5 h-5" />
-                        <span>GitHub Profile</span>
+                        <span>{t('about.githubProfile')}</span>
                       </a>
                     </div>
                   </div>

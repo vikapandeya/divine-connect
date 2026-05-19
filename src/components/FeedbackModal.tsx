@@ -77,19 +77,19 @@ export default function FeedbackModal({ isOpen, onClose, serviceId, vendorId, ty
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="relative bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl overflow-hidden"
+            className="relative bg-white dark:bg-stone-900 w-full max-w-lg rounded-[2.5rem] shadow-2xl overflow-hidden border border-stone-100 dark:border-stone-800"
           >
             <div className="p-8">
               <div className="flex justify-between items-start mb-6">
                 <div>
-                  <h2 className="text-2xl font-serif font-bold text-stone-900">Share Your Experience</h2>
-                  <p className="text-stone-500 text-sm">
+                  <h2 className="text-2xl font-serif font-bold text-stone-900 dark:text-white">Share Your Experience</h2>
+                  <p className="text-stone-500 dark:text-stone-400 text-sm">
                     {serviceName ? `How was your ${serviceName}?` : 'We value your feedback!'}
                   </p>
                 </div>
                 <button 
                   onClick={onClose}
-                  className="p-2 hover:bg-stone-100 rounded-full transition-colors"
+                  className="p-2 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-full transition-colors"
                 >
                   <X className="w-5 h-5 text-stone-400" />
                 </button>
@@ -97,7 +97,7 @@ export default function FeedbackModal({ isOpen, onClose, serviceId, vendorId, ty
 
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Rating */}
-                <div className="flex flex-col items-center justify-center py-4 bg-stone-50 rounded-3xl border border-stone-100">
+                <div className="flex flex-col items-center justify-center py-4 bg-stone-50 dark:bg-stone-800/50 rounded-3xl border border-stone-100 dark:border-stone-800">
                   <p className="text-xs font-bold text-stone-400 uppercase tracking-widest mb-3">Your Rating</p>
                   <div className="flex gap-2">
                     {[1, 2, 3, 4, 5].map((star) => (
@@ -136,7 +136,7 @@ export default function FeedbackModal({ isOpen, onClose, serviceId, vendorId, ty
                         onChange={(e) => setName(e.target.value)}
                         placeholder="Your Name"
                         required
-                        className="w-full pl-11 pr-4 py-3 bg-stone-50 border-none rounded-2xl focus:ring-2 focus:ring-orange-500 transition-all text-sm"
+                        className="w-full pl-11 pr-4 py-3 bg-stone-50 dark:bg-stone-800 border-none rounded-2xl text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-stone-500 focus:ring-2 focus:ring-orange-500 transition-all text-sm"
                       />
                     </div>
                   </div>
@@ -149,7 +149,7 @@ export default function FeedbackModal({ isOpen, onClose, serviceId, vendorId, ty
                         value={city}
                         onChange={(e) => setCity(e.target.value)}
                         placeholder="Your City"
-                        className="w-full pl-11 pr-4 py-3 bg-stone-50 border-none rounded-2xl focus:ring-2 focus:ring-orange-500 transition-all text-sm"
+                        className="w-full pl-11 pr-4 py-3 bg-stone-50 dark:bg-stone-800 border-none rounded-2xl text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-stone-500 focus:ring-2 focus:ring-orange-500 transition-all text-sm"
                       />
                     </div>
                   </div>

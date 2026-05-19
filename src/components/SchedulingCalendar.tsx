@@ -91,7 +91,7 @@ export default function SchedulingCalendar({
       {/* Date Picker Section */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <label className="text-sm font-bold text-stone-700 flex items-center">
+          <label className="text-sm font-bold text-stone-700 dark:text-stone-300 flex items-center">
             <CalendarIcon className="w-4 h-4 mr-2 text-orange-500" />
             Select Date
           </label>
@@ -103,7 +103,7 @@ export default function SchedulingCalendar({
                 <button 
                   type="button"
                   onClick={() => scrollDates('left')}
-                  className="absolute left-0 top-1/2 -translate-y-1/2 -ml-4 z-10 w-8 h-8 flex items-center justify-center bg-white border border-stone-200 rounded-full shadow-md text-stone-600 hover:text-orange-600 hover:border-orange-200 transition-all opacity-0 group-hover/calendar:opacity-100"
+                  className="absolute left-0 top-1/2 -translate-y-1/2 -ml-4 z-10 w-8 h-8 flex items-center justify-center bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-full shadow-md text-stone-600 dark:text-stone-300 hover:text-orange-600 hover:border-orange-200 transition-all opacity-0 group-hover/calendar:opacity-100"
                 >
                     <ChevronLeft className="w-4 h-4" />
                 </button>
@@ -113,7 +113,7 @@ export default function SchedulingCalendar({
                 <button 
                   type="button"
                   onClick={() => scrollDates('right')}
-                  className="absolute right-0 top-1/2 -translate-y-1/2 -mr-4 z-10 w-8 h-8 flex items-center justify-center bg-white border border-stone-200 rounded-full shadow-md text-stone-600 hover:text-orange-600 hover:border-orange-200 transition-all opacity-0 group-hover/calendar:opacity-100"
+                  className="absolute right-0 top-1/2 -translate-y-1/2 -mr-4 z-10 w-8 h-8 flex items-center justify-center bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-full shadow-md text-stone-600 dark:text-stone-300 hover:text-orange-600 hover:border-orange-200 transition-all opacity-0 group-hover/calendar:opacity-100"
                 >
                     <ChevronRight className="w-4 h-4" />
                 </button>
@@ -136,8 +136,8 @@ export default function SchedulingCalendar({
                       onClick={() => onDateSelect(item.formattedString)}
                       className={`flex-shrink-0 w-20 py-3 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all snap-start ${
                           isSelected 
-                            ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/30 ring-2 ring-orange-500 ring-offset-2' 
-                            : 'bg-white text-stone-600 border border-stone-200 hover:border-orange-300 hover:bg-orange-50'
+                            ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/30 ring-2 ring-orange-500 ring-offset-2 dark:ring-offset-stone-900'
+                            : 'bg-white dark:bg-stone-800 text-stone-600 dark:text-stone-300 border border-stone-200 dark:border-stone-700 hover:border-orange-300 hover:bg-orange-50 dark:hover:bg-orange-900/20'
                       }`}
                     >
                       <span className={`text-[10px] font-bold uppercase tracking-wider ${isSelected ? 'text-orange-100' : 'text-stone-400'}`}>
@@ -163,7 +163,7 @@ export default function SchedulingCalendar({
 
       {/* Time Slots Section */}
       <div>
-        <label className="text-sm font-bold text-stone-700 flex items-center mb-3">
+        <label className="text-sm font-bold text-stone-700 dark:text-stone-300 flex items-center mb-3">
           <Clock className="w-4 h-4 mr-2 text-orange-500" />
           Select Time Slot
         </label>
@@ -179,16 +179,16 @@ export default function SchedulingCalendar({
                 type="button"
                 onClick={() => onTimeSlotSelect(slot.value)}
                 className={`relative overflow-hidden flex items-center p-3 rounded-xl border transition-all ${
-                  isSelected 
-                    ? 'border-orange-500 bg-orange-50 ring-1 ring-orange-500' 
-                    : 'border-stone-200 bg-white hover:border-orange-300'
+                  isSelected
+                    ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20 ring-1 ring-orange-500'
+                    : 'border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 hover:border-orange-300'
                 }`}
               >
-                <div className={`flex items-center justify-center w-10 h-10 rounded-lg mr-3 shrink-0 ${isSelected ? 'bg-orange-500 text-white' : 'bg-stone-50 text-stone-400'}`}>
+                <div className={`flex items-center justify-center w-10 h-10 rounded-lg mr-3 shrink-0 ${isSelected ? 'bg-orange-500 text-white' : 'bg-stone-50 dark:bg-stone-700 text-stone-400'}`}>
                     <Icon className="w-5 h-5" />
                 </div>
                 <div className="flex flex-col items-start">
-                  <span className={`text-sm font-bold ${isSelected ? 'text-orange-900' : 'text-stone-700'}`}>
+                  <span className={`text-sm font-bold ${isSelected ? 'text-orange-900 dark:text-orange-100' : 'text-stone-700 dark:text-stone-300'}`}>
                     {slot.label.split(' - ')[0]}
                   </span>
                   <span className={`text-[10px] uppercase tracking-wider font-bold ${isSelected ? 'text-orange-600' : 'text-stone-400'}`}>

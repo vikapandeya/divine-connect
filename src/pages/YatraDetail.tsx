@@ -102,14 +102,14 @@ export default function YatraDetail() {
   if (!yatra) return <div className="min-h-screen flex items-center justify-center">{t('yatraDetail.notFound')}</div>;
 
   return (
-    <div className="bg-stone-50 min-h-screen">
+    <div className="bg-stone-50 dark:bg-stone-950 min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <button 
           onClick={() => navigate(-1)}
-          className="flex items-center text-stone-500 hover:text-stone-900 mb-8 transition-colors font-bold"
+          className="flex items-center text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white mb-8 transition-colors font-bold"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Services
+          {t('yatraDetail.backToServices')}
         </button>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
@@ -128,7 +128,7 @@ export default function YatraDetail() {
               />
             </div>
             
-            <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-stone-100">
+            <div className="bg-white dark:bg-stone-900 p-8 rounded-[2.5rem] shadow-sm border border-stone-100 dark:border-stone-800">
               <div className="flex items-center gap-2 mb-4">
                 <span className="bg-orange-100 text-orange-600 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
                   {yatra.category}
@@ -138,55 +138,55 @@ export default function YatraDetail() {
                   <span className="font-bold">{yatra.rating}</span>
                 </div>
               </div>
-              <h1 className="text-4xl font-serif font-bold text-stone-900 mb-6">{yatra.title}</h1>
-              
+              <h1 className="text-4xl font-serif font-bold text-stone-900 dark:text-white mb-6">{yatra.title}</h1>
+
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                <div className="bg-stone-50 p-4 rounded-2xl border border-stone-100">
+                <div className="bg-stone-50 dark:bg-stone-800 p-4 rounded-2xl border border-stone-100 dark:border-stone-700">
                   <Clock className="w-5 h-5 text-orange-500 mb-2" />
                   <p className="text-[10px] text-stone-400 font-bold uppercase">{t('yatraDetail.duration')}</p>
-                  <p className="text-sm font-bold text-stone-900">{yatra.duration}</p>
+                  <p className="text-sm font-bold text-stone-900 dark:text-white">{yatra.duration}</p>
                 </div>
-                <div className="bg-stone-50 p-4 rounded-2xl border border-stone-100">
+                <div className="bg-stone-50 dark:bg-stone-800 p-4 rounded-2xl border border-stone-100 dark:border-stone-700">
                   <MapPin className="w-5 h-5 text-blue-500 mb-2" />
                   <p className="text-[10px] text-stone-400 font-bold uppercase">{t('yatraDetail.startCity')}</p>
-                  <p className="text-sm font-bold text-stone-900">{yatra.location}</p>
+                  <p className="text-sm font-bold text-stone-900 dark:text-white">{yatra.location}</p>
                 </div>
-                <div className="bg-stone-50 p-4 rounded-2xl border border-stone-100">
+                <div className="bg-stone-50 dark:bg-stone-800 p-4 rounded-2xl border border-stone-100 dark:border-stone-700">
                   <ShieldCheck className="w-5 h-5 text-emerald-500 mb-2" />
                   <p className="text-[10px] text-stone-400 font-bold uppercase">{t('yatraDetail.safeTravel')}</p>
-                  <p className="text-sm font-bold text-stone-900">{t('yatraDetail.verified')}</p>
+                  <p className="text-sm font-bold text-stone-900 dark:text-white">{t('yatraDetail.verified')}</p>
                 </div>
-                <div className="bg-stone-50 p-4 rounded-2xl border border-stone-100">
+                <div className="bg-stone-50 dark:bg-stone-800 p-4 rounded-2xl border border-stone-100 dark:border-stone-700">
                   <CheckCircle2 className="w-5 h-5 text-orange-500 mb-2" />
                   <p className="text-[10px] text-stone-400 font-bold uppercase">{t('yatraDetail.assistance')}</p>
-                  <p className="text-sm font-bold text-stone-900">24/7 Support</p>
+                  <p className="text-sm font-bold text-stone-900 dark:text-white">{t('yatraDetail.support247')}</p>
                 </div>
               </div>
 
               <div className="prose prose-stone max-w-none">
-                <h3 className="text-xl font-bold mb-4">{t('yatraDetail.aboutJourney')}</h3>
-                <p className="text-stone-600 leading-relaxed">
+                <h3 className="text-xl font-bold text-stone-900 dark:text-white mb-4">{t('yatraDetail.aboutJourney')}</h3>
+                <p className="text-stone-600 dark:text-stone-400 leading-relaxed">
                   {yatra.description}
                 </p>
               </div>
 
               {yatra.itinerary && yatra.itinerary.length > 0 && (
                 <div className="mt-10">
-                  <h3 className="text-xl font-bold mb-6">{t('yatraDetail.itinerary')}</h3>
+                  <h3 className="text-xl font-bold text-stone-900 dark:text-white mb-6">{t('yatraDetail.itinerary')}</h3>
                   <div className="space-y-6">
                     {yatra.itinerary.map((item, idx) => (
                       <div key={idx} className="flex gap-6">
                         <div className="flex flex-col items-center">
-                          <div className="w-10 h-10 rounded-full bg-stone-900 text-white flex items-center justify-center text-xs font-bold shrink-0">
+                          <div className="w-10 h-10 rounded-full bg-stone-900 dark:bg-stone-700 text-white flex items-center justify-center text-xs font-bold shrink-0">
                             Day {item.day || idx + 1}
                           </div>
                           {idx < yatra.itinerary!.length - 1 && (
-                            <div className="w-0.5 h-full bg-stone-200 my-2" />
+                            <div className="w-0.5 h-full bg-stone-200 dark:bg-stone-700 my-2" />
                           )}
                         </div>
                         <div>
-                          <h4 className="font-bold text-stone-900 mb-1">{item.title}</h4>
-                          <p className="text-stone-600 text-sm leading-relaxed">{item.description}</p>
+                          <h4 className="font-bold text-stone-900 dark:text-white mb-1">{item.title}</h4>
+                          <p className="text-stone-600 dark:text-stone-400 text-sm leading-relaxed">{item.description}</p>
                         </div>
                       </div>
                     ))}
@@ -202,7 +202,7 @@ export default function YatraDetail() {
             animate={{ opacity: 1, x: 0 }}
             className="space-y-6"
           >
-            <div className="bg-white p-8 md:p-10 rounded-[2.5rem] border border-stone-200 shadow-xl sticky top-24">
+            <div className="bg-white dark:bg-stone-900 p-8 md:p-10 rounded-[2.5rem] border border-stone-200 dark:border-stone-800 shadow-xl sticky top-24">
               <div className="flex items-center justify-between mb-8">
                 <div className="flex flex-col">
                   <span className="text-stone-400 text-xs font-bold uppercase tracking-wider">{t('yatraDetail.startsFrom')}</span>
@@ -217,13 +217,13 @@ export default function YatraDetail() {
                 </div>
               </div>
 
-              <div className="space-y-6 mb-8 pt-6 border-t border-stone-100">
+              <div className="space-y-6 mb-8 pt-6 border-t border-stone-100 dark:border-stone-800">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div>
                     <h4 className="text-xs font-bold text-stone-400 uppercase tracking-widest mb-4">{t('yatraDetail.inclusions')}</h4>
                     <ul className="space-y-3">
                       {(yatra.included || ['Accommodation', 'Satvik Meals', 'Local Transport']).map(item => (
-                        <li key={item} className="flex items-center text-sm text-stone-600">
+                        <li key={item} className="flex items-center text-sm text-stone-600 dark:text-stone-400">
                           <CheckCircle2 className="w-4 h-4 mr-2 text-emerald-500" />
                           {item}
                         </li>
@@ -234,8 +234,8 @@ export default function YatraDetail() {
                     <h4 className="text-xs font-bold text-stone-400 uppercase tracking-widest mb-4">{t('yatraDetail.exclusions')}</h4>
                     <ul className="space-y-3">
                       {(yatra.excluded || ['Personal expenses', 'Airfare']).map(item => (
-                        <li key={item} className="flex items-center text-sm text-stone-600/60">
-                          <div className="w-4 h-4 mr-2 border border-stone-200 rounded-full flex items-center justify-center text-[10px]">✕</div>
+                        <li key={item} className="flex items-center text-sm text-stone-600/60 dark:text-stone-500">
+                          <div className="w-4 h-4 mr-2 border border-stone-200 dark:border-stone-700 rounded-full flex items-center justify-center text-[10px]">✕</div>
                           {item}
                         </li>
                       ))}
@@ -249,27 +249,27 @@ export default function YatraDetail() {
                   onClick={() => setIsBookingOpen(true)}
                   className="w-full bg-orange-500 text-white py-4 rounded-2xl font-bold text-lg hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/20 active:scale-95"
                 >
-                  Book This Yatra
+                  {t('yatraDetail.bookThisYatra')}
                 </button>
                 <button className="w-full bg-stone-900 text-white py-4 rounded-2xl font-bold text-lg hover:bg-stone-800 transition-all active:scale-95 flex items-center justify-center gap-2">
                   <Phone className="w-5 h-5" />
-                  Call for Inquiry
+                  {t('yatraDetail.callForInquiry')}
                 </button>
               </div>
 
               {vendor && (
-                <div className="mt-10 pt-10 border-t border-stone-100">
+                <div className="mt-10 pt-10 border-t border-stone-100 dark:border-stone-800">
                   <p className="text-[10px] font-bold text-stone-400 uppercase mb-4">{t('yatraDetail.organizedBy')}</p>
-                  <div className="flex items-center gap-4 p-4 bg-stone-50 rounded-2xl">
-                    <img 
-                      src={vendor.photoURL || `https://picsum.photos/seed/${vendor.uid}/100/100`} 
+                  <div className="flex items-center gap-4 p-4 bg-stone-50 dark:bg-stone-800 rounded-2xl">
+                    <img
+                      src={vendor.photoURL || `https://picsum.photos/seed/${vendor.uid}/100/100`}
                       alt={vendor.businessName}
                       className="w-12 h-12 rounded-xl object-cover"
                       referrerPolicy="no-referrer"
                     />
                     <div>
-                      <h5 className="font-bold text-stone-900 text-sm">{vendor.businessName}</h5>
-                      <p className="text-[10px] text-stone-500">{vendor.type.toUpperCase()} • {vendor.location?.lat ? 'Verified Location' : 'Online Operator'}</p>
+                      <h5 className="font-bold text-stone-900 dark:text-white text-sm">{vendor.businessName}</h5>
+                      <p className="text-[10px] text-stone-500 dark:text-stone-400">{vendor.type.toUpperCase()} • {vendor.location?.lat ? 'Verified Location' : 'Online Operator'}</p>
                     </div>
                   </div>
                 </div>

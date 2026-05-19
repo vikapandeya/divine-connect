@@ -352,6 +352,7 @@ const sectionIcons: Record<string, React.ReactNode> = {
 
 // ── Article Modal ──────────────────────────────────────────────────────────────
 function TempleArticle({ temple, onClose }: { temple: Temple; onClose: () => void }) {
+  const { t } = useTranslation();
   const [openSection, setOpenSection] = useState<string | null>("Introduction");
 
   const sections = [
@@ -416,7 +417,7 @@ function TempleArticle({ temple, onClose }: { temple: Temple; onClose: () => voi
                       <span className={`p-2 rounded-xl ${isOpen ? 'bg-orange-100 text-orange-600 dark:bg-orange-900/40 dark:text-orange-400' : 'bg-stone-100 text-stone-500 dark:bg-stone-800'}`}>
                         {sectionIcons[sec.heading]}
                       </span>
-                      <span className={`font-bold text-base ${isOpen ? 'text-orange-600 dark:text-orange-400' : 'text-stone-800 dark:text-stone-200'}`}>{sec.heading}</span>
+                      <span className={`font-bold text-base ${isOpen ? 'text-orange-600 dark:text-orange-400' : 'text-stone-800 dark:text-stone-200'}`}>{t(sec.heading)}</span>
                     </div>
                     {isOpen ? <ChevronUp className="w-5 h-5 text-stone-400" /> : <ChevronDown className="w-5 h-5 text-stone-400" />}
                   </button>
@@ -448,7 +449,7 @@ function TempleArticle({ temple, onClose }: { temple: Temple; onClose: () => voi
                       <span className={`p-2 rounded-xl ${isOpen ? 'bg-orange-100 text-orange-600 dark:bg-orange-900/40 dark:text-orange-400' : 'bg-stone-100 text-stone-500 dark:bg-stone-800'}`}>
                         {sectionIcons[sec.heading]}
                       </span>
-                      <span className={`font-bold text-base ${isOpen ? 'text-orange-600 dark:text-orange-400' : 'text-stone-800 dark:text-stone-200'}`}>{sec.heading}</span>
+                      <span className={`font-bold text-base ${isOpen ? 'text-orange-600 dark:text-orange-400' : 'text-stone-800 dark:text-stone-200'}`}>{t(sec.heading)}</span>
                     </div>
                     {isOpen ? <ChevronUp className="w-5 h-5 text-stone-400" /> : <ChevronDown className="w-5 h-5 text-stone-400" />}
                   </button>
@@ -458,16 +459,16 @@ function TempleArticle({ temple, onClose }: { temple: Temple; onClose: () => voi
                         <div className="p-5 pt-2 space-y-4">
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div className="bg-blue-50 dark:bg-blue-900/10 rounded-xl p-4">
-                              <p className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-1 flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5" /> Best Time to Visit</p>
+                              <p className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-1 flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5" /> {t('Best Time to Visit')}</p>
                               <p className="text-sm text-stone-700 dark:text-stone-300">{temple.visitor.bestTime}</p>
                             </div>
                             <div className="bg-green-50 dark:bg-green-900/10 rounded-xl p-4">
-                              <p className="text-xs font-bold text-green-600 dark:text-green-400 uppercase tracking-wider mb-1 flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" /> Temple Timings</p>
+                              <p className="text-xs font-bold text-green-600 dark:text-green-400 uppercase tracking-wider mb-1 flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" /> {t('Temple Timings')}</p>
                               <p className="text-sm text-stone-700 dark:text-stone-300">{temple.visitor.timings}</p>
                             </div>
                           </div>
                           <div>
-                            <p className="text-xs font-bold text-stone-500 uppercase tracking-wider mb-2 flex items-center gap-1.5"><AlertCircle className="w-3.5 h-3.5" /> Important Tips</p>
+                            <p className="text-xs font-bold text-stone-500 uppercase tracking-wider mb-2 flex items-center gap-1.5"><AlertCircle className="w-3.5 h-3.5" /> {t('Important Tips')}</p>
                             <ul className="space-y-2">
                               {temple.visitor.tips.map((tip, i) => (
                                 <li key={i} className="flex items-start gap-2 text-sm text-stone-700 dark:text-stone-300">

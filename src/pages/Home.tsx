@@ -276,7 +276,7 @@ export default function Home() {
               />
             </div>
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-serif font-bold text-white leading-tight mb-4 md:mb-6">
-              Connect with the <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-yellow-400 to-orange-500 animate-gradient">Divine</span> from Anywhere
+              {t('home.heroTitle')}
             </h1>
             <p className="text-base sm:text-lg md:text-xl text-stone-100 mb-6 md:mb-10 leading-relaxed max-w-xl">
               {t('home.heroSubtitle')}
@@ -294,14 +294,14 @@ export default function Home() {
               <input 
                 name="search"
                 type="text" 
-                placeholder="Search Pujas, Products..."
+                placeholder={t('home.searchPlaceholder')}
                 className="w-full pl-12 sm:pl-16 pr-24 sm:pr-6 py-4 sm:py-5 bg-white/10 backdrop-blur-xl border border-white/20 rounded-[2rem] text-white placeholder:text-stone-300 focus:ring-2 focus:ring-orange-500/50 outline-none transition-all shadow-2xl text-sm sm:text-base"
               />
-              <button 
+              <button
                 type="submit"
                 className="absolute right-3 top-1/2 -translate-y-1/2 bg-orange-500 text-white px-4 sm:px-6 py-3 rounded-2xl font-bold hover:bg-orange-600 transition-all shadow-lg text-sm sm:text-base"
               >
-                Search
+                {t('home.search')}
               </button>
             </form>
 
@@ -353,7 +353,7 @@ export default function Home() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-8 sm:mb-12 md:mb-16 animate-fade-in">
           <h2 className="text-2xl sm:text-4xl md:text-5xl font-serif font-bold text-stone-900 dark:text-white mb-4 sm:mb-6 tracking-tight">
-            Spiritual <span className="text-orange-500">Knowledge</span>
+            {t('home.dailyInsights')}
           </h2>
           <p className="text-stone-600 dark:text-stone-400 text-lg leading-relaxed max-w-2xl mx-auto font-medium">
             {t('home.dailyInsightsSubtitle')}
@@ -368,7 +368,7 @@ export default function Home() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-8 sm:mb-12 md:mb-16 animate-fade-in">
           <h2 className="text-2xl sm:text-4xl md:text-5xl font-serif font-bold text-stone-900 dark:text-white mb-4 sm:mb-6 tracking-tight">
-            Sacred <span className="text-orange-500">Services</span>
+            {t('home.sacredServices')}
           </h2>
           <p className="text-stone-600 dark:text-stone-400 text-lg leading-relaxed max-w-2xl mx-auto font-medium">
             {t('home.sacredServicesSubtitle')}
@@ -432,20 +432,19 @@ export default function Home() {
             >
               <div className="flex items-center gap-3 mb-3 sm:mb-6">
                 <div className="w-8 sm:w-12 h-px bg-orange-500" />
-                <span className="text-orange-500 font-bold uppercase tracking-[0.2em] sm:tracking-[0.3em] text-[10px] sm:text-xs">Pilgrimage Services</span>
+                <span className="text-orange-500 font-bold uppercase tracking-[0.2em] sm:tracking-[0.3em] text-[10px] sm:text-xs">{t('home.pilgrimageLabel')}</span>
               </div>
               <h2 className="text-2xl sm:text-4xl md:text-6xl font-serif font-bold text-white mb-3 sm:mb-6 leading-tight">
-                Embark on a Divine Yatra
+                {t('home.yatraTitle')}
               </h2>
               <p className="text-stone-200 text-sm sm:text-lg mb-5 sm:mb-10 leading-relaxed hidden sm:block">
-                Experience spiritual enlightenment with our guided pilgrimage tours to India's most sacred sites.
-                From Char Dham to Amarnath, we ensure a safe and soulful journey.
+                {t('home.yatraDesc')}
               </p>
               <Link
                 to="/services/yatra"
                 className="inline-flex items-center gap-2 bg-orange-500 text-white px-6 sm:px-10 py-3 sm:py-4 rounded-full font-bold text-sm sm:text-lg hover:bg-orange-600 transition-all shadow-xl shadow-orange-500/20"
               >
-                Explore Yatra Packages
+                {t('home.exploreYatra')}
                 <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
               </Link>
             </motion.div>
@@ -471,7 +470,7 @@ export default function Home() {
                 <span className="text-red-500 font-bold uppercase tracking-[0.3em] text-xs">{t('home.liveNow')}</span>
               </motion.div>
               <h2 className="text-2xl sm:text-4xl md:text-5xl font-serif font-bold text-stone-900 dark:text-white mb-4 sm:mb-6 tracking-tight">
-                Live Darshan <span className="text-orange-500">& Pujas</span>
+                {t('home.liveDarshan')} <span className="text-orange-500">{t('home.andPujas')}</span>
               </h2>
               <p className="text-stone-500 dark:text-stone-400 text-lg leading-relaxed">{t('home.liveDarshanSubtitle')}</p>
             </div>
@@ -501,7 +500,7 @@ export default function Home() {
                 <div className="absolute top-6 left-6 flex gap-3">
                   <div className="bg-orange-600/80 backdrop-blur-sm px-4 py-1.5 rounded-full flex items-center gap-2 shadow-xl border border-orange-400/30">
                     <Sparkles className="w-3 h-3 text-white" />
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-white">Coming Soon</span>
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-white">{t('home.comingSoon')}</span>
                   </div>
                 </div>
 
@@ -709,19 +708,19 @@ export default function Home() {
                     value={formData.city}
                     onChange={(e) => setFormData({ ...formData, city: e.target.value })}
                     className="w-full bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-2xl px-5 py-4 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all dark:text-white"
-                    placeholder="e.g. Mumbai"
+                    placeholder={t('home.cityPlaceholder')}
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-bold text-stone-700 dark:text-stone-300 mb-2">
-                    Review Image URL (Optional)
+                    {t('home.reviewImageUrl')}
                   </label>
                   <input
                     type="url"
                     value={formData.imageURL}
                     onChange={(e) => setFormData({ ...formData, imageURL: e.target.value })}
                     className="w-full bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-2xl px-5 py-4 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all dark:text-white"
-                    placeholder="https://example.com/image.jpg"
+                    placeholder={t('home.imageUrlPlaceholder')}
                   />
                 </div>
                 <div>

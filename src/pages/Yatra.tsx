@@ -219,7 +219,7 @@ export default function Yatra() {
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     className="w-full bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20" 
-                    placeholder="Your Name" 
+                    placeholder={t('yatra.namePlaceholder')}
                   />
                 </div>
                 <div>
@@ -262,7 +262,7 @@ export default function Yatra() {
                     value={formData.message}
                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                     className="w-full bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20" 
-                    placeholder="Any special requirements?"
+                    placeholder={t('yatra.messagePlaceholder')}
                   ></textarea>
                 </div>
                 <button 

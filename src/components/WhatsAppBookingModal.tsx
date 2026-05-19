@@ -129,15 +129,15 @@ export default function WhatsAppBookingModal({ isOpen, onClose, pujaTitle = "Gen
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="relative bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl overflow-hidden"
+            className="relative bg-white dark:bg-stone-900 w-full max-w-lg rounded-[2.5rem] shadow-2xl overflow-hidden border border-stone-100 dark:border-stone-800"
           >
             <div className="p-8">
               <div className="flex justify-between items-start mb-6">
                 <div>
-                  <h2 className="text-2xl font-serif font-bold text-stone-900">Book Pandit via WhatsApp</h2>
-                  <p className="text-stone-500 text-sm">Find verified pandits within 5-6 km range</p>
+                  <h2 className="text-2xl font-serif font-bold text-stone-900 dark:text-white">Book Pandit via WhatsApp</h2>
+                  <p className="text-stone-500 dark:text-stone-400 text-sm">Find verified pandits within 5-6 km range</p>
                 </div>
-                <button onClick={onClose} className="p-2 hover:bg-stone-100 rounded-full transition-colors">
+                <button onClick={onClose} className="p-2 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-full transition-colors">
                   <X className="w-5 h-5 text-stone-400" />
                 </button>
               </div>
@@ -147,10 +147,10 @@ export default function WhatsAppBookingModal({ isOpen, onClose, pujaTitle = "Gen
                   <div className="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <MapPin className="w-10 h-10 text-orange-600" />
                   </div>
-                  <h3 className="text-xl font-bold text-stone-900">Share Your Location</h3>
-                  <p className="text-stone-500">We need your location to find the nearest registered pandits for your puja.</p>
+                  <h3 className="text-xl font-bold text-stone-900 dark:text-white">Share Your Location</h3>
+                  <p className="text-stone-500 dark:text-stone-400">We need your location to find the nearest registered pandits for your puja.</p>
                   {error && (
-                    <div className="flex items-center gap-2 text-red-600 bg-red-50 p-3 rounded-xl text-sm justify-center">
+                    <div className="flex items-center gap-2 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 p-3 rounded-xl text-sm justify-center">
                       <AlertCircle className="w-4 h-4" />
                       {error}
                     </div>
@@ -178,35 +178,35 @@ export default function WhatsAppBookingModal({ isOpen, onClose, pujaTitle = "Gen
                       <Search className="w-10 h-10 text-orange-600 animate-pulse" />
                     </div>
                   </div>
-                  <h3 className="text-xl font-bold text-stone-900">Finding Nearby Pandits...</h3>
-                  <p className="text-stone-500">Searching for verified priests within 6km of your location.</p>
+                  <h3 className="text-xl font-bold text-stone-900 dark:text-white">Finding Nearby Pandits...</h3>
+                  <p className="text-stone-500 dark:text-stone-400">Searching for verified priests within 6km of your location.</p>
                 </div>
               )}
 
               {step === 'results' && (
                 <div className="space-y-6">
                   <div className="mb-4">
-                    <label className="block text-sm font-bold text-stone-700 mb-2">Your WhatsApp Number</label>
+                    <label className="block text-sm font-bold text-stone-700 dark:text-stone-300 mb-2">Your WhatsApp Number</label>
                     <input
                       type="tel"
                       placeholder="+91 98765 43210"
                       value={whatsappNumber}
                       onChange={(e) => setWhatsappNumber(e.target.value)}
-                      className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-orange-500 outline-none"
+                      className="w-full px-4 py-3 rounded-xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-stone-500 focus:ring-2 focus:ring-orange-500 outline-none"
                     />
                   </div>
 
                   <div className="max-h-[300px] overflow-y-auto space-y-3 pr-2 custom-scrollbar">
                     {nearbyPandits.length > 0 ? (
                       nearbyPandits.map((pandit) => (
-                        <div key={pandit.uid} className="p-4 rounded-2xl border border-stone-100 bg-stone-50 hover:border-orange-200 transition-all">
+                        <div key={pandit.uid} className="p-4 rounded-2xl border border-stone-100 dark:border-stone-800 bg-stone-50 dark:bg-stone-800/50 hover:border-orange-200 dark:hover:border-orange-900/50 transition-all">
                           <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-xl overflow-hidden bg-stone-200">
+                            <div className="w-12 h-12 rounded-xl overflow-hidden bg-stone-200 dark:bg-stone-700">
                               <img src={pandit.photoURL || `https://picsum.photos/seed/${pandit.uid}/100/100`} alt={pandit.businessName} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                             </div>
                             <div className="flex-grow">
-                              <h4 className="font-bold text-stone-900">{pandit.businessName}</h4>
-                              <div className="flex items-center gap-3 text-xs text-stone-500">
+                              <h4 className="font-bold text-stone-900 dark:text-white">{pandit.businessName}</h4>
+                              <div className="flex items-center gap-3 text-xs text-stone-500 dark:text-stone-400">
                                 <span className="flex items-center gap-1">
                                   <MapPin className="w-3 h-3" />
                                   {pandit.distance.toFixed(1)} km away
@@ -238,8 +238,8 @@ export default function WhatsAppBookingModal({ isOpen, onClose, pujaTitle = "Gen
                   <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <CheckCircle2 className="w-10 h-10 text-emerald-600" />
                   </div>
-                  <h3 className="text-xl font-bold text-stone-900">Request Sent!</h3>
-                  <p className="text-stone-500">Your booking request has been sent. Once the admin approves, the Pandit Ji will contact you via WhatsApp.</p>
+                  <h3 className="text-xl font-bold text-stone-900 dark:text-white">Request Sent!</h3>
+                  <p className="text-stone-500 dark:text-stone-400">Your booking request has been sent. Once the admin approves, the Pandit Ji will contact you via WhatsApp.</p>
                   <button
                     onClick={onClose}
                     className="w-full bg-stone-900 text-white py-4 rounded-2xl font-bold text-lg hover:bg-stone-800 transition-all"

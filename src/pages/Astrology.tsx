@@ -387,7 +387,7 @@ export default function Astrology() {
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                         className="w-full bg-stone-100 dark:bg-white/5 border border-stone-200 dark:border-white/10 rounded-2xl px-4 py-3 text-stone-900 dark:text-white focus:ring-2 focus:ring-orange-500/50 outline-none transition-all"
-                        placeholder="Enter your name"
+                        placeholder={t('astrology.namePlaceholder')}
                       />
                     </div>
 
@@ -424,7 +424,7 @@ export default function Astrology() {
                           value={formData.pob}
                           onChange={(e) => setFormData({ ...formData, pob: e.target.value })}
                           className="w-full bg-stone-100 dark:bg-white/5 border border-stone-200 dark:border-white/10 rounded-2xl pl-12 pr-4 py-3 text-stone-900 dark:text-white focus:ring-2 focus:ring-orange-500/50 outline-none transition-all"
-                          placeholder="City, Country"
+                          placeholder={t('astrology.placePlaceholder')}
                         />
                       </div>
                     </div>
@@ -436,7 +436,7 @@ export default function Astrology() {
                         value={formData.query}
                         onChange={(e) => setFormData({ ...formData, query: e.target.value })}
                         className="w-full bg-stone-100 dark:bg-white/5 border border-stone-200 dark:border-white/10 rounded-2xl px-4 py-3 text-stone-900 dark:text-white focus:ring-2 focus:ring-orange-500/50 outline-none transition-all resize-none"
-                        placeholder="e.g. Career growth, marriage timing..."
+                        placeholder={t('astrology.queryPlaceholder')}
                       />
                     </div>
                   </>
@@ -489,7 +489,7 @@ export default function Astrology() {
                       <input
                         required
                         type="text"
-                        placeholder="Groom's Name"
+                        placeholder={t('astrology.groomPlaceholder')}
                         value={kundliData.p1Name}
                         onChange={(e) => setKundliData({ ...kundliData, p1Name: e.target.value })}
                         className="w-full bg-stone-100 dark:bg-white/5 border border-stone-200 dark:border-white/10 rounded-2xl px-4 py-3 text-stone-900 dark:text-white focus:ring-2 focus:ring-orange-500/50 outline-none"
@@ -513,7 +513,7 @@ export default function Astrology() {
                       <input
                         required
                         type="text"
-                        placeholder="Groom's Place of Birth"
+                        placeholder={t('astrology.groomPlacePlaceholder')}
                         value={kundliData.p1Pob}
                         onChange={(e) => setKundliData({ ...kundliData, p1Pob: e.target.value })}
                         className="w-full bg-stone-100 dark:bg-white/5 border border-stone-200 dark:border-white/10 rounded-2xl px-4 py-3 text-stone-900 dark:text-white focus:ring-2 focus:ring-orange-500/50 outline-none"
@@ -528,7 +528,7 @@ export default function Astrology() {
                       <input
                         required
                         type="text"
-                        placeholder="Bride's Name"
+                        placeholder={t('astrology.bridePlaceholder')}
                         value={kundliData.p2Name}
                         onChange={(e) => setKundliData({ ...kundliData, p2Name: e.target.value })}
                         className="w-full bg-stone-100 dark:bg-white/5 border border-stone-200 dark:border-white/10 rounded-2xl px-4 py-3 text-stone-900 dark:text-white focus:ring-2 focus:ring-orange-500/50 outline-none"
@@ -552,7 +552,7 @@ export default function Astrology() {
                       <input
                         required
                         type="text"
-                        placeholder="Bride's Place of Birth"
+                        placeholder={t('astrology.bridePlacePlaceholder')}
                         value={kundliData.p2Pob}
                         onChange={(e) => setKundliData({ ...kundliData, p2Pob: e.target.value })}
                         className="w-full bg-stone-100 dark:bg-white/5 border border-stone-200 dark:border-white/10 rounded-2xl px-4 py-3 text-stone-900 dark:text-white focus:ring-2 focus:ring-orange-500/50 outline-none"

@@ -144,7 +144,7 @@ export default function PujaDetail() {
       }
     } catch (error) {
       console.error('Booking error:', error);
-      alert('Failed to book puja. Please try again.');
+      alert(t('Failed to book puja. Please try again.'));
     } finally {
       setIsBooking(false);
     }
@@ -152,11 +152,11 @@ export default function PujaDetail() {
 
   const initiateBooking = () => {
     if (!currentUser) {
-      alert('Please sign in to book a puja.');
+      alert(t('Please sign in to book a puja.'));
       return;
     }
     if (!bookingDate || !bookingTime) {
-      alert('Please select a date and time.');
+      alert(t('Please select a date and time.'));
       return;
     }
     setShowConfirmation(true);

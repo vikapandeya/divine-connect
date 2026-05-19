@@ -120,11 +120,11 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="relative w-full max-w-md bg-white rounded-[2.5rem] shadow-2xl overflow-hidden"
+            className="relative w-full max-w-md bg-white dark:bg-stone-900 rounded-[2.5rem] shadow-2xl overflow-hidden border border-stone-100 dark:border-stone-800"
           >
             <button
               onClick={onClose}
-              className="absolute top-6 right-6 p-2 text-stone-400 hover:text-stone-900 transition-colors"
+              className="absolute top-6 right-6 p-2 text-stone-400 hover:text-stone-900 dark:hover:text-white transition-colors"
             >
               <X className="w-6 h-6" />
             </button>
@@ -139,13 +139,13 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                     referrerPolicy="no-referrer"
                   />
                 </div>
-                <h2 className="text-3xl font-serif font-bold text-stone-900 mb-2">
+                <h2 className="text-3xl font-serif font-bold text-stone-900 dark:text-white mb-2">
                   {mode === 'login' ? 'Welcome Back'
                     : mode === 'register' ? 'Join PunyaSeva'
                     : mode === 'forgot' ? 'Forgot Password'
                     : 'Set New Password'}
                 </h2>
-                <p className="text-stone-500 text-sm">
+                <p className="text-stone-500 dark:text-stone-400 text-sm">
                   {mode === 'login' ? 'Sign in to access your spiritual journey'
                     : mode === 'register' ? 'Create an account to start your spiritual journey'
                     : mode === 'forgot' ? 'Enter your email to receive a reset code'
@@ -154,7 +154,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
               </div>
 
               {error && (
-                <div className="mb-6 p-4 bg-red-50 border border-red-100 text-red-600 text-sm rounded-2xl">
+                <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800/30 text-red-600 dark:text-red-400 text-sm rounded-2xl">
                   {error}
                 </div>
               )}
@@ -163,8 +163,8 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
               {resetDone ? (
                 <div className="text-center py-4">
                   <CheckCircle2 className="w-14 h-14 text-green-500 mx-auto mb-4" />
-                  <h3 className="text-lg font-bold text-stone-900 mb-2">Password Updated!</h3>
-                  <p className="text-stone-500 text-sm mb-6">
+                  <h3 className="text-lg font-bold text-stone-900 dark:text-white mb-2">Password Updated!</h3>
+                  <p className="text-stone-500 dark:text-stone-400 text-sm mb-6">
                     Your password has been reset. You can now sign in with your new password.
                   </p>
                   <button
@@ -187,7 +187,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                             required
                             value={name}
                             onChange={(e) => setName(e.target.value)}
-                            className="w-full pl-12 pr-4 py-4 bg-stone-50 border border-stone-100 rounded-2xl text-stone-900 placeholder-stone-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
+                            className="w-full pl-12 pr-4 py-4 bg-stone-50 dark:bg-stone-800 border border-stone-100 dark:border-stone-700 rounded-2xl text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-stone-500 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
                           />
                         </div>
                         <div className="grid grid-cols-2 gap-3 mb-2">
@@ -197,7 +197,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                             className={`py-3 rounded-2xl text-sm font-bold border transition-all ${
                               role === 'devotee'
                                 ? 'bg-stone-900 text-white border-stone-900'
-                                : 'bg-white text-stone-600 border-stone-200 hover:border-stone-300'
+                                : 'bg-white dark:bg-stone-800 text-stone-600 dark:text-stone-300 border-stone-200 dark:border-stone-700 hover:border-stone-300'
                             }`}
                           >
                             Devotee
@@ -208,7 +208,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                             className={`py-3 rounded-2xl text-sm font-bold border transition-all ${
                               role === 'vendor'
                                 ? 'bg-stone-900 text-white border-stone-900'
-                                : 'bg-white text-stone-600 border-stone-200 hover:border-stone-300'
+                                : 'bg-white dark:bg-stone-800 text-stone-600 dark:text-stone-300 border-stone-200 dark:border-stone-700 hover:border-stone-300'
                             }`}
                           >
                             Vendor
@@ -225,16 +225,16 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                         required
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="w-full pl-12 pr-4 py-4 bg-stone-50 border border-stone-100 rounded-2xl text-stone-900 placeholder-stone-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
+                        className="w-full pl-12 pr-4 py-4 bg-stone-50 dark:bg-stone-800 border border-stone-100 dark:border-stone-700 rounded-2xl text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-stone-500 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
                       />
                     </div>
 
                     {mode === 'otp' && (
                       <>
                         {devOtp && (
-                          <div className="flex items-center gap-3 p-3 bg-amber-50 border border-amber-200 rounded-2xl">
+                          <div className="flex items-center gap-3 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/40 rounded-2xl">
                             <KeyRound className="w-4 h-4 text-amber-600 shrink-0" />
-                            <p className="text-sm text-amber-800">
+                            <p className="text-sm text-amber-800 dark:text-amber-400">
                               Your OTP: <span className="font-black tracking-widest">{devOtp}</span>
                               <span className="text-xs text-amber-600 block">Email service not configured — shown here for now</span>
                             </p>
@@ -261,7 +261,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                             minLength={6}
                             value={newPassword}
                             onChange={(e) => setNewPassword(e.target.value)}
-                            className="w-full pl-12 pr-4 py-4 bg-stone-50 border border-stone-100 rounded-2xl text-stone-900 placeholder-stone-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
+                            className="w-full pl-12 pr-4 py-4 bg-stone-50 dark:bg-stone-800 border border-stone-100 dark:border-stone-700 rounded-2xl text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-stone-500 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
                           />
                         </div>
                       </>
@@ -276,7 +276,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                           required
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
-                          className="w-full pl-12 pr-4 py-4 bg-stone-50 border border-stone-100 rounded-2xl text-stone-900 placeholder-stone-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
+                          className="w-full pl-12 pr-4 py-4 bg-stone-50 dark:bg-stone-800 border border-stone-100 dark:border-stone-700 rounded-2xl text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-stone-500 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
                         />
                       </div>
                     )}
@@ -319,10 +319,10 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                     <>
                       <div className="relative my-8">
                         <div className="absolute inset-0 flex items-center">
-                          <div className="w-full border-t border-stone-100" />
+                          <div className="w-full border-t border-stone-100 dark:border-stone-800" />
                         </div>
                         <div className="relative flex justify-center text-sm">
-                          <span className="px-4 bg-white text-stone-400">Or continue with</span>
+                          <span className="px-4 bg-white dark:bg-stone-900 text-stone-400">Or continue with</span>
                         </div>
                       </div>
 
@@ -330,7 +330,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                         <button
                           onClick={handleGoogleSignIn}
                           disabled={loading}
-                          className="bg-white border border-stone-200 text-stone-700 py-3 rounded-2xl font-bold hover:bg-stone-50 transition-all flex items-center justify-center space-x-2"
+                          className="bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-700 dark:text-stone-200 py-3 rounded-2xl font-bold hover:bg-stone-50 dark:hover:bg-stone-700 transition-all flex items-center justify-center space-x-2"
                         >
                           <img src="https://www.google.com/favicon.ico" alt="" className="w-4 h-4" />
                           <span>Google</span>

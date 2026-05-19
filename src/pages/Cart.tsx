@@ -212,7 +212,7 @@ export default function Cart() {
 
   const handleCheckout = async (paymentIntentId?: string) => {
     if (!currentUser) {
-      alert('Please sign in to checkout.');
+      alert(t('Please sign in to checkout.'));
       return;
     }
     if (!address) {
@@ -220,7 +220,7 @@ export default function Cart() {
       return;
     }
     if (!signatureURL) {
-      alert('Please provide your signature to authorize the order.');
+      alert(t('Please provide your signature to authorize the order.'));
       return;
     }
 
@@ -495,7 +495,7 @@ export default function Cart() {
                   <textarea
                     value={address}
                     onChange={(event) => setAddress(event.target.value)}
-                    placeholder="Enter your full delivery address..."
+                    placeholder={t('cart.addressPlaceholder')}
                     className="w-full px-4 py-3 rounded-xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all resize-none h-24"
                   />
                 </div>

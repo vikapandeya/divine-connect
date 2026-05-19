@@ -284,7 +284,7 @@ export default function Profile() {
                           type="text"
                           value={profile?.bannerURL || ''}
                           onChange={(e) => setProfile(prev => prev ? { ...prev, bannerURL: e.target.value } : null)}
-                          placeholder="https://example.com/banner.jpg"
+                          placeholder={t('profile.bannerPlaceholder')}
                           className="w-full px-4 py-3 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all dark:text-white"
                         />
                       </div>
@@ -294,7 +294,7 @@ export default function Profile() {
                           type="text"
                           value={profile?.bio || ''}
                           onChange={(e) => setProfile(prev => prev ? { ...prev, bio: e.target.value } : null)}
-                          placeholder="A short bio about yourself"
+                          placeholder={t('profile.bioPlaceholder')}
                           className="w-full px-4 py-3 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all dark:text-white"
                         />
                       </div>
@@ -305,7 +305,7 @@ export default function Profile() {
                       <textarea 
                         value={profile?.address || ''}
                         onChange={(e) => setProfile(prev => prev ? { ...prev, address: e.target.value } : null)}
-                        placeholder="No address saved yet."
+                        placeholder={t('profile.shippingPlaceholder')}
                         className="w-full px-4 py-3 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all resize-none h-24 font-medium text-stone-900 dark:text-white"
                       />
                       <button 

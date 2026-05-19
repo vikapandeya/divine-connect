@@ -91,45 +91,45 @@ export default function YatraBookingModal({ isOpen, onClose, yatra }: YatraBooki
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="fixed inset-4 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-xl bg-white rounded-[2.5rem] shadow-2xl z-[101] overflow-hidden flex flex-col"
+            className="fixed inset-4 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-xl bg-white dark:bg-stone-900 rounded-[2.5rem] shadow-2xl z-[101] overflow-hidden flex flex-col border border-stone-100 dark:border-stone-800"
           >
             {success ? (
               <div className="flex-1 flex flex-col items-center justify-center p-12 text-center">
                 <div className="w-24 h-24 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 mb-8 animate-bounce">
                   <CheckCircle2 className="w-12 h-12" />
                 </div>
-                <h2 className="text-3xl font-serif font-bold text-stone-900 mb-4">Booking Requested!</h2>
-                <p className="text-stone-500 leading-relaxed max-w-sm">
-                  Your divine journey to <span className="font-bold text-stone-900">{yatra.title}</span> has been requested. Our team will contact you shortly to confirm the details.
+                <h2 className="text-3xl font-serif font-bold text-stone-900 dark:text-white mb-4">Booking Requested!</h2>
+                <p className="text-stone-500 dark:text-stone-400 leading-relaxed max-w-sm">
+                  Your divine journey to <span className="font-bold text-stone-900 dark:text-white">{yatra.title}</span> has been requested. Our team will contact you shortly to confirm the details.
                 </p>
-                <div className="mt-8 pt-8 border-t border-stone-100 w-full">
+                <div className="mt-8 pt-8 border-t border-stone-100 dark:border-stone-800 w-full">
                   <p className="text-xs text-stone-400 uppercase tracking-widest font-bold">Booking ID: {success}</p>
                 </div>
               </div>
             ) : (
               <>
-                <div className="p-8 border-b border-stone-100 flex items-center justify-between bg-stone-50/50">
+                <div className="p-8 border-b border-stone-100 dark:border-stone-800 flex items-center justify-between bg-stone-50/50 dark:bg-stone-800/30">
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 bg-orange-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-orange-500/20">
                       <Sparkles className="w-6 h-6" />
                     </div>
                     <div>
-                      <h3 className="text-xl font-serif font-bold text-stone-900">Book Your Yatra</h3>
-                      <p className="text-xs text-stone-500 uppercase tracking-widest font-bold">{yatra.category}</p>
+                      <h3 className="text-xl font-serif font-bold text-stone-900 dark:text-white">Book Your Yatra</h3>
+                      <p className="text-xs text-stone-500 dark:text-stone-400 uppercase tracking-widest font-bold">{yatra.category}</p>
                     </div>
                   </div>
-                  <button 
+                  <button
                     onClick={onClose}
-                    className="p-2 hover:bg-stone-200 rounded-full transition-colors"
+                    className="p-2 hover:bg-stone-200 dark:hover:bg-stone-700 rounded-full transition-colors"
                   >
                     <X className="w-6 h-6 text-stone-400" />
                   </button>
                 </div>
 
                 <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-8 custom-scrollbar">
-                  <div className="mb-8 p-6 bg-stone-50 rounded-3xl border border-stone-100">
-                    <h4 className="font-bold text-stone-900 mb-2">{yatra.title}</h4>
-                    <p className="text-sm text-stone-500 flex items-center gap-2">
+                  <div className="mb-8 p-6 bg-stone-50 dark:bg-stone-800/50 rounded-3xl border border-stone-100 dark:border-stone-800">
+                    <h4 className="font-bold text-stone-900 dark:text-white mb-2">{yatra.title}</h4>
+                    <p className="text-sm text-stone-500 dark:text-stone-400 flex items-center gap-2">
                       <MapPin className="w-4 h-4" />
                       {yatra.location}
                     </p>
@@ -151,7 +151,7 @@ export default function YatraBookingModal({ isOpen, onClose, yatra }: YatraBooki
                         min={new Date().toISOString().split('T')[0]}
                         value={formData.date}
                         onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                        className="w-full bg-stone-50 border border-stone-100 rounded-2xl px-5 py-4 text-stone-900 focus:ring-2 focus:ring-orange-500/50 outline-none transition-all font-medium"
+                        className="w-full bg-stone-50 dark:bg-stone-800 border border-stone-100 dark:border-stone-700 rounded-2xl px-5 py-4 text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-stone-500 focus:ring-2 focus:ring-orange-500/50 outline-none transition-all font-medium"
                       />
                     </div>
 
@@ -160,11 +160,11 @@ export default function YatraBookingModal({ isOpen, onClose, yatra }: YatraBooki
                         <Users className="w-3.5 h-3.5" />
                         Number of Travelers
                       </label>
-                      <div className="flex items-center bg-stone-50 border border-stone-100 rounded-2xl overflow-hidden">
+                      <div className="flex items-center bg-stone-50 dark:bg-stone-800 border border-stone-100 dark:border-stone-700 rounded-2xl overflow-hidden">
                         <button
                           type="button"
                           onClick={() => setFormData({ ...formData, travelers: Math.max(1, formData.travelers - 1) })}
-                          className="px-6 py-4 hover:bg-stone-100 text-stone-600 transition-colors"
+                          className="px-6 py-4 hover:bg-stone-100 dark:hover:bg-stone-700 text-stone-600 dark:text-stone-300 transition-colors"
                         >
                           -
                         </button>
@@ -174,12 +174,12 @@ export default function YatraBookingModal({ isOpen, onClose, yatra }: YatraBooki
                           max="20"
                           value={formData.travelers}
                           onChange={(e) => setFormData({ ...formData, travelers: parseInt(e.target.value) || 1 })}
-                          className="flex-1 text-center bg-transparent border-none focus:ring-0 text-stone-900 font-bold"
+                          className="flex-1 text-center bg-transparent border-none focus:ring-0 text-stone-900 dark:text-white font-bold"
                         />
                         <button
                           type="button"
                           onClick={() => setFormData({ ...formData, travelers: Math.min(20, formData.travelers + 1) })}
-                          className="px-6 py-4 hover:bg-stone-100 text-stone-600 transition-colors"
+                          className="px-6 py-4 hover:bg-stone-100 dark:hover:bg-stone-700 text-stone-600 dark:text-stone-300 transition-colors"
                         >
                           +
                         </button>
@@ -197,7 +197,7 @@ export default function YatraBookingModal({ isOpen, onClose, yatra }: YatraBooki
                         placeholder="Enter 10-digit mobile number"
                         value={formData.contactNumber}
                         onChange={(e) => setFormData({ ...formData, contactNumber: e.target.value })}
-                        className="w-full bg-stone-50 border border-stone-100 rounded-2xl px-5 py-4 text-stone-900 focus:ring-2 focus:ring-orange-500/50 outline-none transition-all font-medium"
+                        className="w-full bg-stone-50 dark:bg-stone-800 border border-stone-100 dark:border-stone-700 rounded-2xl px-5 py-4 text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-stone-500 focus:ring-2 focus:ring-orange-500/50 outline-none transition-all font-medium"
                       />
                     </div>
 
@@ -217,16 +217,16 @@ export default function YatraBookingModal({ isOpen, onClose, yatra }: YatraBooki
                   </div>
 
                   {error && (
-                    <div className="mt-6 p-4 bg-red-50 border border-red-100 rounded-2xl text-red-600 text-xs font-bold">
+                    <div className="mt-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800/30 rounded-2xl text-red-600 dark:text-red-400 text-xs font-bold">
                       {error}
                     </div>
                   )}
 
-                  <div className="mt-10 p-8 border-t border-stone-100 -mx-8 -mb-8 bg-stone-50/50">
+                  <div className="mt-10 p-8 border-t border-stone-100 dark:border-stone-800 -mx-8 -mb-8 bg-stone-50/50 dark:bg-stone-800/30">
                     <div className="flex items-center justify-between mb-8">
                       <div className="flex flex-col">
                         <span className="text-xs font-bold text-stone-400 uppercase tracking-widest">Total Amount</span>
-                        <div className="flex items-center text-3xl font-serif font-black text-stone-900">
+                        <div className="flex items-center text-3xl font-serif font-black text-stone-900 dark:text-white">
                           <IndianRupee className="w-6 h-6 text-orange-500" />
                           <span>{formatIndianRupees(yatra.price * formData.travelers)}</span>
                         </div>
