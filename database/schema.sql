@@ -164,3 +164,37 @@ CREATE TABLE IF NOT EXISTS stats (
   `new` INT DEFAULT 0,
   lastReset DATETIME
 );
+
+-- Naam Jap Table
+CREATE TABLE IF NOT EXISTS naam_jap (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  userId VARCHAR(255) NOT NULL,
+  date DATE NOT NULL,
+  count INT DEFAULT 0,
+  target INT DEFAULT 108,
+  mantraName VARCHAR(255) DEFAULT 'Default',
+  updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY unique_user_date (userId, date)
+);
+
+-- OTPs Table
+CREATE TABLE IF NOT EXISTS otps (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  email VARCHAR(255),
+  otp VARCHAR(6),
+  expiresAt DATETIME,
+  createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- WhatsApp Bookings Table
+CREATE TABLE IF NOT EXISTS whatsapp_bookings (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  userId VARCHAR(255),
+  vendorId VARCHAR(255),
+  pujaTitle VARCHAR(255),
+  status VARCHAR(50) DEFAULT 'pending',
+  userLocation JSON,
+  distance DECIMAL(10,2),
+  whatsappNumber VARCHAR(20),
+  createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
+);
