@@ -266,10 +266,14 @@ export default function VendorProfile() {
                   className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
                 >
                   {pujas.map((puja) => (
-                    <div 
+                    <div
                       key={puja.id}
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`View details for ${puja.title}`}
                       onClick={() => navigate(`/pujas/${puja.id}`)}
-                      className="group bg-white dark:bg-stone-800 rounded-3xl border border-stone-100 dark:border-stone-700 overflow-hidden cursor-pointer hover:shadow-xl hover:shadow-stone-200/50 transition-all flex flex-col"
+                      onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && navigate(`/pujas/${puja.id}`)}
+                      className="group bg-white dark:bg-stone-800 rounded-3xl border border-stone-100 dark:border-stone-700 overflow-hidden cursor-pointer hover:shadow-xl hover:shadow-stone-200/50 transition-all flex flex-col focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500"
                     >
                       <div className="aspect-video overflow-hidden relative">
                         <img 
@@ -313,10 +317,14 @@ export default function VendorProfile() {
                   className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
                 >
                   {products.map((product) => (
-                    <div 
+                    <div
                       key={product.id}
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`View details for ${product.name}`}
                       onClick={() => navigate(`/product/${product.id}`)}
-                      className="group bg-white dark:bg-stone-800 rounded-3xl border border-stone-100 dark:border-stone-700 overflow-hidden cursor-pointer hover:shadow-xl hover:shadow-stone-200/50 transition-all flex flex-col"
+                      onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && navigate(`/product/${product.id}`)}
+                      className="group bg-white dark:bg-stone-800 rounded-3xl border border-stone-100 dark:border-stone-700 overflow-hidden cursor-pointer hover:shadow-xl hover:shadow-stone-200/50 transition-all flex flex-col focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500"
                     >
                       <div className="aspect-square overflow-hidden relative">
                         <img 

@@ -122,17 +122,47 @@ export interface Booking {
   createdAt: string;
 }
 
+export interface OrderItem {
+  id?: string;
+  productId?: string | number;
+  name: string;
+  price: number;
+  quantity: number;
+  vendorId?: string;
+  selectedOption?: string;
+  image?: string;
+}
+
+export interface TrackingEvent {
+  status: string;
+  message: string;
+  timestamp: string;
+}
+
 export interface Order {
   id: string;
   userId: string;
-  items: any[];
+  items: OrderItem[];
   totalAmount: number;
   status: 'processing' | 'shipped' | 'delivered' | 'cancelled';
   shippingAddress: string;
   signatureURL?: string;
   paymentMethod?: string;
-  trackingHistory?: any[];
+  paymentStatus?: string;
+  paymentId?: string;
+  couponUsed?: string;
+  discountAmount?: number;
+  trackingHistory?: TrackingEvent[];
   createdAt: string;
+}
+
+export interface AuthUser {
+  uid: string;
+  email: string | null;
+  displayName: string | null;
+  photoURL: string | null;
+  role: 'devotee' | 'vendor' | 'admin';
+  vendorStatus?: 'none' | 'pending' | 'approved' | 'rejected';
 }
 
 export interface WishlistItem {

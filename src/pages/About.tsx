@@ -187,7 +187,10 @@ export default function About() {
                         onError={(e) => {
                           const el = e.currentTarget;
                           el.style.display = 'none';
-                          el.parentElement!.innerHTML = `<span class="text-3xl font-bold text-orange-300">${developer.name[0]}</span>`;
+                          const fallback = document.createElement('span');
+                          fallback.className = 'text-3xl font-bold text-orange-300';
+                          fallback.textContent = developer.name[0];
+                          el.parentElement?.appendChild(fallback);
                         }}
                       />
                     </div>

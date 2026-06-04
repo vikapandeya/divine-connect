@@ -64,6 +64,9 @@
   .font-devanagari { font-family: "Noto Serif Devanagari", "Sanskrit Text", serif; }
   .font-sacred     { font-family: "Cinzel Decorative", "Cormorant Garamond", serif; }
 
+  .hide-scrollbar::-webkit-scrollbar         { display: none; }
+  .hide-scrollbar                            { -ms-overflow-style: none; scrollbar-width: none; }
+
   .custom-scrollbar::-webkit-scrollbar       { width: 4px; }
   .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
   .custom-scrollbar::-webkit-scrollbar-thumb {

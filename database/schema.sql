@@ -84,10 +84,15 @@ CREATE TABLE IF NOT EXISTS order_items (
 -- Feedback Table
 CREATE TABLE IF NOT EXISTS feedback (
   id INT AUTO_INCREMENT PRIMARY KEY,
+  userId VARCHAR(255),
+  serviceId VARCHAR(255),
+  vendorId VARCHAR(255),
+  type VARCHAR(50) DEFAULT 'general',
   name VARCHAR(255),
   city VARCHAR(255),
   rating INT,
   message TEXT,
+  imageURL TEXT,
   createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -196,5 +201,25 @@ CREATE TABLE IF NOT EXISTS whatsapp_bookings (
   userLocation JSON,
   distance DECIMAL(10,2),
   whatsappNumber VARCHAR(20),
+  totalAmount DECIMAL(10,2) DEFAULT 0,
+  paidAmount DECIMAL(10,2) DEFAULT 0,
+  createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Yatras Table
+CREATE TABLE IF NOT EXISTS yatras (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  vendorId VARCHAR(255),
+  title VARCHAR(255) NOT NULL,
+  description TEXT,
+  price DECIMAL(10,2),
+  duration VARCHAR(100),
+  location VARCHAR(255),
+  category VARCHAR(100),
+  rating DECIMAL(3,2) DEFAULT 0,
+  images JSON,
+  itinerary JSON,
+  included JSON,
+  excluded JSON,
   createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
 );

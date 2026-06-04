@@ -89,10 +89,11 @@ export default function ProductDetail() {
         addToCart(itemToAdd);
     }
     
-    // Custom toast/notification would be better than alert
     const toast = document.createElement('div');
     toast.className = 'fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] bg-stone-900 text-white px-6 py-3 rounded-2xl shadow-2xl flex items-center space-x-3 animate-bounce';
-    toast.innerHTML = `<span>Added ${quantity} items to cart</span>`;
+    const span = document.createElement('span');
+    span.textContent = `Added ${quantity} item${quantity > 1 ? 's' : ''} to cart`;
+    toast.appendChild(span);
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 3000);
   };
@@ -190,7 +191,7 @@ export default function ProductDetail() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
         <div className="flex justify-center mb-8">
           <img 
-            src="/logo/icon-only.png" 
+            src="/logo/icon-only.svg"
             alt="PunyaSeva" 
             className="h-10 w-auto dark:brightness-0 dark:invert" 
             referrerPolicy="no-referrer"

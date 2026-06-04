@@ -67,14 +67,14 @@ export default function Profile() {
           fetch(`/api/whatsapp-bookings?userId=${currentUser.uid}`)
         ]);
         
-        let allBookings: any[] = [];
+        let allBookings: (Booking & { source: string })[] = [];
         if (regRes.ok) {
-          const regData = await regRes.json();
-          allBookings = [...allBookings, ...regData.map((b: any) => ({ ...b, source: 'Regular' }))];
+          const regData: Booking[] = await regRes.json();
+          allBookings = [...allBookings, ...regData.map(b => ({ ...b, source: 'Regular' }))];
         }
         if (waRes.ok) {
-          const waData = await waRes.json();
-          allBookings = [...allBookings, ...waData.map((b: any) => ({ ...b, source: 'WhatsApp' }))];
+          const waData: Booking[] = await waRes.json();
+          allBookings = [...allBookings, ...waData.map(b => ({ ...b, source: 'WhatsApp' }))];
         }
         setBookings(allBookings.sort((a, b) => new Date(b.date || b.createdAt).getTime() - new Date(a.date || a.createdAt).getTime()));
       } catch (error) {
@@ -437,7 +437,7 @@ export default function Profile() {
                         ].map((t) => (
                           <button
                             key={t.id}
-                            onClick={() => setTheme(t.id as any)}
+                            onClick={() => setTheme(t.id as 'light' | 'dark' | 'system')}
                             className={`flex flex-col items-center p-4 rounded-2xl border-2 transition-all ${
                               theme === t.id 
                                 ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20 text-orange-600' 
@@ -482,7 +482,7 @@ export default function Profile() {
                         <p className="text-stone-400 dark:text-stone-500">{t('profile.noBookings')}</p>
                       </div>
                     ) : (
-                      bookings.map((booking: any) => (
+                      bookings.map((booking) => (
                         <div key={booking.id} className="flex items-center justify-between p-6 rounded-2xl border border-stone-100 dark:border-stone-800 hover:border-orange-100 dark:hover:border-orange-900/30 transition-colors bg-white dark:bg-stone-900">
                           <div className="flex items-center space-x-4">
                             <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900/30 rounded-xl flex items-center justify-center">
@@ -635,7 +635,7 @@ export default function Profile() {
             <div className="p-12 print:p-8" id="printable-receipt">
               <div className="text-center mb-12">
                 <img 
-                  src="/logo/horizontal-logo.png" 
+                  src="/logo/horizontal-logo.svg"
                   alt="PunyaSeva" 
                   className="h-12 w-auto mx-auto mb-2" 
                   referrerPolicy="no-referrer"

@@ -19,6 +19,7 @@ import { buildOpenRouterPrompt, generateKundliReading, type AstrologyMode } from
 import { calculatePanchang } from "./src/lib/panchangCalc.ts";
 import { GoogleGenAI, Type } from "@google/genai";
 import { DatabaseAdapter, FirestoreAdapter, MySQLAdapter } from "./src/lib/db.ts";
+import { validate, registerSchema, loginSchema, bookingSchema, orderSchema, naamJapSchema, feedbackSchema, productSchema, whatsappBookingSchema, passwordResetRequestSchema, passwordResetSchema } from "./src/lib/validation.ts";
 import nodemailer from "nodemailer";
 
 
@@ -451,7 +452,11 @@ async function startServer() {
   // ── Auth middleware ───────────────────────────────────────────────────────
   const JWT_SECRET = process.env.JWT_SECRET || "change-me-in-production";
   if (!process.env.JWT_SECRET || process.env.JWT_SECRET === "change-me-in-production") {
-    console.warn("[SECURITY] JWT_SECRET is not set or is using the default value. Set a strong secret in .env.");
+    if (process.env.NODE_ENV === 'production') {
+      console.error("[FATAL] JWT_SECRET is not set or is using the default value. Refusing to start in production.");
+      process.exit(1);
+    }
+    console.warn("[SECURITY] JWT_SECRET is not set or is using the default value. Set a strong secret in .env before going to production.");
   }
   const requireAuth = (req: any, res: any, next: any) => {
     const token = req.cookies?.authToken || req.headers.authorization?.replace("Bearer ", "");
@@ -685,102 +690,183 @@ async function startServer() {
             }
           }
 
-          // Seed Products
+          // Seed Products — 5 per category × 8 categories = 40 products
           const products = [
-            {
+            // IDOLS
+            { vendorId: "system", category: "Idols", stock: 50, rating: 4.8, price: 1250,
               name: "Brass Ganesha Idol",
-              description: "Handcrafted pure brass Ganesha idol for your home altar. Intricately detailed with traditional motifs, perfect for daily worship and gifting on auspicious occasions.",
-              price: 1250,
-              category: "Idols",
-              stock: 50,
-              rating: 4.8,
-              image: "/products/ganesha-idol.jpg",
-              vendorId: "system"
-            },
-            {
+              description: "Handcrafted pure brass Lord Ganesha idol for home temple. Intricately detailed with traditional motifs, perfect for daily worship and gifting.",
+              image: "/products/ganesha-idol.jpg" },
+            { vendorId: "system", category: "Idols", stock: 30, rating: 4.9, price: 2499,
+              name: "Marble Radha Krishna Idol",
+              description: "Beautiful white marble Radha Krishna murti hand-carved by Rajasthani artisans. Ideal for home temple and as an auspicious gift.",
+              image: "/products/radha-krishna-idol.jpg" },
+            { vendorId: "system", category: "Idols", stock: 20, rating: 4.8, price: 3999,
+              name: "Brass Shiva Parivar Idol",
+              description: "Elegant brass Shiva family idol depicting Lord Shiva with Parvati, Ganesha and Kartikeya. A divine centrepiece for your prayer space.",
+              image: "/products/shiva-idol.jpg" },
+            { vendorId: "system", category: "Idols", stock: 75, rating: 4.7, price: 899,
+              name: "Hanuman Ji Murti",
+              description: "Devotional Hanuman Ji murti in sitting posture, finished in antique brass. Bestows courage, protection and strength to the home.",
+              image: "/products/hanuman-murti.jpg" },
+            { vendorId: "system", category: "Idols", stock: 40, rating: 4.9, price: 1999,
+              name: "Lakshmi Ganesh Idol Set",
+              description: "Auspicious Lakshmi-Ganesh brass idol set for Diwali puja and housewarming. Brings wealth, prosperity and new beginnings.",
+              image: "/products/lakshmi-ganesh-set.jpg" },
+            // INCENSE
+            { vendorId: "system", category: "Incense", stock: 200, rating: 4.6, price: 150,
               name: "Sandalwood Incense Sticks",
-              description: "Premium Mysore sandalwood incense sticks. Each stick burns for 45–60 minutes, filling your space with a calming, divine aroma ideal for meditation and daily puja.",
-              price: 150,
-              category: "Incense",
-              stock: 200,
-              rating: 4.5,
-              image: "/products/incense-sticks.jpg",
-              vendorId: "system"
-            },
-            {
-              name: "Rudraksha Mala",
-              description: "Original 108+1 beads Panchmukhi Rudraksha mala sourced from Nepal. Energized and blessed as per Vedic rituals — ideal for japa meditation and spiritual protection.",
-              price: 450,
-              category: "Mala",
-              stock: 100,
-              rating: 4.9,
-              image: "/products/rudraksha-mala.jpg",
-              vendorId: "system"
-            },
-            {
-              name: "Bhagavad Gita",
-              description: "The Bhagavad Gita As It Is — Deluxe hardbound edition with original Sanskrit shlokas, English transliteration, word-for-word meanings, and Srila Prabhupada's commentary.",
-              price: 599,
-              category: "Books",
-              stock: 75,
-              rating: 5.0,
-              image: "/products/bhagavad-gita.jpg",
-              vendorId: "system"
-            },
-            {
-              name: "Copper Shri Yantra",
-              description: "Geometrically precise energized copper Shri Yantra for prosperity and positive energy. Consecrated as per Vedic rituals and charged under specific planetary configurations.",
-              price: 850,
-              category: "Yantras",
-              stock: 30,
-              rating: 4.7,
-              image: "/products/shri-yantra.jpg",
-              vendorId: "system"
-            },
-            {
-              name: "Kashi Vishwanath Prasad",
-              description: "Special Ladoo Prasad from Kashi Vishwanath Temple, Varanasi. Freshly prepared by temple priests and dispatched with the blessings of Lord Shiva.",
-              price: 250,
-              category: "Prasad",
-              stock: 100,
-              rating: 4.9,
-              image: "/products/kashi-prasad.jpg",
-              vendorId: "system",
-              templeName: "Kashi Vishwanath",
-              weightOptions: [{ label: "250g", price: 250 }, { label: "500g", price: 450 }]
-            },
-            {
-              name: "Tirupati Laddu",
-              description: "Authentic Tirupati Balaji Temple Laddu Prasad prepared by temple priests using the original sacred recipe. Carries the divine blessings of Lord Venkateswara.",
-              price: 350,
-              category: "Prasad",
-              stock: 50,
-              rating: 5.0,
+              description: "Premium Mysore sandalwood agarbatti burning 45–60 minutes per stick. Fills your space with a calming divine aroma for puja and meditation.",
+              image: "/products/incense-sticks.jpg" },
+            { vendorId: "system", category: "Incense", stock: 300, rating: 4.5, price: 120,
+              name: "Rose Agarbatti Premium Pack",
+              description: "Pure rose-fragrance agarbatti sourced from Indian rose farms. Long-lasting, charcoal-free sticks for daily worship and relaxation.",
+              image: "/products/incense-sticks.jpg" },
+            { vendorId: "system", category: "Incense", stock: 150, rating: 4.7, price: 180,
+              name: "Guggal Dhoop Sticks",
+              description: "Authentic Guggal dhoop sticks prepared using traditional Ayurvedic resin. Purifies the environment and wards off negative energy.",
+              image: "/products/dhoop-sticks.jpg" },
+            { vendorId: "system", category: "Incense", stock: 250, rating: 4.4, price: 99,
+              name: "Jasmine Incense Cones",
+              description: "Handrolled jasmine incense cones with gentle floral fragrance. Perfect for meditation, yoga sessions and evening puja.",
+              image: "/products/incense-cones.jpg" },
+            { vendorId: "system", category: "Incense", stock: 100, rating: 4.8, price: 299,
+              name: "Temple Fragrance Combo Pack",
+              description: "Curated combo of 5 temple fragrances — sandalwood, rose, jasmine, camphor and kevda. 200 sticks in premium gift packaging.",
+              image: "/products/incense-sticks.jpg" },
+            // MALA
+            { vendorId: "system", category: "Mala", stock: 100, rating: 4.9, price: 499,
+              name: "108 Bead Rudraksha Mala",
+              description: "Original 108+1 beads Panchmukhi Rudraksha mala from Nepal. Energized and blessed as per Vedic rituals for japa and spiritual protection.",
+              image: "/products/rudraksha-mala.jpg" },
+            { vendorId: "system", category: "Mala", stock: 150, rating: 4.7, price: 299,
+              name: "Tulsi Japa Mala",
+              description: "Sacred Vrindavan Tulsi wood japa mala, hand-knotted with 108 beads. Revered by Vaishnavas for chanting and meditation.",
+              image: "/products/tulsi-mala.jpg" },
+            { vendorId: "system", category: "Mala", stock: 60, rating: 4.8, price: 999,
+              name: "Sphatik Crystal Mala",
+              description: "Natural clear quartz Sphatik crystal mala with 108 beads. Amplifies positive energy and enhances focus. Prized for Goddess Saraswati puja.",
+              image: "/products/crystal-mala.jpg" },
+            { vendorId: "system", category: "Mala", stock: 80, rating: 4.6, price: 599,
+              name: "Chandan Mala",
+              description: "Authentic sandalwood (chandan) mala with 108 beads. Naturally fragrant, cool to touch and traditionally used for Vishnu and Shiva mantras.",
+              image: "/products/rudraksha-mala.jpg" },
+            { vendorId: "system", category: "Mala", stock: 50, rating: 4.9, price: 799,
+              name: "Five Mukhi Rudraksha Mala",
+              description: "Premium Five-Mukhi Panchmukhi Rudraksha mala representing Lord Shiva. Promotes calmness, clarity and spiritual well-being.",
+              image: "/products/rudraksha-mala.jpg" },
+            // BOOKS
+            { vendorId: "system", category: "Books", stock: 75, rating: 5.0, price: 599,
+              name: "Bhagavad Gita Deluxe Edition",
+              description: "Srila Prabhupada's Bhagavad Gita As It Is — deluxe hardbound with Sanskrit shlokas, transliteration, word-for-word meanings and commentary.",
+              image: "/products/bhagavad-gita.jpg" },
+            { vendorId: "system", category: "Books", stock: 50, rating: 4.8, price: 799,
+              name: "Ramayana Illustrated Edition",
+              description: "Valmiki Ramayana in English — beautifully illustrated collector's edition with 200+ colour plates depicting key scenes from the epic.",
+              image: "/products/ramayana-book.jpg" },
+            { vendorId: "system", category: "Books", stock: 120, rating: 4.7, price: 299,
+              name: "Vishnu Sahasranama",
+              description: "Complete Vishnu Sahasranama with Sanskrit text, Roman transliteration, meaning and significance of all 1000 names of Lord Vishnu.",
+              image: "/products/bhagavad-gita.jpg" },
+            { vendorId: "system", category: "Books", stock: 200, rating: 4.6, price: 199,
+              name: "Hanuman Chalisa Hardcover",
+              description: "Elegant hardcover Hanuman Chalisa with original Awadhi text, Hindi translation and colour illustrations. A devotional treasure for every home.",
+              image: "/products/hanuman-chalisa.jpg" },
+            { vendorId: "system", category: "Books", stock: 40, rating: 4.9, price: 699,
+              name: "Shiva Purana Essentials",
+              description: "Curated Shiva Purana essentials — creation stories, Shiva Sahasranama, Rudrashtakam and key rituals from the original Mahapurana.",
+              image: "/products/bhagavad-gita.jpg" },
+            // YANTRAS
+            { vendorId: "system", category: "Yantras", stock: 45, rating: 4.8, price: 799,
+              name: "Shri Yantra Copper Plate",
+              description: "Geometrically precise energized copper Shri Yantra for prosperity and positive energy. Consecrated under Vedic planetary configurations.",
+              image: "/products/shri-yantra.jpg" },
+            { vendorId: "system", category: "Yantras", stock: 35, rating: 4.7, price: 999,
+              name: "Kuber Yantra",
+              description: "Energized Kuber Yantra for wealth attraction and financial abundance. Etched on pure copper, consecrated during Pushya Nakshatra.",
+              image: "/products/kuber-yantra.jpg" },
+            { vendorId: "system", category: "Yantras", stock: 30, rating: 4.9, price: 899,
+              name: "Maha Mrityunjaya Yantra",
+              description: "Sacred Maha Mrityunjaya Yantra for health, longevity and protection from negativity. Hand-engraved on pure copper plate.",
+              image: "/products/shri-yantra.jpg" },
+            { vendorId: "system", category: "Yantras", stock: 25, rating: 4.8, price: 1299,
+              name: "Navgraha Yantra",
+              description: "Powerful Navgraha Yantra representing all nine planets. Balances planetary energies and removes doshas affecting career and relationships.",
+              image: "/products/kuber-yantra.jpg" },
+            { vendorId: "system", category: "Yantras", stock: 50, rating: 4.7, price: 699,
+              name: "Lakshmi Prosperity Yantra",
+              description: "Lakshmi Yantra etched on gold-plated copper, attracting wealth and success. Install in home puja room or business premises.",
+              image: "/products/shri-yantra.jpg" },
+            // PRASAD
+            { vendorId: "system", category: "Prasad", stock: 50, rating: 5.0, price: 299,
+              name: "Tirupati Laddu Prasad",
+              description: "Authentic Tirupati Balaji Temple Laddu Prasad prepared by temple priests using the original sacred recipe. Carries divine blessings of Lord Venkateswara.",
               image: "/products/tirupati-laddu.jpg",
-              vendorId: "system",
               templeName: "Tirupati Balaji",
-              weightOptions: [{ label: "1 Unit", price: 350 }, { label: "2 Units", price: 650 }]
-            },
-            {
-              name: "Premium Brass Diya",
-              description: "Handcrafted brass diya with intricate engravings. Perfect for daily puja, Diwali celebrations, and auspicious occasions. Comes with a cotton wick.",
-              price: 499,
-              category: "Puja Essentials",
-              stock: 50,
-              rating: 4.8,
+              weightOptions: [{ label: "1 Unit", price: 299 }, { label: "2 Units", price: 549 }] },
+            { vendorId: "system", category: "Prasad", stock: 80, rating: 4.8, price: 249,
+              name: "Panchmewa Prasad Pack",
+              description: "Auspicious Panchmewa prasad blend of five dried fruits — cashews, raisins, almonds, dates and pistachios. Offered during Satyanarayan puja.",
+              image: "/products/kashi-prasad.jpg",
+              weightOptions: [{ label: "250g", price: 249 }, { label: "500g", price: 449 }] },
+            { vendorId: "system", category: "Prasad", stock: 120, rating: 4.6, price: 149,
+              name: "Mishri Bhog Pack",
+              description: "Pure rock sugar Mishri for bhog offering. Used in milk prasad, charnamrit preparation and as naivedyam to deities.",
+              image: "/products/kashi-prasad.jpg",
+              weightOptions: [{ label: "250g", price: 149 }, { label: "500g", price: 249 }] },
+            { vendorId: "system", category: "Prasad", stock: 60, rating: 4.9, price: 299,
+              name: "Kashi Vishwanath Prasad",
+              description: "Special Ladoo Prasad from Kashi Vishwanath Temple, Varanasi. Freshly prepared by temple priests with the blessings of Lord Shiva.",
+              image: "/products/kashi-prasad.jpg",
+              templeName: "Kashi Vishwanath",
+              weightOptions: [{ label: "250g", price: 299 }, { label: "500g", price: 549 }] },
+            { vendorId: "system", category: "Prasad", stock: 90, rating: 4.7, price: 199,
+              name: "Charnamrit Prasad Kit",
+              description: "Complete charnamrit preparation kit with Gangajal, milk, curd, honey, ghee and Tulsi. Everything needed for abhishek and prasad offering.",
+              image: "/products/kashi-prasad.jpg" },
+            // PUJA ESSENTIALS
+            { vendorId: "system", category: "Puja Essentials", stock: 60, rating: 4.8, price: 799,
+              name: "Brass Puja Thali Set",
+              description: "Complete brass puja thali set with diya, incense holder, bell, kumkum container and aarti plate. Elegantly engraved for daily worship.",
+              image: "/products/puja-thali.jpg" },
+            { vendorId: "system", category: "Puja Essentials", stock: 45, rating: 4.7, price: 699,
+              name: "Copper Kalash",
+              description: "Pure copper kalash for Vastu puja, Griha Pravesh and all Vedic rituals. Storing water in copper carries significant spiritual merit.",
+              image: "/products/copper-kalash.jpg" },
+            { vendorId: "system", category: "Puja Essentials", stock: 80, rating: 4.6, price: 399,
+              name: "Brass Temple Bell",
+              description: "Resonant brass puja bell with Om engraving and wooden handle. The sound dispels negative energy and invites divine presence.",
+              image: "/products/brass-bell.jpg" },
+            { vendorId: "system", category: "Puja Essentials", stock: 200, rating: 4.5, price: 149,
+              name: "Camphor Pack (Bhimseni)",
+              description: "Pure Bhimseni camphor for aarti and havan. Naturally sourced, burns clean without residue and releases divine fragrance during puja.",
               image: "/products/brass-diya.jpg",
-              vendorId: "system"
-            },
-            {
-              name: "Puja Samagri Kit",
-              description: "Complete puja samagri kit with all essentials — kumkum, haldi, chandan, camphor, dhoop, supari, paan, and more. Everything you need for a complete puja in one box.",
-              price: 349,
-              category: "Samagri Kits",
-              stock: 80,
-              rating: 4.6,
-              image: "/products/puja-samagri.jpg",
-              vendorId: "system"
-            }
+              weightOptions: [{ label: "50g", price: 149 }, { label: "100g", price: 269 }] },
+            { vendorId: "system", category: "Puja Essentials", stock: 55, rating: 4.9, price: 499,
+              name: "Akhand Jyot Diya",
+              description: "Handcrafted brass akhand diya for continuous flame during Navratri and auspicious vrats. Deep-set bowl holds oil for 24–48 hour burning.",
+              image: "/products/brass-diya.jpg" },
+            // SAMAGRI KITS
+            { vendorId: "system", category: "Samagri Kits", stock: 40, rating: 4.8, price: 1299,
+              name: "Satyanarayan Puja Kit",
+              description: "Complete Satyanarayan Katha samagri with 51 items — panchamrit, fruits, banana leaves, panchmewa, puja thali and all ritual essentials.",
+              image: "/products/puja-samagri.jpg" },
+            { vendorId: "system", category: "Samagri Kits", stock: 55, rating: 4.7, price: 999,
+              name: "Lakshmi Puja Kit",
+              description: "Diwali Lakshmi puja samagri with lotus seeds, red cloth, kumkum, chandan, coins, diyas and all items for a complete Lakshmi puja.",
+              image: "/products/puja-samagri.jpg" },
+            { vendorId: "system", category: "Samagri Kits", stock: 25, rating: 4.9, price: 1999,
+              name: "Rudrabhishek Puja Kit",
+              description: "Premium Rudrabhishek kit with Shivalinga, panchamrit, bel leaves, Gangajal, rudraksha mala, dhatura and all items for Shiva abhishek.",
+              image: "/products/puja-samagri.jpg" },
+            { vendorId: "system", category: "Samagri Kits", stock: 35, rating: 4.8, price: 1499,
+              name: "Navratri Puja Kit",
+              description: "All-inclusive Navratri kit for 9-day celebration — Kalash, red cloth, Durga idol, akhand diya, sindoor, bangles, coconut and fresh flowers.",
+              image: "/products/navratri-kit.jpg" },
+            { vendorId: "system", category: "Samagri Kits", stock: 20, rating: 4.9, price: 2499,
+              name: "Griha Pravesh Puja Kit",
+              description: "Complete Griha Pravesh samagri with 75+ items — copper kalash, Ganesh idol, havan samagri, holy thread, mango leaves and Vastu essentials.",
+              image: "/products/puja-samagri.jpg" },
           ];
           for (const product of products) {
             await adapter.addProduct({ ...product, createdAt: new Date() });
@@ -897,7 +983,7 @@ async function startServer() {
       }
     });
 
-    app.post("/api/auth/register", async (req, res) => {
+    app.post("/api/auth/register", validate(registerSchema), async (req, res) => {
       const { email, password, displayName, role } = req.body;
       // ── Input validation ────────────────────────────────────────────────────
       if (!email || typeof email !== 'string' || !email.includes('@')) {
@@ -993,7 +1079,7 @@ async function startServer() {
       }
     });
 
-    app.post("/api/auth/login", async (req, res) => {
+    app.post("/api/auth/login", validate(loginSchema), async (req, res) => {
     const { email, password } = req.body;
     try {
       const user = await adapter.getUserByEmail(email);
@@ -1032,14 +1118,14 @@ async function startServer() {
     res.json({ success: true });
   });
 
-  // Step 1: request an OTP (in production this would be emailed; here it's returned for dev)
-  app.post("/api/auth/request-password-reset", async (req, res) => {
+  // Step 1: request an OTP — OTP is NEVER returned in the response body
+  app.post("/api/auth/request-password-reset", validate(passwordResetRequestSchema), async (req, res) => {
     const { email } = req.body;
     if (!email) return res.status(400).json({ error: "email is required" });
     try {
       const user = await adapter.getUserByEmail(email);
       if (!user) {
-        // Return 200 with generic message to prevent email enumeration
+        // Generic message regardless — prevents email enumeration
         return res.json({ success: true, message: "If that email exists, an OTP has been sent." });
       }
       if (!user.password) {
@@ -1047,19 +1133,20 @@ async function startServer() {
       }
       const otp = Math.floor(100000 + Math.random() * 900000).toString();
       passwordResetOTPs.set(email.toLowerCase(), { otp, expiresAt: Date.now() + 15 * 60 * 1000 });
-      // TODO: send OTP via email (nodemailer/SendGrid) when email service is configured
-      if (process.env.NODE_ENV === 'development') {
+      // TODO: integrate nodemailer/SendGrid to email the OTP
+      // In dev only: log to console (never to response body)
+      if (process.env.NODE_ENV !== 'production') {
         console.log(`[Auth][DEV] Password reset OTP for ${email}: ${otp}`);
       }
-      res.json({ success: true, message: "OTP sent to your email address.", ...(process.env.NODE_ENV === 'development' && { otp }) });
+      res.json({ success: true, message: "If that email exists, an OTP has been sent." });
     } catch (error) {
       console.error("[API] POST /api/auth/request-password-reset error:", error);
-      res.status(500).json({ error: (error as Error).message });
+      res.status(500).json({ error: "Failed to process password reset request" });
     }
   });
 
   // Step 2: verify OTP and set new password
-  app.post("/api/auth/reset-password", async (req, res) => {
+  app.post("/api/auth/reset-password", validate(passwordResetSchema), async (req, res) => {
     const { email, otp, newPassword } = req.body;
     if (!email || !otp || !newPassword) {
       return res.status(400).json({ error: "email, otp, and newPassword are required" });
@@ -1155,6 +1242,8 @@ async function startServer() {
   });
 
   app.get("/api/vendors", async (req, res) => {
+    const limit = Math.min(100, Math.max(1, parseInt(String(req.query.limit || '20'), 10) || 20));
+    const offset = Math.max(0, parseInt(String(req.query.offset || '0'), 10) || 0);
     try {
       const vendors = await adapter.getUsersByRole('vendor');
       const vendorDetails = await Promise.all(vendors.map(async (v: any) => {
@@ -1162,34 +1251,35 @@ async function startServer() {
         const { password: _pw, ...safe } = { ...v, ...details };
         return safe;
       }));
-      res.json(vendorDetails);
+      const paginated = vendorDetails.slice(offset, offset + limit);
+      res.json({ data: paginated, total: vendorDetails.length, limit, offset });
     } catch (error) {
       console.error("[API] GET /api/vendors error:", error);
-      res.status(500).json({ error: (error as Error).message });
+      res.status(500).json({ error: "Failed to fetch vendors" });
     }
   });
 
-  app.post("/api/whatsapp-bookings", async (req, res) => {
+  app.post("/api/whatsapp-bookings", requireAuth, validate(whatsappBookingSchema), async (req, res) => {
     try {
       const bookingId = await adapter.addWhatsAppBooking(req.body);
       res.json({ success: true, bookingId });
     } catch (error) {
       console.error("[API] POST /api/whatsapp-bookings error:", error);
-      res.status(500).json({ error: (error as Error).message });
+      res.status(500).json({ error: "Failed to create booking" });
     }
   });
 
-  app.get("/api/whatsapp-bookings", async (req, res) => {
+  app.get("/api/whatsapp-bookings", requireAdmin, async (req, res) => {
     try {
       const bookings = await adapter.getWhatsAppBookings();
       res.json(bookings);
     } catch (error) {
       console.error("[API] GET /api/whatsapp-bookings error:", error);
-      res.status(500).json({ error: (error as Error).message });
+      res.status(500).json({ error: "Failed to fetch bookings" });
     }
   });
 
-  app.patch("/api/whatsapp-bookings/:id/status", async (req, res) => {
+  app.patch("/api/whatsapp-bookings/:id/status", requireAdmin, async (req, res) => {
     const { status } = req.body;
     try {
       await adapter.updateWhatsAppBookingStatus(req.params.id, status);
@@ -1211,17 +1301,23 @@ async function startServer() {
     }
   });
 
-  app.patch("/api/whatsapp-bookings/:id/payment", async (req, res) => {
+  app.patch("/api/whatsapp-bookings/:id/payment", requireAuth, async (req, res) => {
     const { amount } = req.body;
     try {
       const bookings = await adapter.getWhatsAppBookings();
       const booking = bookings.find(b => b.id === req.params.id);
       if (!booking) return res.status(404).json({ error: "Booking not found" });
 
+      const requestingUid = (req as any).user?.uid;
+      const isAdmin = (req as any).user?.role === 'admin';
+      if (booking.userId !== requestingUid && !isAdmin) {
+        return res.status(403).json({ error: "You do not have permission to update this booking" });
+      }
+
       const newPaidAmount = (booking.paidAmount || 0) + Number(amount);
       await adapter.updateWhatsAppBookingPayment(req.params.id, newPaidAmount);
 
-      // If paid at least half, notify both
+      // Only notify once when crossing the 50% threshold
       if (newPaidAmount >= (booking.totalAmount || 0) / 2 && (booking.paidAmount || 0) < (booking.totalAmount || 0) / 2) {
         await createNotification(booking.userId, "Payment Received", "We have received at least 50% of your WhatsApp booking amount. Your booking is now fully confirmed.", "booking");
         await createNotification(booking.vendorId, "Payment Update", "The user has paid at least 50% of the WhatsApp booking amount.", "booking");
@@ -1230,14 +1326,18 @@ async function startServer() {
       res.json({ success: true, paidAmount: newPaidAmount });
     } catch (error) {
       console.error("[API] PATCH /api/whatsapp-bookings/:id/payment error:", error);
-      res.status(500).json({ error: (error as Error).message });
+      res.status(500).json({ error: "Failed to update payment" });
     }
   });
 
   // Naam Jap Endpoints
-  app.get("/api/naam-jap/logs", async (req, res) => {
+  app.get("/api/naam-jap/logs", requireAuth, async (req, res) => {
+    const requestingUid = (req as any).user?.uid;
     const { userId } = req.query;
     if (!userId) return res.status(400).json({ error: "userId is required" });
+    if (userId !== requestingUid && (req as any).user?.role !== 'admin') {
+      return res.status(403).json({ error: "You can only view your own logs" });
+    }
     try {
       const logs = await adapter!.getNaamJapLogs(userId as string);
       res.json(logs);
@@ -1247,9 +1347,13 @@ async function startServer() {
     }
   });
 
-  app.post("/api/naam-jap/save", async (req, res) => {
+  app.post("/api/naam-jap/save", requireAuth, validate(naamJapSchema), async (req, res) => {
     const { userId, date, count, target, mantraName } = req.body;
     if (!userId || !date) return res.status(400).json({ error: "userId and date are required" });
+    const requestingUid = (req as any).user?.uid;
+    if (userId !== requestingUid && (req as any).user?.role !== 'admin') {
+      return res.status(403).json({ error: "You can only save your own Naam Jap" });
+    }
     try {
       await adapter!.updateNaamJap({ userId, date, count, target, mantraName });
       res.json({ success: true });
@@ -1259,13 +1363,18 @@ async function startServer() {
     }
   });
 
-  app.get("/api/vendor/whatsapp-bookings/:vendorId", async (req, res) => {
+  app.get("/api/vendor/whatsapp-bookings/:vendorId", requireAuth, async (req, res) => {
+    const requestingUid = (req as any).user?.uid;
+    const isAdmin = (req as any).user?.role === 'admin';
+    if (req.params.vendorId !== requestingUid && !isAdmin) {
+      return res.status(403).json({ error: "You can only view your own bookings" });
+    }
     try {
       const bookings = await adapter.getWhatsAppBookingsByVendor(req.params.vendorId);
       res.json(bookings);
     } catch (error) {
       console.error("[API] GET /api/vendor/whatsapp-bookings/:vendorId error:", error);
-      res.status(500).json({ error: (error as Error).message });
+      res.status(500).json({ error: "Failed to fetch bookings" });
     }
   });
 
@@ -1682,7 +1791,7 @@ async function startServer() {
   });
 
   // POST add product as vendor (attaches vendorId automatically)
-  app.post("/api/vendor/products", requireVendor, async (req, res) => {
+  app.post("/api/vendor/products", requireVendor, validate(productSchema), async (req, res) => {
     const { vendorId, name, description, price, category, stock, rating, image, templeName, weightOptions } = req.body;
     if (!vendorId || !name || !price) {
       return res.status(400).json({ error: "vendorId, name, and price are required" });
@@ -1712,7 +1821,13 @@ async function startServer() {
   app.put("/api/vendor/products/:id", requireVendor, async (req, res) => {
     const { name, description, price, category, stock, rating, image } = req.body;
     try {
-      const existingProduct = await adapter.getProducts({}).then(ps => ps.find(p => p.id.toString() === req.params.id));
+      const products = await adapter.getProducts({});
+      const existingProduct = products.find(p => p.id.toString() === req.params.id);
+      if (!existingProduct) return res.status(404).json({ error: "Product not found" });
+      const requestingUid = (req as any).user?.uid;
+      if (existingProduct.vendorId !== requestingUid && (req as any).user?.role !== 'admin') {
+        return res.status(403).json({ error: "You do not have permission to update this product" });
+      }
       await adapter.updateProduct(req.params.id, {
         name, description,
         price: Number(price),
@@ -1724,18 +1839,25 @@ async function startServer() {
       res.json({ success: true });
     } catch (error) {
       console.error("[API] PUT /api/vendor/products/:id error:", error);
-      res.status(500).json({ error: (error as Error).message });
+      res.status(500).json({ error: "Failed to update product" });
     }
   });
 
   // DELETE vendor's own product
   app.delete("/api/vendor/products/:id", requireVendor, async (req, res) => {
     try {
+      const products = await adapter.getProducts({});
+      const existingProduct = products.find(p => p.id.toString() === req.params.id);
+      if (!existingProduct) return res.status(404).json({ error: "Product not found" });
+      const requestingUid = (req as any).user?.uid;
+      if (existingProduct.vendorId !== requestingUid && (req as any).user?.role !== 'admin') {
+        return res.status(403).json({ error: "You do not have permission to delete this product" });
+      }
       await adapter.deleteProduct(req.params.id);
       res.json({ success: true });
     } catch (error) {
       console.error("[API] DELETE /api/vendor/products/:id error:", error);
-      res.status(500).json({ error: (error as Error).message });
+      res.status(500).json({ error: "Failed to delete product" });
     }
   });
 
@@ -1787,13 +1909,16 @@ async function startServer() {
 
   // Pujas
   app.get("/api/pujas", async (req, res) => {
+    const limit = Math.min(100, Math.max(1, parseInt(String(req.query.limit || '20'), 10) || 20));
+    const offset = Math.max(0, parseInt(String(req.query.offset || '0'), 10) || 0);
     try {
       const { vendorId } = req.query;
-      const pujas = await adapter.getPujas({ vendorId: vendorId as string });
-      res.json(pujas);
+      const all = await adapter.getPujas({ vendorId: vendorId as string });
+      const paginated = all.slice(offset, offset + limit);
+      res.json({ data: paginated, total: all.length, limit, offset });
     } catch (error) {
       console.error("[API] GET /api/pujas error:", error);
-      res.status(500).json({ error: (error as Error).message });
+      res.status(500).json({ error: "Failed to fetch pujas" });
     }
   });
 
@@ -1923,13 +2048,18 @@ async function startServer() {
   });
 
   // Bookings
-  app.get("/api/bookings/:uid", async (req, res) => {
+  app.get("/api/bookings/:uid", requireAuth, async (req, res) => {
+    const requestingUid = (req as any).user?.uid;
+    const isAdmin = (req as any).user?.role === 'admin';
+    if (req.params.uid !== requestingUid && !isAdmin) {
+      return res.status(403).json({ error: "You can only view your own bookings" });
+    }
     try {
       const bookings = await adapter.getBookingsByUser(req.params.uid);
       res.json(bookings);
     } catch (error) {
       console.error("[API] GET /api/bookings/:uid error:", error);
-      res.status(500).json({ error: (error as Error).message });
+      res.status(500).json({ error: "Failed to fetch bookings" });
     }
   });
 
@@ -2076,37 +2206,34 @@ async function startServer() {
     }
   }
 
-  app.post("/api/bookings", requireAuth, async (req, res) => {
+  app.post("/api/bookings", requireAuth, validate(bookingSchema), async (req, res) => {
     const { userId, serviceId, vendorId, type, date, timeSlot, status, totalAmount, isOnline, bringSamagri, samagriList } = req.body;
     try {
-      const bookingId = await adapter.addBooking({
-        userId,
-        serviceId,
-        vendorId,
-        type,
-        date,
-        time: timeSlot,
-        totalAmount: Number(totalAmount),
-        isOnline: !!isOnline,
-        bringSamagri: !!bringSamagri,
-        samagriList,
-        status: status || 'pending',
-        createdAt: new Date()
-      });
-      
-      // Update vendor wallet
-      await updateVendorWallet(vendorId, Number(totalAmount), 'booking', bookingId);
-      
-      // Create notifications
+      const amount = Number(totalAmount);
+      const earning = amount * (1 - COMMISSION_PERCENT / 100);
+      const commission = amount - earning;
+
+      let bookingId: string;
+      // Use atomic transaction if MySQL adapter supports it
+      if (typeof (adapter as any).addBookingWithWallet === 'function') {
+        bookingId = await (adapter as any).addBookingWithWallet(
+          { userId, serviceId, type, isOnline: !!isOnline, bringSamagri: !!bringSamagri, date, timeSlot, status: status || 'pending', samagriList },
+          vendorId, earning, amount, commission
+        );
+      } else {
+        bookingId = await adapter.addBooking({ userId, serviceId, vendorId, type, date, time: timeSlot, totalAmount: amount, isOnline: !!isOnline, bringSamagri: !!bringSamagri, samagriList, status: status || 'pending', createdAt: new Date() });
+        await updateVendorWallet(vendorId, amount, 'booking', bookingId);
+      }
+
       await createNotification(userId, "Booking Placed", `Your booking for ${type} on ${date} is pending confirmation.`, 'booking');
       if (vendorId && vendorId !== 'system') {
         await createNotification(vendorId, "New Booking", `You have a new booking request for ${type} on ${date}.`, 'booking');
       }
-      
+
       res.json({ success: true, id: bookingId });
     } catch (error) {
       console.error("[API] POST /api/bookings error:", error);
-      res.status(500).json({ error: (error as Error).message });
+      res.status(500).json({ error: "Failed to create booking" });
     }
   });
 
@@ -2166,19 +2293,37 @@ async function startServer() {
   });
 
   // Orders
-  app.get("/api/orders/:uid", async (req, res) => {
+  app.get("/api/orders/:uid", requireAuth, async (req, res) => {
+    const requestingUid = (req as any).user?.uid;
+    const isAdmin = (req as any).user?.role === 'admin';
+    if (req.params.uid !== requestingUid && !isAdmin) {
+      return res.status(403).json({ error: "You can only view your own orders" });
+    }
     try {
       const orders = await adapter.getOrdersByUser(req.params.uid);
       res.json(orders);
     } catch (error) {
       console.error("[API] GET /api/orders/:uid error:", error);
-      res.status(500).json({ error: (error as Error).message });
+      res.status(500).json({ error: "Failed to fetch orders" });
     }
   });
 
-  app.post("/api/orders", requireAuth, async (req, res) => {
+  app.post("/api/orders", requireAuth, validate(orderSchema), async (req, res) => {
     const { userId, items, totalAmount, status, shippingAddress, couponUsed, discountAmount, paymentMethod, paymentStatus, paymentId, signatureURL } = req.body;
     try {
+      // For Stripe payments, verify the payment intent succeeded before creating an order
+      if (paymentMethod === 'stripe' && paymentId) {
+        if (!stripe) {
+          return res.status(503).json({ error: "Payment service unavailable. Please try again later." });
+        }
+        const intent = await stripe.paymentIntents.retrieve(paymentId);
+        if (intent.status !== 'succeeded') {
+          return res.status(402).json({ error: "Payment has not been confirmed. Please complete payment before placing the order." });
+        }
+      } else if (paymentMethod === 'stripe' && !paymentId) {
+        return res.status(400).json({ error: "Payment ID is required for Stripe orders." });
+      }
+
       const orderData = {
         userId,
         items,
@@ -2191,36 +2336,41 @@ async function startServer() {
         paymentMethod,
         paymentStatus,
         paymentId,
-        trackingHistory: [
-          {
-            status,
-            message: "Order placed successfully",
-            timestamp: new Date().toISOString()
-          }
-        ],
         createdAt: new Date()
       };
 
-      const orderId = await adapter.addOrder(orderData);
+      // Build wallet updates for all vendor items
+      const walletUpdates = (items || [])
+        .filter((item: any) => item.vendorId && item.vendorId !== 'system')
+        .map((item: any) => {
+          const itemTotal = Number(item.price) * Number(item.quantity);
+          const earning = itemTotal * (1 - COMMISSION_PERCENT / 100);
+          return { vendorId: item.vendorId, earning, totalAmount: itemTotal, commission: itemTotal - earning };
+        });
 
-      // Update vendor wallets for each item
-      for (const item of items) {
-        if (item.vendorId) {
-          const itemTotal = item.price * item.quantity;
-          await updateVendorWallet(item.vendorId, itemTotal, 'order', orderId);
-          
-          // Notify vendor
-          await createNotification(item.vendorId, "New Order", `You have a new order for ${item.name}.`, 'order');
+      let orderId: string;
+      // Use atomic transaction if MySQL adapter supports it
+      if (typeof (adapter as any).addOrderWithWallets === 'function') {
+        orderId = await (adapter as any).addOrderWithWallets(orderData, walletUpdates);
+      } else {
+        orderId = await adapter.addOrder(orderData);
+        for (const w of walletUpdates) {
+          await updateVendorWallet(w.vendorId, w.totalAmount, 'order', orderId);
         }
       }
 
-      // Notify user
+      // Notifications (outside transaction — non-critical)
+      for (const item of (items || [])) {
+        if (item.vendorId) {
+          await createNotification(item.vendorId, "New Order", `You have a new order for ${item.name}.`, 'order');
+        }
+      }
       await createNotification(userId, "Order Placed", `Your order for ${items.length} items has been placed successfully.`, 'order');
 
       res.json({ success: true, orderId });
     } catch (error) {
       console.error("[API] POST /api/orders error:", error);
-      res.status(500).json({ error: (error as Error).message });
+      res.status(500).json({ error: "Failed to place order" });
     }
   });
 
@@ -2320,17 +2470,20 @@ async function startServer() {
 
   // Feedback
   app.get("/api/feedback", async (req, res) => {
+    const limit = Math.min(100, Math.max(1, parseInt(String(req.query.limit || '50'), 10) || 50));
+    const offset = Math.max(0, parseInt(String(req.query.offset || '0'), 10) || 0);
     try {
       const { serviceId, type, vendorId } = req.query;
-      const feedback = await adapter.getFeedback();
-      let filtered = feedback;
+      const all = await adapter.getFeedback();
+      let filtered = all;
       if (serviceId) filtered = filtered.filter((f: any) => f.serviceId === serviceId);
       if (type) filtered = filtered.filter((f: any) => f.type === type);
       if (vendorId) filtered = filtered.filter((f: any) => f.vendorId === vendorId);
-      res.json(filtered);
+      const paginated = filtered.slice(offset, offset + limit);
+      res.json({ data: paginated, total: filtered.length, limit, offset });
     } catch (error) {
       console.error("[API] GET /api/feedback error:", error);
-      res.status(500).json({ error: (error as Error).message });
+      res.status(500).json({ error: "Failed to fetch feedback" });
     }
   });
 
@@ -2375,7 +2528,7 @@ async function startServer() {
     }
   });
 
-  app.post("/api/feedback", async (req, res) => {
+  app.post("/api/feedback", validate(feedbackSchema), async (req, res) => {
     const { userId, name, userName, city, rating, message, serviceId, type, imageURL, vendorId } = req.body;
     try {
       await adapter.addFeedback({

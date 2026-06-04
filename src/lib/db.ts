@@ -117,14 +117,14 @@ export class FirestoreAdapter implements DatabaseAdapter {
 
   async getPendingVendors() {
     const snap = await this.db.collection("users").where("vendorStatus", "==", "pending").get();
-    return Promise.all(snap.docs.map(async (doc) => {
-      const userData = doc.data();
-      const vendorDoc = await this.db.collection("vendors").doc(doc.id).get();
-      return {
-        uid: doc.id,
-        ...userData,
-        businessDetails: vendorDoc.exists ? vendorDoc.data() : null
-      };
+    const uids = snap.docs.map(d => d.id);
+    // Batch fetch all vendor docs in parallel instead of sequentially
+    const vendorDocs = await Promise.all(uids.map(uid => this.db.collection("vendors").doc(uid).get()));
+    const vendorMap = new Map(vendorDocs.map(d => [d.id, d.exists ? d.data() : null]));
+    return snap.docs.map(doc => ({
+      uid: doc.id,
+      ...doc.data(),
+      businessDetails: vendorMap.get(doc.id) ?? null,
     }));
   }
 
@@ -153,19 +153,23 @@ export class FirestoreAdapter implements DatabaseAdapter {
 
   async getVendorsPerformance() {
     const vendorsSnap = await this.db.collection("users").where("role", "==", "vendor").get();
-    const vendors = vendorsSnap.docs.map(doc => ({ uid: doc.id, ...doc.data() }));
-    return Promise.all(vendors.map(async (vendor: any) => {
+    const vendors = vendorsSnap.docs.map(doc => ({ uid: doc.id, ...doc.data() })) as any[];
+    // Batch all vendor doc + booking count fetches in parallel
+    const [vendorDocs, bookingSnaps] = await Promise.all([
+      Promise.all(vendors.map(v => this.db.collection("vendors").doc(v.uid).get())),
+      Promise.all(vendors.map(v => this.db.collection("bookings").where("vendorId", "==", v.uid).count().get().catch(() => null))),
+    ]);
+    return vendors.map((vendor, i) => {
       const { password: _pw, ...safeVendor } = vendor;
-      const bookingsSnap = await this.db.collection("bookings").where("vendorId", "==", vendor.uid).get();
-      const vendorDoc = await this.db.collection("vendors").doc(vendor.uid).get();
-      const vendorData = vendorDoc.exists ? vendorDoc.data() : {};
+      const vendorData = vendorDocs[i].exists ? vendorDocs[i].data() : {};
+      const totalBookings = bookingSnaps[i] ? (bookingSnaps[i] as any).data().count : 0;
       return {
         ...safeVendor,
-        totalBookings: bookingsSnap.size,
+        totalBookings,
         type: (vendorData?.type as 'priest' | 'temple' | 'shop') || 'shop',
-        businessType: vendorData?.type || 'shop'
+        businessType: vendorData?.type || 'shop',
       };
-    }));
+    });
   }
 
   async getProducts(filters: { category?: string; vendorId?: string }) {
@@ -205,14 +209,12 @@ export class FirestoreAdapter implements DatabaseAdapter {
       query = query.where("vendorId", "==", filters.vendorId);
     }
     const snap = await query.get();
-    return Promise.all(snap.docs.map(async doc => {
-      const pujaData = { id: doc.id, ...doc.data() } as any;
-      if (pujaData.vendorId) {
-        const vendorDoc = await this.db.collection("vendors").doc(pujaData.vendorId).get();
-        if (vendorDoc.exists) pujaData.vendor = vendorDoc.data();
-      }
-      return pujaData;
-    }));
+    const pujas = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as any[];
+    // Batch all vendor lookups — deduplicate by vendorId
+    const vendorIds = [...new Set(pujas.map(p => p.vendorId).filter(Boolean))];
+    const vendorDocs = await Promise.all(vendorIds.map(id => this.db.collection("vendors").doc(id).get()));
+    const vendorMap = new Map(vendorDocs.map(d => [d.id, d.exists ? d.data() : null]));
+    return pujas.map(p => ({ ...p, vendor: vendorMap.get(p.vendorId) ?? null }));
   }
 
   async getPuja(id: string) {
@@ -558,10 +560,12 @@ export class MySQLAdapter implements DatabaseAdapter {
 
   async getPendingVendors() {
     const rows = await this.query("SELECT * FROM users WHERE vendorStatus = 'pending'");
-    return Promise.all(rows.map(async (user) => {
-      const vendorRows = await this.query("SELECT * FROM vendors WHERE userId = ?", [user.uid]);
-      return { ...user, businessDetails: vendorRows.length ? vendorRows[0] : null };
-    }));
+    if (!rows.length) return [];
+    const uids = rows.map((r: any) => r.uid);
+    const placeholders = uids.map(() => '?').join(',');
+    const vendorRows = await this.query(`SELECT * FROM vendors WHERE userId IN (${placeholders})`, uids);
+    const vendorMap = new Map(vendorRows.map((v: any) => [v.userId, v]));
+    return rows.map((user: any) => ({ ...user, businessDetails: vendorMap.get(user.uid) ?? null }));
   }
 
   async getStats() {
@@ -600,16 +604,24 @@ export class MySQLAdapter implements DatabaseAdapter {
 
   async getVendorsPerformance() {
     const vendors = await this.query("SELECT uid, displayName, email, photoURL, role, vendorStatus, vendorCategory, createdAt FROM users WHERE role = 'vendor'");
-    return Promise.all(vendors.map(async (vendor: any) => {
-      const [bookings] = await this.query("SELECT COUNT(*) as count FROM bookings WHERE vendorId = ?", [vendor.uid]);
-      const vendorDetails = await this.query("SELECT * FROM vendors WHERE userId = ?", [vendor.uid]);
+    if (!vendors.length) return [];
+    const uids = vendors.map((v: any) => v.uid);
+    const ph = uids.map(() => '?').join(',');
+    const [vendorDetails, bookingCounts] = await Promise.all([
+      this.query(`SELECT userId, type, businessType FROM vendors WHERE userId IN (${ph})`, uids),
+      this.query(`SELECT vendorId, COUNT(*) as count FROM bookings WHERE vendorId IN (${ph}) GROUP BY vendorId`, uids),
+    ]);
+    const vendorMap = new Map(vendorDetails.map((v: any) => [v.userId, v]));
+    const bookingMap = new Map(bookingCounts.map((b: any) => [b.vendorId, b.count]));
+    return vendors.map((vendor: any) => {
+      const details = vendorMap.get(vendor.uid);
       return {
         ...vendor,
-        totalBookings: bookings.count,
-        type: (vendorDetails.length ? vendorDetails[0].type : 'shop') as 'priest' | 'temple' | 'shop',
-        businessType: vendorDetails.length ? vendorDetails[0].type : 'shop'
+        totalBookings: bookingMap.get(vendor.uid) || 0,
+        type: (details?.type || 'shop') as 'priest' | 'temple' | 'shop',
+        businessType: details?.type || 'shop',
       };
-    }));
+    });
   }
 
   async getProducts(filters: { category?: string; vendorId?: string }) {
@@ -664,19 +676,22 @@ export class MySQLAdapter implements DatabaseAdapter {
 
   async getPujas(filters: { vendorId?: string }) {
     let sql = "SELECT * FROM pujas WHERE 1=1";
-    const params = [];
+    const params: any[] = [];
     if (filters.vendorId) {
       sql += " AND vendorId = ?";
       params.push(filters.vendorId);
     }
     const rows = await this.query(sql, params);
-    return Promise.all(rows.map(async (puja) => {
-      if (puja.vendorId) {
-        const vendorRows = await this.query("SELECT * FROM vendors WHERE userId = ?", [puja.vendorId]);
-        if (vendorRows.length) puja.vendor = vendorRows[0];
-      }
-      return puja;
-    }));
+    if (!rows.length) return [];
+    // Batch vendor lookups — one query for all unique vendorIds
+    const vendorIds = [...new Set(rows.map((r: any) => r.vendorId).filter(Boolean))];
+    let vendorMap = new Map<string, any>();
+    if (vendorIds.length) {
+      const ph = vendorIds.map(() => '?').join(',');
+      const vendorRows = await this.query(`SELECT * FROM vendors WHERE userId IN (${ph})`, vendorIds);
+      vendorMap = new Map(vendorRows.map((v: any) => [v.userId, v]));
+    }
+    return rows.map((puja: any) => ({ ...puja, vendor: vendorMap.get(puja.vendorId) ?? null }));
   }
 
   async getPuja(id: string) {
@@ -870,8 +885,8 @@ export class MySQLAdapter implements DatabaseAdapter {
   }
 
   async getTransactions(vendorId: string, limit: number) {
-    const safeLimit = Math.max(1, parseInt(String(limit), 10) || 20);
-    return this.query(`SELECT * FROM vendor_transactions WHERE vendorId = ? ORDER BY createdAt DESC LIMIT ${safeLimit}`, [vendorId]);
+    const safeLimit = Math.max(1, Math.min(500, parseInt(String(limit), 10) || 20));
+    return this.query("SELECT * FROM vendor_transactions WHERE vendorId = ? ORDER BY createdAt DESC LIMIT ?", [vendorId, safeLimit]);
   }
 
   async updateWallet(vendorId: string, earning: number, totalAmount: number, type: string, referenceId: string, commission: number) {
@@ -973,8 +988,8 @@ export class MySQLAdapter implements DatabaseAdapter {
   }
 
   async getNotifications(userId: string, limit: number): Promise<any[]> {
-    const safeLimit = Math.max(1, parseInt(String(limit), 10) || 50);
-    return this.query(`SELECT * FROM notifications WHERE userId = ? ORDER BY createdAt DESC LIMIT ${safeLimit}`, [userId]);
+    const safeLimit = Math.max(1, Math.min(500, parseInt(String(limit), 10) || 50));
+    return this.query("SELECT * FROM notifications WHERE userId = ? ORDER BY createdAt DESC LIMIT ?", [userId, safeLimit]);
   }
 
   async updateNotificationRead(id: string): Promise<void> {
@@ -1027,6 +1042,86 @@ export class MySQLAdapter implements DatabaseAdapter {
       const result = await fn(this);
       await connection.commit();
       return result;
+    } catch (err) {
+      await connection.rollback();
+      throw err;
+    } finally {
+      connection.release();
+    }
+  }
+
+  // Atomically insert a booking AND update the vendor wallet in one transaction.
+  async addBookingWithWallet(bookingData: any, vendorId: string, earning: number, totalAmount: number, commission: number): Promise<string> {
+    const connection = await this.pool.getConnection();
+    await connection.beginTransaction();
+    try {
+      const { userId, serviceId, type, isOnline, bringSamagri, date, timeSlot, status, samagriList } = bookingData;
+      const [bookingResult] = await connection.execute(
+        "INSERT INTO bookings (userId, serviceId, vendorId, type, isOnline, bringSamagri, date, timeSlot, status, totalAmount, samagriList) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        [userId || null, serviceId || null, vendorId || null, type || null, isOnline || false, bringSamagri || false, date || null, timeSlot || null, status || 'pending', totalAmount || 0, samagriList || null]
+      );
+      const bookingId = String((bookingResult as any).insertId);
+
+      if (vendorId && vendorId !== 'system') {
+        const [walletRows] = await connection.execute("SELECT balance, totalEarned FROM vendor_wallets WHERE vendorId = ?", [vendorId]);
+        if ((walletRows as any[]).length) {
+          await connection.execute("UPDATE vendor_wallets SET balance = balance + ?, totalEarned = totalEarned + ? WHERE vendorId = ?", [earning, earning, vendorId]);
+        } else {
+          await connection.execute("INSERT INTO vendor_wallets (vendorId, balance, totalEarned) VALUES (?, ?, ?)", [vendorId, earning, earning]);
+        }
+        await connection.execute(
+          "INSERT INTO vendor_transactions (vendorId, amount, originalAmount, commission, type, referenceId, createdAt) VALUES (?, ?, ?, ?, 'booking', ?, ?)",
+          [vendorId, earning, totalAmount, commission, bookingId, new Date()]
+        );
+      }
+
+      await connection.commit();
+      return bookingId;
+    } catch (err) {
+      await connection.rollback();
+      throw err;
+    } finally {
+      connection.release();
+    }
+  }
+
+  // Atomically insert an order + items AND update vendor wallets in one transaction.
+  async addOrderWithWallets(orderData: any, walletUpdates: Array<{ vendorId: string; earning: number; totalAmount: number; commission: number }>): Promise<string> {
+    const connection = await this.pool.getConnection();
+    await connection.beginTransaction();
+    try {
+      const { userId, totalAmount, status, shippingAddress, createdAt, items, paymentMethod, paymentStatus, paymentId, signatureURL, couponUsed, discountAmount } = orderData;
+      const [orderResult] = await connection.execute(
+        "INSERT INTO orders (userId, totalAmount, status, shippingAddress, paymentMethod, paymentStatus, paymentId, signatureURL, couponUsed, discountAmount, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        [userId, totalAmount, status || 'processing', shippingAddress, paymentMethod || null, paymentStatus || null, paymentId || null, signatureURL || null, couponUsed || null, discountAmount || 0, createdAt || new Date()]
+      );
+      const orderId = String((orderResult as any).insertId);
+
+      if (items && items.length > 0) {
+        for (const item of items) {
+          await connection.execute(
+            "INSERT INTO order_items (orderId, productId, quantity, price, selectedOption) VALUES (?, ?, ?, ?, ?)",
+            [orderId, item.id || item.productId, item.quantity, item.price, item.selectedOption || null]
+          );
+        }
+      }
+
+      for (const w of walletUpdates) {
+        if (!w.vendorId || w.vendorId === 'system') continue;
+        const [walletRows] = await connection.execute("SELECT balance FROM vendor_wallets WHERE vendorId = ?", [w.vendorId]);
+        if ((walletRows as any[]).length) {
+          await connection.execute("UPDATE vendor_wallets SET balance = balance + ?, totalEarned = totalEarned + ? WHERE vendorId = ?", [w.earning, w.earning, w.vendorId]);
+        } else {
+          await connection.execute("INSERT INTO vendor_wallets (vendorId, balance, totalEarned) VALUES (?, ?, ?)", [w.vendorId, w.earning, w.earning]);
+        }
+        await connection.execute(
+          "INSERT INTO vendor_transactions (vendorId, amount, originalAmount, commission, type, referenceId, createdAt) VALUES (?, ?, ?, ?, 'order', ?, ?)",
+          [w.vendorId, w.earning, w.totalAmount, w.commission, orderId, new Date()]
+        );
+      }
+
+      await connection.commit();
+      return orderId;
     } catch (err) {
       await connection.rollback();
       throw err;

@@ -162,14 +162,14 @@ export default function PujaDetail() {
     setShowConfirmation(true);
   };
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center font-serif text-stone-500">{t('pujaDetail.loading')}</div>;
-  if (!puja) return <div className="min-h-screen flex items-center justify-center font-serif text-stone-500">{t('pujaDetail.notFound')}</div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center font-serif text-stone-500 dark:text-stone-400 dark:bg-stone-950">{t('pujaDetail.loading')}</div>;
+  if (!puja) return <div className="min-h-screen flex items-center justify-center font-serif text-stone-500 dark:text-stone-400 dark:bg-stone-950">{t('pujaDetail.notFound')}</div>;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <button 
+      <button
         onClick={() => navigate(-1)}
-        className="flex items-center text-stone-500 hover:text-stone-900 mb-8 transition-colors"
+        className="flex items-center text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white mb-8 transition-colors"
       >
         <ArrowLeft className="w-4 h-4 mr-2" />
         Back to Services
@@ -183,7 +183,7 @@ export default function PujaDetail() {
           className="space-y-8"
         >
           {/* Image Carousel */}
-          <div className="relative aspect-video rounded-[2.5rem] overflow-hidden border border-stone-200 shadow-sm group">
+          <div className="relative aspect-video rounded-[2.5rem] overflow-hidden border border-stone-200 dark:border-stone-700 shadow-sm group">
             <AnimatePresence mode="wait">
               <motion.img
                 key={activeImageIndex}
@@ -232,7 +232,7 @@ export default function PujaDetail() {
           </div>
           
           <div>
-            <h1 className="text-4xl font-serif font-bold text-stone-900 mb-4">{puja.title}</h1>
+            <h1 className="text-4xl font-serif font-bold text-stone-900 dark:text-white mb-4">{puja.title}</h1>
             <div className="flex flex-wrap gap-4 mb-6">
               <div className="flex items-center bg-orange-50 text-orange-700 px-3 py-1 rounded-full text-sm font-bold">
                 <Clock className="w-4 h-4 mr-2" />
@@ -243,28 +243,28 @@ export default function PujaDetail() {
                 Verified Pandit
               </div>
             </div>
-            <p className="text-stone-600 leading-relaxed text-lg">
+            <p className="text-stone-600 dark:text-stone-400 leading-relaxed text-lg">
               {puja.description}
             </p>
           </div>
 
-          <div className="bg-stone-100 p-8 rounded-3xl space-y-4">
-            <h3 className="font-bold text-stone-900">{t('pujaDetail.pujaDetails')}</h3>
+          <div className="bg-stone-100 dark:bg-stone-800 p-8 rounded-3xl space-y-4">
+            <h3 className="font-bold text-stone-900 dark:text-white">{t('pujaDetail.pujaDetails')}</h3>
             <div className="space-y-2">
-              <div className="flex items-center text-stone-600">
-                <CheckCircle2 className={`w-4 h-4 mr-2 ${puja.samagriIncluded ? 'text-emerald-500' : 'text-stone-300'}`} />
+              <div className="flex items-center text-stone-600 dark:text-stone-300">
+                <CheckCircle2 className={`w-4 h-4 mr-2 ${puja.samagriIncluded ? 'text-emerald-500' : 'text-stone-300 dark:text-stone-600'}`} />
                 <span>Samagri Included: {puja.samagriIncluded ? 'Yes' : 'No'}</span>
               </div>
-              <div className="flex items-center text-stone-600">
-                <CheckCircle2 className={`w-4 h-4 mr-2 ${puja.isOnline ? 'text-emerald-500' : 'text-stone-300'}`} />
+              <div className="flex items-center text-stone-600 dark:text-stone-300">
+                <CheckCircle2 className={`w-4 h-4 mr-2 ${puja.isOnline ? 'text-emerald-500' : 'text-stone-300 dark:text-stone-600'}`} />
                 <span>Virtual Performance Available: {puja.isOnline ? 'Yes' : 'No'}</span>
               </div>
             </div>
-            <div className="pt-4 border-t border-stone-200">
-              <h4 className="font-bold text-stone-900 mb-2">What's Included in Service:</h4>
+            <div className="pt-4 border-t border-stone-200 dark:border-stone-700">
+              <h4 className="font-bold text-stone-900 dark:text-white mb-2">What's Included in Service:</h4>
               <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {['Vedic Mantras', 'Pandit Dakshina', 'Prasad Distribution', 'Online Consultation', 'Digital Certificate'].map((item) => (
-                  <li key={item} className="flex items-center text-stone-600 text-sm">
+                  <li key={item} className="flex items-center text-stone-600 dark:text-stone-300 text-sm">
                     <CheckCircle2 className="w-4 h-4 mr-2 text-emerald-500" />
                     {item}
                   </li>
@@ -282,12 +282,16 @@ export default function PujaDetail() {
         >
           {/* Vendor Card */}
           {vendor && (
-            <div 
+            <div
+              role="button"
+              tabIndex={0}
+              aria-label={`View ${vendor.businessName} profile`}
               onClick={() => navigate(`/vendor/${vendor.uid}`)}
-              className="bg-white p-6 rounded-[2rem] border border-stone-200 shadow-xl shadow-stone-200/50 cursor-pointer group hover:border-orange-200 transition-all"
+              onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && navigate(`/vendor/${vendor.uid}`)}
+              className="bg-white dark:bg-stone-900 p-6 rounded-[2rem] border border-stone-200 dark:border-stone-700 shadow-xl shadow-stone-200/50 dark:shadow-stone-950/50 cursor-pointer group hover:border-orange-200 dark:hover:border-orange-800 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500"
             >
               <div className="flex items-center gap-4">
-                <div className="w-16 h-16 rounded-2xl overflow-hidden border-2 border-stone-100 shadow-sm">
+                <div className="w-16 h-16 rounded-2xl overflow-hidden border-2 border-stone-100 dark:border-stone-700 shadow-sm">
                   <img 
                     src={vendor.photoURL || `https://picsum.photos/seed/${vendor.uid}/200/200`} 
                     alt={vendor.businessName}
@@ -297,7 +301,7 @@ export default function PujaDetail() {
                 </div>
                 <div className="flex-grow">
                   <div className="flex items-center gap-2 mb-1">
-                    <h3 className="font-bold text-stone-900 group-hover:text-orange-600 transition-colors">
+                    <h3 className="font-bold text-stone-900 dark:text-white group-hover:text-orange-600 transition-colors">
                       {vendor.businessName}
                     </h3>
                     {vendor.isVerified && <ShieldCheck className="w-4 h-4 text-emerald-500" />}
@@ -314,18 +318,18 @@ export default function PujaDetail() {
                   </div>
                 </div>
               </div>
-              <div className="mt-4 pt-4 border-t border-stone-50 flex items-center justify-between text-xs font-bold text-orange-600">
+              <div className="mt-4 pt-4 border-t border-stone-100 dark:border-stone-700 flex items-center justify-between text-xs font-bold text-orange-600">
                 <span>{t('pujaDetail.viewFullProfile')}</span>
                 <ArrowLeft className="w-4 h-4 rotate-180" />
               </div>
             </div>
           )}
 
-          <div className="bg-white p-8 md:p-12 rounded-[2.5rem] border border-stone-200 shadow-xl shadow-stone-200/50 h-fit">
+          <div className="bg-white dark:bg-stone-900 p-8 md:p-12 rounded-[2.5rem] border border-stone-200 dark:border-stone-700 shadow-xl shadow-stone-200/50 dark:shadow-stone-950/50 h-fit">
             <div className="space-y-6">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-stone-500 font-medium">{t('pujaDetail.basePrice')}</span>
-                <div className="flex items-center text-xl font-serif font-bold text-stone-900">
+                <span className="text-stone-500 dark:text-stone-400 font-medium">{t('pujaDetail.basePrice')}</span>
+                <div className="flex items-center text-xl font-serif font-bold text-stone-900 dark:text-white">
                   <IndianRupee className="w-4 h-4" />
                   <span>{basePrice}</span>
                 </div>
@@ -333,16 +337,16 @@ export default function PujaDetail() {
 
             {!isOnline && bringSamagri && (
               <div className="flex items-center justify-between mb-2">
-                <span className="text-stone-500 font-medium">{t('pujaDetail.samagriCost')}</span>
-                <div className="flex items-center text-xl font-serif font-bold text-stone-900">
+                <span className="text-stone-500 dark:text-stone-400 font-medium">{t('pujaDetail.samagriCost')}</span>
+                <div className="flex items-center text-xl font-serif font-bold text-stone-900 dark:text-white">
                   <IndianRupee className="w-4 h-4" />
                   <span>{puja.samagriPrice || 0}</span>
                 </div>
               </div>
             )}
 
-            <div className="flex items-center justify-between pt-4 border-t border-stone-100 mb-8">
-              <span className="text-stone-900 font-bold">{t('pujaDetail.totalAmount')}</span>
+            <div className="flex items-center justify-between pt-4 border-t border-stone-100 dark:border-stone-700 mb-8">
+              <span className="text-stone-900 dark:text-white font-bold">{t('pujaDetail.totalAmount')}</span>
               <div className="flex items-center text-3xl font-serif font-bold text-orange-600">
                 <IndianRupee className="w-6 h-6" />
                 <span>{totalAmount}</span>
@@ -350,19 +354,19 @@ export default function PujaDetail() {
             </div>
 
             {/* Online/Offline Toggle */}
-            <div className="bg-stone-50 p-4 rounded-2xl border border-stone-100">
-              <label className="block text-sm font-bold text-stone-700 mb-3">Service Mode</label>
+            <div className="bg-stone-50 dark:bg-stone-800 p-4 rounded-2xl border border-stone-100 dark:border-stone-700">
+              <label className="block text-sm font-bold text-stone-700 dark:text-stone-300 mb-3">Service Mode</label>
               <div className="grid grid-cols-2 gap-2">
                 <button
                   onClick={() => setIsOnline(true)}
                   disabled={!puja.isOnline}
-                  className={`py-2 rounded-xl text-sm font-bold transition-all ${isOnline ? 'bg-orange-500 text-white shadow-md' : 'bg-white text-stone-600 border border-stone-200'} ${!puja.isOnline ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  className={`py-2 rounded-xl text-sm font-bold transition-all ${isOnline ? 'bg-orange-500 text-white shadow-md' : 'bg-white dark:bg-stone-700 text-stone-600 dark:text-stone-300 border border-stone-200 dark:border-stone-600'} ${!puja.isOnline ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   Online (Video Call)
                 </button>
                 <button
                   onClick={() => setIsOnline(false)}
-                  className={`py-2 rounded-xl text-sm font-bold transition-all ${!isOnline ? 'bg-orange-500 text-white shadow-md' : 'bg-white text-stone-600 border border-stone-200'}`}
+                  className={`py-2 rounded-xl text-sm font-bold transition-all ${!isOnline ? 'bg-orange-500 text-white shadow-md' : 'bg-white dark:bg-stone-700 text-stone-600 dark:text-stone-300 border border-stone-200 dark:border-stone-600'}`}
                 >
                   Offline (At Home)
                 </button>
@@ -379,13 +383,13 @@ export default function PujaDetail() {
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     onClick={() => setBringSamagri(true)}
-                    className={`py-2 rounded-xl text-sm font-bold transition-all ${bringSamagri ? 'bg-stone-800 text-white' : 'bg-white text-stone-600 border border-stone-200'}`}
+                    className={`py-2 rounded-xl text-sm font-bold transition-all ${bringSamagri ? 'bg-stone-800 text-white' : 'bg-white dark:bg-stone-700 text-stone-600 dark:text-stone-300 border border-stone-200 dark:border-stone-600'}`}
                   >
                     Pandit Ji Brings (+₹{puja.samagriPrice || 0})
                   </button>
                   <button
                     onClick={() => setBringSamagri(false)}
-                    className={`py-2 rounded-xl text-sm font-bold transition-all ${!bringSamagri ? 'bg-stone-800 text-white' : 'bg-white text-stone-600 border border-stone-200'}`}
+                    className={`py-2 rounded-xl text-sm font-bold transition-all ${!bringSamagri ? 'bg-stone-800 text-white' : 'bg-white dark:bg-stone-700 text-stone-600 dark:text-stone-300 border border-stone-200 dark:border-stone-600'}`}
                   >
                     I will Arrange
                   </button>
@@ -399,7 +403,7 @@ export default function PujaDetail() {
             )}
 
             <div>
-              <label className="block text-sm font-bold text-stone-700 mb-2 flex items-center">
+              <label className="block text-sm font-bold text-stone-700 dark:text-stone-300 mb-2 flex items-center">
                 <Calendar className="w-4 h-4 mr-2" />
                 Select Date
               </label>
@@ -407,19 +411,19 @@ export default function PujaDetail() {
                 type="date" 
                 value={bookingDate}
                 onChange={(e) => setBookingDate(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
+                className="w-full px-4 py-3 rounded-xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-bold text-stone-700 mb-2 flex items-center">
+              <label className="block text-sm font-bold text-stone-700 dark:text-stone-300 mb-2 flex items-center">
                 <Clock className="w-4 h-4 mr-2" />
                 Select Time Slot
               </label>
               <select 
                 value={bookingTime}
                 onChange={(e) => setBookingTime(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
+                className="w-full px-4 py-3 rounded-xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
               >
                 <option value="">Choose a slot</option>
                 <option value="06:00 AM">06:00 AM - 08:00 AM</option>
@@ -470,50 +474,50 @@ export default function PujaDetail() {
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="relative bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden"
+              className="relative bg-white dark:bg-stone-900 w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden"
             >
               <div className="p-8">
                 <div className="flex justify-between items-start mb-6">
                   <div>
-                    <h2 className="text-2xl font-serif font-bold text-stone-900">{t('pujaDetail.confirmBooking')}</h2>
-                    <p className="text-stone-500 text-sm">Please review your puja details</p>
+                    <h2 className="text-2xl font-serif font-bold text-stone-900 dark:text-white">{t('pujaDetail.confirmBooking')}</h2>
+                    <p className="text-stone-500 dark:text-stone-400 text-sm">Please review your puja details</p>
                   </div>
                   <button 
                     onClick={() => setShowConfirmation(false)}
-                    className="p-2 hover:bg-stone-100 rounded-full transition-colors"
+                    className="p-2 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-full transition-colors"
                   >
                     <X className="w-5 h-5 text-stone-400" />
                   </button>
                 </div>
 
                 <div className="space-y-4 mb-8">
-                  <div className="bg-stone-50 p-4 rounded-2xl border border-stone-100">
+                  <div className="bg-stone-50 dark:bg-stone-800 p-4 rounded-2xl border border-stone-100 dark:border-stone-700">
                     <div className="flex items-center gap-3 mb-3">
-                      <div className="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center">
+                      <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/30 rounded-xl flex items-center justify-center">
                         <Flame className="w-5 h-5 text-orange-600" />
                       </div>
                       <div>
                         <p className="text-[10px] uppercase tracking-wider text-stone-400 font-bold">Puja Service</p>
-                        <h4 className="font-bold text-stone-900">{puja.title}</h4>
+                        <h4 className="font-bold text-stone-900 dark:text-white">{puja.title}</h4>
                       </div>
                     </div>
-                    
+
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <p className="text-[10px] uppercase tracking-wider text-stone-400 font-bold">Date</p>
-                        <p className="text-sm font-bold text-stone-700">{bookingDate}</p>
+                        <p className="text-sm font-bold text-stone-700 dark:text-stone-300">{bookingDate}</p>
                       </div>
                       <div>
                         <p className="text-[10px] uppercase tracking-wider text-stone-400 font-bold">Time Slot</p>
-                        <p className="text-sm font-bold text-stone-700">{bookingTime}</p>
+                        <p className="text-sm font-bold text-stone-700 dark:text-stone-300">{bookingTime}</p>
                       </div>
                     </div>
                   </div>
 
-                    <div className="space-y-2 px-2 pb-4 border-b border-stone-100">
+                    <div className="space-y-2 px-2 pb-4 border-b border-stone-100 dark:border-stone-700">
                       <div className="flex justify-between text-sm">
-                        <span className="text-stone-500">Service Mode</span>
-                        <span className="font-bold text-stone-900">{isOnline ? 'Online (Video Call)' : 'Offline (At Home)'}</span>
+                        <span className="text-stone-500 dark:text-stone-400">Service Mode</span>
+                        <span className="font-bold text-stone-900 dark:text-white">{isOnline ? 'Online (Video Call)' : 'Offline (At Home)'}</span>
                       </div>
                       <div className="flex justify-between text-sm">
                         <span className="text-stone-500">{t('pujaDetail.basePrice')}</span>
@@ -544,7 +548,7 @@ export default function PujaDetail() {
                   <div className="flex gap-3">
                   <button
                     onClick={() => setShowConfirmation(false)}
-                    className="flex-1 py-3 rounded-xl font-bold text-stone-600 bg-stone-100 hover:bg-stone-200 transition-colors"
+                    className="flex-1 py-3 rounded-xl font-bold text-stone-600 dark:text-stone-300 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 transition-colors"
                   >
                     Cancel
                   </button>
@@ -556,9 +560,9 @@ export default function PujaDetail() {
                   </button>
                 </div>
                 
-                <div className="mt-6 flex items-start gap-2 p-3 bg-blue-50 rounded-xl">
+                <div className="mt-6 flex items-start gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
                   <Info className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
-                  <p className="text-[10px] text-blue-700 leading-relaxed">
+                  <p className="text-[10px] text-blue-700 dark:text-blue-300 leading-relaxed">
                     By confirming, you agree to our terms of service. You can cancel up to 24 hours before the scheduled time for a full refund.
                   </p>
                 </div>
@@ -573,8 +577,8 @@ export default function PujaDetail() {
         <div className="mt-24">
           <div className="flex items-center justify-between mb-10">
             <div>
-              <h2 className="text-3xl font-serif font-bold text-stone-900 mb-2">{t('pujaDetail.otherServices')}</h2>
-              <p className="text-stone-500">Explore more pujas and spiritual rituals.</p>
+              <h2 className="text-3xl font-serif font-bold text-stone-900 dark:text-white mb-2">{t('pujaDetail.otherServices')}</h2>
+              <p className="text-stone-500 dark:text-stone-400">Explore more pujas and spiritual rituals.</p>
             </div>
             <button 
               onClick={() => navigate('/services')}
@@ -591,7 +595,7 @@ export default function PujaDetail() {
                 key={p.id}
                 whileHover={{ y: -8 }}
                 onClick={() => navigate(`/pujas/${p.id}`)}
-                className="bg-white rounded-[2rem] border border-stone-200 overflow-hidden cursor-pointer group shadow-sm hover:shadow-xl hover:shadow-stone-200/50 transition-all w-full md:w-[calc(50%-1.5rem)] lg:w-[calc(33.33%-1.5rem)] min-w-[300px] max-w-sm"
+                className="bg-white dark:bg-stone-900 rounded-[2rem] border border-stone-200 dark:border-stone-700 overflow-hidden cursor-pointer group shadow-sm hover:shadow-xl hover:shadow-stone-200/50 dark:hover:shadow-stone-950/50 transition-all w-full md:w-[calc(50%-1.5rem)] lg:w-[calc(33.33%-1.5rem)] min-w-[300px] max-w-sm"
               >
                 <div className="aspect-video overflow-hidden relative">
                   <img 
@@ -608,16 +612,16 @@ export default function PujaDetail() {
                   </div>
                 </div>
                 <div className="p-8">
-                  <h3 className="text-xl font-bold text-stone-900 mb-3 group-hover:text-orange-600 transition-colors">{p.title}</h3>
-                  <p className="text-stone-500 text-sm line-clamp-2 mb-6">
+                  <h3 className="text-xl font-bold text-stone-900 dark:text-white mb-3 group-hover:text-orange-600 transition-colors">{p.title}</h3>
+                  <p className="text-stone-500 dark:text-stone-400 text-sm line-clamp-2 mb-6">
                     {p.description}
                   </p>
                   <div className="flex items-center justify-between">
                     <div className="flex flex-col">
                       <span className="text-[10px] text-stone-400 uppercase font-bold tracking-wider">Starting from</span>
-                      <span className="text-xl font-serif font-bold text-stone-900">₹{p.onlinePrice}</span>
+                      <span className="text-xl font-serif font-bold text-stone-900 dark:text-white">₹{p.onlinePrice}</span>
                     </div>
-                    <div className="w-10 h-10 rounded-2xl bg-stone-50 flex items-center justify-center text-stone-400 group-hover:bg-orange-500 group-hover:text-white transition-all">
+                    <div className="w-10 h-10 rounded-2xl bg-stone-50 dark:bg-stone-800 flex items-center justify-center text-stone-400 group-hover:bg-orange-500 group-hover:text-white transition-all">
                       <Calendar className="w-5 h-5" />
                     </div>
                   </div>
@@ -632,8 +636,8 @@ export default function PujaDetail() {
       <div className="mt-24 bg-stone-50 dark:bg-stone-900/50 rounded-[3rem] p-12 border border-stone-100 dark:border-stone-800">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-serif font-bold text-stone-900 mb-4">{t('pujaDetail.sacredProcess')}</h2>
-            <p className="text-stone-500">Every ritual is performed with absolute devotion and adherence to Vedic traditions.</p>
+            <h2 className="text-3xl font-serif font-bold text-stone-900 dark:text-white mb-4">{t('pujaDetail.sacredProcess')}</h2>
+            <p className="text-stone-500 dark:text-stone-400">Every ritual is performed with absolute devotion and adherence to Vedic traditions.</p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -643,11 +647,11 @@ export default function PujaDetail() {
               { title: 'Prasad', desc: 'Sanctified offerings sent to you or distributed as per choice.', icon: <CheckCircle2 className="w-6 h-6" /> },
             ].map((step, idx) => (
               <div key={idx} className="text-center space-y-4">
-                <div className="w-16 h-16 bg-white rounded-2xl shadow-sm border border-stone-100 flex items-center justify-center mx-auto text-orange-500">
+                <div className="w-16 h-16 bg-white dark:bg-stone-800 rounded-2xl shadow-sm border border-stone-100 dark:border-stone-700 flex items-center justify-center mx-auto text-orange-500">
                   {step.icon}
                 </div>
-                <h4 className="font-bold text-stone-900">{step.title}</h4>
-                <p className="text-sm text-stone-500 leading-relaxed">{step.desc}</p>
+                <h4 className="font-bold text-stone-900 dark:text-white">{step.title}</h4>
+                <p className="text-sm text-stone-500 dark:text-stone-400 leading-relaxed">{step.desc}</p>
               </div>
             ))}
           </div>
@@ -658,8 +662,8 @@ export default function PujaDetail() {
       <div className="mt-24">
         <div className="flex items-center justify-between mb-10">
           <div>
-            <h2 className="text-3xl font-serif font-bold text-stone-900 mb-2">{t('pujaDetail.devoteeExperiences')}</h2>
-            <p className="text-stone-500">Real stories of faith and divine connection.</p>
+            <h2 className="text-3xl font-serif font-bold text-stone-900 dark:text-white mb-2">{t('pujaDetail.devoteeExperiences')}</h2>
+            <p className="text-stone-500 dark:text-stone-400">Real stories of faith and divine connection.</p>
           </div>
           <button 
             onClick={() => setShowFeedbackModal(true)}
@@ -680,7 +684,7 @@ export default function PujaDetail() {
             <motion.div 
               key={`static-${idx}`}
               whileHover={{ y: -5 }}
-              className="bg-white p-8 rounded-[2rem] border border-stone-100 shadow-sm hover:shadow-md transition-all relative overflow-hidden"
+              className="bg-white dark:bg-stone-900 p-8 rounded-[2rem] border border-stone-100 dark:border-stone-700 shadow-sm hover:shadow-md transition-all relative overflow-hidden"
             >
               <div className="absolute top-0 right-0 w-16 h-16 bg-orange-500/5 rounded-bl-[2rem]" />
               <div className="flex items-center gap-1 text-amber-500 mb-4">
@@ -689,13 +693,13 @@ export default function PujaDetail() {
                 ))}
                 <span className="ml-2 text-xs font-bold text-stone-900">{rev.rating}</span>
               </div>
-              <p className="text-stone-600 mb-6 italic leading-relaxed">"{rev.msg}"</p>
+              <p className="text-stone-600 dark:text-stone-400 mb-6 italic leading-relaxed">"{rev.msg}"</p>
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-stone-100 rounded-xl flex items-center justify-center font-bold text-stone-500">
+                <div className="w-10 h-10 bg-stone-100 dark:bg-stone-800 rounded-xl flex items-center justify-center font-bold text-stone-500 dark:text-stone-400">
                   {rev.name.charAt(0)}
                 </div>
                 <div>
-                  <h4 className="font-bold text-stone-900 text-sm">{rev.name}</h4>
+                  <h4 className="font-bold text-stone-900 dark:text-white text-sm">{rev.name}</h4>
                   <div className="flex items-center gap-2">
                     <span className="text-[10px] text-stone-400 font-bold uppercase tracking-wider">{rev.city}</span>
                     <span className="text-[10px] text-stone-300">•</span>
@@ -720,15 +724,15 @@ export default function PujaDetail() {
                 ))}
                 <span className="ml-2 text-xs font-bold text-stone-900">{item.rating}</span>
               </div>
-              <p className="text-stone-600 mb-6 italic leading-relaxed">
+              <p className="text-stone-600 dark:text-stone-400 mb-6 italic leading-relaxed">
                 "{item.message}"
               </p>
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center text-orange-600 font-bold">
+                <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/30 rounded-xl flex items-center justify-center text-orange-600 font-bold">
                   {item.userName.charAt(0)}
                 </div>
                 <div>
-                  <h4 className="font-bold text-stone-900 text-sm">{item.userName}</h4>
+                  <h4 className="font-bold text-stone-900 dark:text-white text-sm">{item.userName}</h4>
                   <p className="text-[10px] text-stone-400 uppercase tracking-wider font-bold">{item.city}</p>
                 </div>
               </div>

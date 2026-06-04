@@ -8,6 +8,7 @@ import {
   useStripe,
   useElements,
 } from '@stripe/react-stripe-js';
+import type { StripeCardElement } from '@stripe/stripe-js';
 import { auth } from '../firebase';
 import {
   ShoppingBag,
@@ -81,7 +82,7 @@ const CheckoutForm = ({
 
       const { error: stripeError, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
         payment_method: {
-          card: elements.getElement(CardElement) as any,
+          card: elements.getElement(CardElement) as StripeCardElement,
         },
       });
 
@@ -277,7 +278,7 @@ export default function Cart() {
       <div className="min-h-[80vh] bg-stone-50 dark:bg-stone-950 flex flex-col items-center justify-center text-center px-4">
         <div className="mb-8">
           <img 
-            src="/logo/icon-only.png" 
+            src="/logo/icon-only.svg"
             alt="PunyaSeva" 
             className="h-16 w-auto mx-auto" 
             referrerPolicy="no-referrer"
@@ -328,7 +329,7 @@ export default function Cart() {
       <div className="min-h-[60vh] bg-stone-50 dark:bg-stone-950 flex flex-col items-center justify-center text-center px-4 transition-colors duration-300">
         <div className="mb-6">
           <img 
-            src="/logo/icon-only.png" 
+            src="/logo/icon-only.svg"
             alt="PunyaSeva" 
             className="h-12 w-auto mx-auto opacity-50" 
             referrerPolicy="no-referrer"

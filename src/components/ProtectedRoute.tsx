@@ -2,6 +2,7 @@ import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { Loader2, ShieldAlert } from 'lucide-react';
+import type { AuthUser } from '../types';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -35,7 +36,7 @@ export default function ProtectedRoute({ children, requiredRole }: ProtectedRout
 
   // 3. Authenticated but missing required role
   if (requiredRole) {
-    const userRole = (user as any).role;
+    const userRole = (user as unknown as AuthUser).role;
     let hasAccess = false;
 
     if (requiredRole === 'vendor') {

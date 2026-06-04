@@ -208,11 +208,7 @@ export default function SchedulingCalendar({
         </div>
       </div>
 
-       <style dangerouslySetInnerHTML={{__html: `
-        .hide-scrollbar::-webkit-scrollbar {
-          display: none;
-        }
-      `}} />
+      {/* scrollbar suppression lives in index.css — no inline style injection needed */}
     </div>
   );
 }

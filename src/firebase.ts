@@ -9,7 +9,8 @@ const app = initializeApp(firebaseConfig);
 const firebaseAuth = getAuth(app);
 const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
 // Initialize messaging safely
-let messaging: any = null;
+import type { Messaging } from 'firebase/messaging';
+let messaging: Messaging | null = null;
 if (typeof window !== 'undefined') {
   try {
     // Only attempt to get messaging if supported and we're not in an iframe (optional but safer)
@@ -31,8 +32,9 @@ export interface User {
   displayName: string;
   photoURL?: string;
   role: 'devotee' | 'vendor' | 'admin';
+  vendorStatus?: 'none' | 'pending' | 'approved' | 'rejected';
   fcmToken?: string;
-  createdAt?: any;
+  createdAt?: string | { seconds: number; nanoseconds: number };
   provider?: 'email' | 'google' | 'facebook';
 }
 

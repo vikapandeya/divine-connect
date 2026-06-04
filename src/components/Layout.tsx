@@ -133,10 +133,17 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className={`min-h-screen font-sans transition-colors duration-300 overflow-x-hidden ${resolvedTheme === 'dark' ? 'dark text-stone-100' : 'text-stone-900'}`} style={{ backgroundColor: resolvedTheme === 'dark' ? '#0D0A1E' : '#FFFDF0' }}>
+      {/* Skip to main content — screen reader & keyboard nav */}
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[200] focus:bg-orange-500 focus:text-white focus:px-4 focus:py-2 focus:rounded-xl focus:font-bold">
+        Skip to main content
+      </a>
       <ThemePrompt />
       <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
       
       {/* Foreground Notification Toast */}
+      <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
+        {notification ? `${notification.title}: ${notification.body}` : ''}
+      </div>
       <AnimatePresence>
         {notification && (
           <motion.div
@@ -563,7 +570,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       </header>
 
       {/* Main Content */}
-      <main className="flex-grow pt-16">
+      <main id="main-content" className="flex-grow pt-16">
         {children}
       </main>
 
