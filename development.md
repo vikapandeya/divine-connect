@@ -103,29 +103,36 @@ The dev server runs `tsx server.ts` which mounts Vite as middleware — no separ
 
 ```
 src/
-├── pages/          # One component per route
-├── components/     # Shared UI (Layout, VedaAI, AuthModal, etc.)
+├── pages/          # 25 route-level components
+├── components/     # Shared UI (Layout, AuthModal, SchedulingCalendar, etc.)
+├── contexts/       # ThemeContext (light/dark/system)
+├── hooks/          # useAuth
 ├── lib/
-│   ├── db.ts       # DatabaseAdapter — add new queries here
-│   ├── astrology.ts
-│   └── panchangCalc.ts
-├── services/       # External API wrappers (Gemini, panchang)
-└── types.ts        # Shared TypeScript types
+│   ├── db.ts           # DatabaseAdapter + MySQLAdapter + FirestoreAdapter
+│   ├── validation.ts   # Zod schemas — imported by server.ts for request validation
+│   ├── i18n.ts         # i18next config + en/hi/sa translations
+│   ├── cart.ts         # localStorage cart helpers
+│   ├── wishlist.ts     # localStorage wishlist helpers
+│   ├── astrology.ts    # Kundli prompt builder
+│   └── panchangCalc.ts # Astronomical panchang
+├── services/       # External API wrappers (Gemini, panchang, naamJap)
+└── types.ts        # Shared TypeScript interfaces (AuthUser, Order, OrderItem, etc.)
 
-server.ts           # All Express routes (~2100 lines)
-database/seed.sql   # Sample data
+server.ts                  # All Express routes (~2,850 lines)
+database/seed.sql          # Idempotent seed — 40 products, pujas, yatras, feedback
+database/migrations/       # ALTER TABLE + CREATE INDEX migration scripts
 ```
 
 ---
 
 ## Adding a New API Route
 
-1. Open `server.ts`
-2. Find the relevant section (products, pujas, bookings, etc.)
+1. Open `server.ts` and find the relevant section
+2. Add a Zod schema to `src/lib/validation.ts` if the route accepts a request body
 3. Add your route with appropriate middleware:
    ```ts
-   app.get("/api/your-endpoint", requireAuth, async (req, res) => {
-     // ...
+   app.post("/api/your-endpoint", requireAuth, validate(yourSchema), async (req, res) => {
+     // req.body is type-safe and validated at this point
    });
    ```
 4. If MySQL: add the query method to `MySQLAdapter` in `src/lib/db.ts`

@@ -69,12 +69,18 @@ MYSQL_HOST=localhost
 MYSQL_USER=divineuser
 MYSQL_PASSWORD=your_strong_password
 MYSQL_DATABASE=divine_connect
+# REQUIRED — server exits at startup if this is missing or default in production
 JWT_SECRET=<64+ char random hex — run: openssl rand -hex 48>
 GEMINI_API_KEY=your_key
 OPENROUTER_API_KEY=your_key
 STRIPE_SECRET_KEY=your_key
 VITE_STRIPE_PUBLISHABLE_KEY=your_key
 VITE_APP_URL=https://yourdomain.com
+SMTP_HOST=smtp.yourmailprovider.com
+SMTP_PORT=587
+SMTP_USER=your_email@domain.com
+SMTP_PASS=your_smtp_password
+SMTP_FROM=noreply@punyaseva.in
 ```
 
 ### 5. Build
@@ -83,12 +89,17 @@ VITE_APP_URL=https://yourdomain.com
 npm run build
 ```
 
-### 6. Seed database
+### 6. Database seed & migrations
 
-The server auto-creates all tables on first boot. After it starts, run the seed:
+The server auto-creates all tables on first boot. After it starts, seed and apply migrations:
 
 ```bash
+# Seed 40 products, pujas, yatras, feedback (idempotent — safe to re-run)
 mysql -u divineuser -p divine_connect < database/seed.sql
+
+# Apply schema migrations (new columns, indexes, yatras table)
+mysql -u divineuser -p divine_connect < database/migrations/001_add_missing_columns_and_yatras.sql
+mysql -u divineuser -p divine_connect < database/migrations/002_add_performance_indexes.sql
 ```
 
 ### 7. Start with PM2
@@ -159,13 +170,12 @@ npm run build
 pm2 restart divine-connect --update-env
 ```
 
-If the database schema changed (new columns):
+If the database schema changed (new columns or tables):
 
 ```bash
-# Apply migrations manually, e.g.:
-mysql -u divineuser -p divine_connect -e "ALTER TABLE ..."
-# Or re-run seed if tables are new:
-mysql -u divineuser -p divine_connect < database/seed.sql
+# Run the relevant migration file
+mysql -u divineuser -p divine_connect < database/migrations/001_add_missing_columns_and_yatras.sql
+mysql -u divineuser -p divine_connect < database/migrations/002_add_performance_indexes.sql
 ```
 
 ---
@@ -223,9 +233,20 @@ tar -czf products_backup_$(date +%Y%m%d).tar.gz /var/www/html/divine-connect/pub
 
 ## TODO Before Public Launch
 
-- [ ] Add real Stripe keys (`STRIPE_SECRET_KEY` + `VITE_STRIPE_PUBLISHABLE_KEY`)
-- [ ] Wire OTP email delivery (nodemailer / SendGrid) in `POST /api/auth/request-password-reset`
-- [ ] Upgrade Gemini to a paid key (free tier quota exhausted)
-- [ ] Set up automated database backups (cron + S3 or similar)
+### Critical (P1)
+- [ ] Set real Stripe keys (`STRIPE_SECRET_KEY` + `VITE_STRIPE_PUBLISHABLE_KEY`)
+- [ ] Configure SMTP credentials for OTP email delivery (`SMTP_HOST`, `SMTP_USER`, `SMTP_PASS`)
+- [ ] Rotate any credentials that were previously exposed — see security audit notes
+
+### Recommended (P2)
+- [ ] Upgrade Gemini to a paid key (free-tier quota exhausted on heavy usage)
+- [ ] Set up automated database backups (cron + S3 or mysqldump to remote storage)
 - [ ] Configure PM2 log rotation: `pm2 install pm2-logrotate`
+- [ ] Restrict Firebase API key to specific domains in Google Cloud Console
+- [ ] Run `npm audit fix` after each Firebase Admin SDK update to clear transitive vulnerabilities
+
+### Infrastructure (P3)
 - [ ] Harden MySQL: disable remote root login, restrict `divineuser` to localhost only
+- [ ] Move product image uploads from local filesystem to S3/GCS for multi-instance scalability
+- [ ] Add Redis for distributed rate limiting and session caching
+- [ ] Set up Sentry or similar for error tracking and performance monitoring

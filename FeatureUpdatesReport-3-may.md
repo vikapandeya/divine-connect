@@ -1,6 +1,6 @@
 # 🚀 Feature Updates & Optimization Report
 
-> **Date:** May 3, 2026  
+> **Date:** May 3, 2026 — *Historical record. See `architecture.md` for current state.*
 > **Platform:** DivineConnect (PunyaSeva)  
 > **Environment:** Local Development (XAMPP / Node.js)
 

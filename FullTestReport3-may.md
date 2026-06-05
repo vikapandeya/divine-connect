@@ -1,6 +1,6 @@
 # 🧪 DivineConnect — Full Enhancement Test Report
 
-> **Generated:** 2026-05-03T07:03:31Z  
+> **Generated:** 2026-05-03T07:03:31Z — *Historical record. See `architecture.md` for current state.*
 > **Server:** http://localhost:3000 | **DB:** XAMPP MySQL (`divine`)  
 > **Runner:** `npx tsx scratch/full-test.ts`
 
